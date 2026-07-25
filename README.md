@@ -4,11 +4,13 @@
 [`irlume`](https://github.com/archledger/irlume) face-authentication engine on
 Fedora KDE.
 
-The repository is currently at **Phase 4: safe authentication activation**. It
+The repository is currently at **Phase 5: recovery, accessibility, and
+supportability**. It
 contains a discoverable Plasma 6 KCM, live Fedora and hardware diagnostics,
 guided profile management, a fixed-operation KAuth helper, transactional
 authentication planning and activation, post-apply verification, automatic
-rollback, and an in-product TTY recovery path.
+rollback, one-click verified disable, in-product TTY recovery, actionable error
+guidance, and redacted Markdown support-report export.
 
 Profile mutations are fail-closed behind irlume's proposed versioned JSON/JSONL
 integration contract. The current irlume 0.6.1 release does not publish that
@@ -42,8 +44,9 @@ See:
 - [Engine contract](docs/ENGINE-CONTRACT.md)
 - [Architecture boundary](docs/ARCHITECTURE.md)
 - [Upstream API request](docs/UPSTREAM-API-REQUEST.md)
-- [Phase 4 test matrix](docs/TEST-MATRIX.md)
+- [Phase 5 test matrix](docs/TEST-MATRIX.md)
 - [TTY recovery](docs/RECOVERY.md)
+- [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Fedora 44 KDE project plan](FEDORA_44_KDE_FACE_LOGIN_PROJECT_PLAN.md)
 
 ## Build and test

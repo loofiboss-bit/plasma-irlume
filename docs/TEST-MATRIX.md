@@ -1,4 +1,4 @@
-# Phase 4 test matrix
+# Phase 5 test matrix
 
 ## Automated contract coverage
 
@@ -38,9 +38,28 @@ The automated suite covers:
 - camera-busy retry and cancellation forwarding;
 - selected-profile deletion and rejection of cross-profile mutation results;
 - QML creation at 320, 480, and 960 pixel widths for every diagnostic state.
+- one-click disable routing through the fixed verified KAuth disable action;
+- actionable recovery guidance for every Phase 5 error code;
+- support-report removal of home/device/config paths, email addresses, secrets,
+  credentials, and biometric payload labels;
+- atomic Markdown export;
+- copyable TTY recovery instructions;
+- SDDM-to-Plasma Login Manager and reverse-migration drift detection before
+  mutation.
 
 Synthetic fixtures prove consumer behavior only. They are not evidence that a
 released irlume build implements the proposed machine contract.
+
+## Accessibility and localization gate
+
+Run QML lint and formatting checks, then inspect every page at 320, 480, and
+960 logical pixels. Interactive recovery controls have accessible names and
+descriptions, status is expressed in text as well as color, long labels wrap,
+and all user-visible strings use KDE translation functions.
+
+Manual release checks remain required with keyboard-only navigation, a screen
+reader, 100%, 125%, 150%, and 200% scaling, and both light and dark Plasma
+color schemes.
 
 The suite does not invoke Polkit, write PAM files, or mutate the host.
 

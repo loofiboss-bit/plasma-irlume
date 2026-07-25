@@ -150,6 +150,10 @@ PamStatus pamStatusFromOutput(const QString &output, const QString &displayManag
     int wired = 0;
     for (const QString &line : output.split(QLatin1Char('\n')))
     {
+        if (!line.contains(QStringLiteral("wired"), Qt::CaseInsensitive))
+        {
+            continue;
+        }
         const bool relevant = std::any_of(serviceNames.cbegin(), serviceNames.cend(),
                                           [&line](const QString &serviceName) { return line.contains(serviceName); });
         if (!relevant)
@@ -172,6 +176,21 @@ PamStatus pamStatusFromOutput(const QString &output, const QString &displayManag
         return PamStatus::NotConfigured;
     }
     return wired == present ? PamStatus::Clean : PamStatus::Drift;
+}
+
+bool displayManagerMigrationDetected(const QString &output, const QString &displayManager)
+{
+    const QString lower = output.toLower();
+    if (displayManager == QLatin1String("Plasma Login Manager"))
+    {
+        return lower.contains(QRegularExpression(QStringLiteral(R"((?:^|\n)[^\n]*sddm[^\n]*wired)")));
+    }
+    if (displayManager == QLatin1String("SDDM"))
+    {
+        return lower.contains(
+            QRegularExpression(QStringLiteral(R"((?:^|\n)[^\n]*(?:plasmalogin|plasma-login-manager)[^\n]*wired)")));
+    }
+    return false;
 }
 
 SecureBootStatus secureBootStatus(const SystemProbeInputs &inputs)
@@ -386,6 +405,12 @@ SystemStateSnapshot SystemProbe::evaluate(const SystemProbeInputs &inputs)
     }
 
     state.pamStatus = pamStatusFromOutput(inputs.irlumeLoginStatusOutput, state.activeDisplayManager);
+    const bool displayManagerMigration =
+        displayManagerMigrationDetected(inputs.irlumeLoginStatusOutput, state.activeDisplayManager);
+    if (displayManagerMigration)
+    {
+        state.pamStatus = PamStatus::Drift;
+    }
 
     if (distribution != QStringLiteral("fedora") || state.fedoraVersion != QStringLiteral("44"))
     {
@@ -408,6 +433,21 @@ SystemStateSnapshot SystemProbe::evaluate(const SystemProbeInputs &inputs)
         state.headline = translate("The irlume service needs attention");
         state.summary = translate("The engine is installed, but its background service is not reachable.");
         state.issueCode = QStringLiteral("daemon-unhealthy");
+    }
+    else if (displayManagerMigration)
+    {
+        state.securityTier = SecurityTier::Unsupported;
+        state.headline = translate("A display-manager migration needs attention");
+        state.summary = translate(
+            "Face Login detected wiring for the previous display manager and will not rewrite it automatically.");
+        state.issueCode = QStringLiteral("display-manager-migration");
+    }
+    else if (state.pamStatus == PamStatus::Drift)
+    {
+        state.securityTier = SecurityTier::Unsupported;
+        state.headline = translate("Authentication configuration has drifted");
+        state.summary = translate("The observed PAM state does not match the active display manager.");
+        state.issueCode = QStringLiteral("pam-drift");
     }
     else if (state.cameraType == CameraType::Infrared && state.livenessStatus == CapabilityStatus::Available)
     {

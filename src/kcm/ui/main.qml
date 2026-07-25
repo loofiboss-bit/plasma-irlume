@@ -4,7 +4,6 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kcmutils as KCMUtils
-import org.kde.kirigami as Kirigami
 
 KCMUtils.SimpleKCM {
     id: root
@@ -17,33 +16,40 @@ KCMUtils.SimpleKCM {
 
         width: parent.width
         Accessible.name: i18n("Face Login sections")
-        KeyNavigation.down: currentIndex === 0 ? overview
-            : (currentIndex === 1 ? enrollment
-                : (currentIndex === 2 ? authentication
-                    : (currentIndex === 3 ? security : diagnostics)))
+        KeyNavigation.down: currentIndex === 0 ? overview : (currentIndex === 1 ? enrollment : (currentIndex === 2 ? authentication : (currentIndex === 3 ? security : diagnostics)))
 
         QQC2.TabButton {
             text: i18n("Overview")
+            icon.name: "view-dashboard"
+            display: tabs.width < 520 ? QQC2.AbstractButton.IconOnly : QQC2.AbstractButton.TextOnly
             Accessible.name: text
         }
 
         QQC2.TabButton {
             text: i18n("Face profile")
+            icon.name: "user-identity"
+            display: tabs.width < 520 ? QQC2.AbstractButton.IconOnly : QQC2.AbstractButton.TextOnly
             Accessible.name: text
         }
 
         QQC2.TabButton {
             text: i18n("Authentication")
+            icon.name: "preferences-system-login"
+            display: tabs.width < 520 ? QQC2.AbstractButton.IconOnly : QQC2.AbstractButton.TextOnly
             Accessible.name: text
         }
 
         QQC2.TabButton {
             text: i18n("Security")
+            icon.name: "security-high"
+            display: tabs.width < 520 ? QQC2.AbstractButton.IconOnly : QQC2.AbstractButton.TextOnly
             Accessible.name: text
         }
 
         QQC2.TabButton {
             text: i18n("Diagnostics")
+            icon.name: "tools-report-bug"
+            display: tabs.width < 520 ? QQC2.AbstractButton.IconOnly : QQC2.AbstractButton.TextOnly
             Accessible.name: text
         }
     }
@@ -97,6 +103,8 @@ KCMUtils.SimpleKCM {
             visible: tabs.currentIndex === 4
             enabled: visible
             systemState: kcm.systemState
+            authConfiguration: kcm.authConfiguration
+            supportReport: kcm.supportReport
             refresh: () => kcm.refresh()
         }
     }

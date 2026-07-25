@@ -42,6 +42,7 @@ class AuthConfigurationTest final : public QObject
     void recoveryMustBeAcknowledged();
     void previewAndVerifiedMutationUpdateState();
     void automaticRollbackIsReported();
+    void emergencyDisableUsesFixedVerifiedAction();
 };
 
 void AuthConfigurationTest::secureStateEnablesBothScopes()
@@ -158,6 +159,22 @@ void AuthConfigurationTest::automaticRollbackIsReported()
     QVERIFY(configuration.rollbackRestored());
     QVERIFY(!configuration.loginScreenEnabled());
     QVERIFY(configuration.statusText().contains(QStringLiteral("restored"), Qt::CaseInsensitive));
+}
+
+void AuthConfigurationTest::emergencyDisableUsesFixedVerifiedAction()
+{
+    FakeSystemStateAdapter adapter;
+    SystemState state;
+    state.apply(adapter.stateForScenario(FakeSystemStateAdapter::SecureIr));
+    FakeAuthActionRunner runner;
+    AuthConfiguration configuration(&state, &runner);
+
+    configuration.disableNow();
+
+    QCOMPARE(runner.calls.size(), 1);
+    QCOMPARE(runner.calls.constFirst().action, AuthAction::Disable);
+    QVERIFY(runner.calls.constFirst().arguments.isEmpty());
+    QVERIFY(configuration.busy());
 }
 
 QTEST_GUILESS_MAIN(AuthConfigurationTest)

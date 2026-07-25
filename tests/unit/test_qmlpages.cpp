@@ -3,6 +3,7 @@
 #include "authconfiguration.h"
 #include "fakeadapter.h"
 #include "profilemodel.h"
+#include "supportreport.h"
 #include "systemstate.h"
 
 #include <KLocalizedQmlContext>
@@ -67,6 +68,7 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
         state.apply(adapter.stateForScenario(index));
         NullAuthActionRunner authRunner;
         AuthConfiguration authConfiguration(&state, &authRunner);
+        SupportReport supportReport(&state, &profileModel, &authConfiguration);
 
         const QVariant stateValue = QVariant::fromValue(&state);
         auto overview =
@@ -93,7 +95,12 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
         QVERIFY2(authentication, qPrintable(QStringLiteral("Authentication failed for scenario %1").arg(index)));
 
         auto diagnostics =
-            createPage(engine, QStringLiteral("DiagnosticsPage.qml"), {{QStringLiteral("systemState"), stateValue}});
+            createPage(engine, QStringLiteral("DiagnosticsPage.qml"),
+                       {
+                           {QStringLiteral("systemState"), stateValue},
+                           {QStringLiteral("authConfiguration"), QVariant::fromValue(&authConfiguration)},
+                           {QStringLiteral("supportReport"), QVariant::fromValue(&supportReport)},
+                       });
         QVERIFY2(diagnostics, qPrintable(QStringLiteral("Diagnostics failed for scenario %1").arg(index)));
 
         auto *overviewItem = qobject_cast<QQuickItem *>(overview.get());

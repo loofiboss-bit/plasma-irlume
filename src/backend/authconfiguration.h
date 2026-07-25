@@ -63,6 +63,7 @@ class AuthConfiguration final : public QObject
     Q_INVOKABLE void enableLockScreen();
     Q_INVOKABLE void enableLoginScreen();
     Q_INVOKABLE void disable();
+    Q_INVOKABLE void disableNow();
     Q_INVOKABLE void rollbackLastTransaction();
 
   Q_SIGNALS:

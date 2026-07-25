@@ -6,7 +6,8 @@
 
 IrlumeKcm::IrlumeKcm(QObject *parent, const KPluginMetaData &data)
     : KQuickConfigModule(parent, data), m_systemState(this), m_profileModel(this),
-      m_authConfiguration(&m_systemState, this)
+      m_authConfiguration(&m_systemState, this),
+      m_supportReport(&m_systemState, &m_profileModel, &m_authConfiguration, this)
 {
     setButtons(NoAdditionalButton);
     connect(&m_profileModel, &ProfileModel::profilesChanged, this, &IrlumeKcm::refresh);
@@ -28,6 +29,11 @@ ProfileModel *IrlumeKcm::profileModel()
 AuthConfiguration *IrlumeKcm::authConfiguration()
 {
     return &m_authConfiguration;
+}
+
+SupportReport *IrlumeKcm::supportReport()
+{
+    return &m_supportReport;
 }
 
 void IrlumeKcm::refresh()

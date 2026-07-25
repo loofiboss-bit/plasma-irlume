@@ -10,6 +10,8 @@ ColumnLayout {
     id: root
 
     required property var systemState
+    required property var authConfiguration
+    required property var supportReport
     property var refresh: () => {}
 
     spacing: Kirigami.Units.largeSpacing
@@ -19,6 +21,99 @@ ColumnLayout {
         visible: true
         type: Kirigami.MessageType.Information
         text: i18n("Diagnostics are read-only. Refreshing runs fixed local probes and never modifies authentication.")
+    }
+
+    Kirigami.InlineMessage {
+        Layout.fillWidth: true
+        visible: supportReport.hasIssue
+        type: supportReport.issueCode === "rollback-failed" ? Kirigami.MessageType.Error : Kirigami.MessageType.Warning
+        text: supportReport.issueTitle + "\n" + supportReport.recommendedAction
+        Accessible.name: i18n("Recommended recovery action")
+    }
+
+    Kirigami.AbstractCard {
+        Layout.fillWidth: true
+        Accessible.role: Accessible.Grouping
+        Accessible.name: i18n("Emergency disable")
+
+        contentItem: ColumnLayout {
+            spacing: Kirigami.Units.smallSpacing
+
+            QQC2.Label {
+                Layout.fillWidth: true
+                text: i18n("Emergency disable")
+                font.weight: Font.DemiBold
+                wrapMode: Text.Wrap
+            }
+
+            QQC2.Label {
+                Layout.fillWidth: true
+                text: i18n("While this desktop session is open, ask irlume to disable all Face Login integration and verify that password fallback remains available.")
+                color: Kirigami.Theme.disabledTextColor
+                wrapMode: Text.Wrap
+            }
+
+            QQC2.Button {
+                Layout.alignment: Qt.AlignRight
+                text: authConfiguration.busy ? i18n("Disabling…") : i18n("Disable Face Login now")
+                icon.name: "security-low"
+                enabled: authConfiguration.canDisable && !authConfiguration.busy
+                Accessible.name: text
+                Accessible.description: i18n("Runs the fixed verified disable operation immediately")
+                onClicked: authConfiguration.disableNow()
+            }
+
+            QQC2.Label {
+                Layout.fillWidth: true
+                visible: authConfiguration.statusText.length > 0
+                text: authConfiguration.statusText
+                color: authConfiguration.errorCode.length > 0 ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.disabledTextColor
+                wrapMode: Text.Wrap
+                Accessible.role: Accessible.StaticText
+            }
+        }
+    }
+
+    Kirigami.AbstractCard {
+        Layout.fillWidth: true
+        Accessible.role: Accessible.Grouping
+        Accessible.name: i18n("TTY recovery")
+
+        contentItem: ColumnLayout {
+            spacing: Kirigami.Units.smallSpacing
+
+            QQC2.Label {
+                Layout.fillWidth: true
+                text: i18n("TTY recovery")
+                font.weight: Font.DemiBold
+                wrapMode: Text.Wrap
+            }
+
+            QQC2.Label {
+                Layout.fillWidth: true
+                text: i18n("Keep these instructions available before logging out or rebooting.")
+                color: Kirigami.Theme.disabledTextColor
+                wrapMode: Text.Wrap
+            }
+
+            QQC2.TextArea {
+                Layout.fillWidth: true
+                Layout.minimumHeight: Kirigami.Units.gridUnit * 8
+                text: supportReport.recoveryInstructions
+                readOnly: true
+                selectByMouse: true
+                wrapMode: TextEdit.Wrap
+                Accessible.name: i18n("TTY recovery instructions")
+            }
+
+            QQC2.Button {
+                Layout.alignment: Qt.AlignRight
+                text: i18n("Copy recovery instructions")
+                icon.name: "edit-copy"
+                Accessible.name: text
+                onClicked: supportReport.copyRecoveryInstructions()
+            }
+        }
     }
 
     Kirigami.AbstractCard {
@@ -133,8 +228,7 @@ ColumnLayout {
                 Layout.fillWidth: true
                 label: i18n("Template protection")
                 value: systemState.templateProtectionStatusLabel
-                tone: systemState.templateProtectionStatus === 0 ? 1
-                    : (systemState.templateProtectionStatus === 1 ? 2 : 0)
+                tone: systemState.templateProtectionStatus === 0 ? 1 : (systemState.templateProtectionStatus === 1 ? 2 : 0)
             }
 
             Kirigami.Separator {
@@ -166,19 +260,48 @@ ColumnLayout {
             QQC2.TextArea {
                 Layout.fillWidth: true
                 Layout.minimumHeight: Kirigami.Units.gridUnit * 10
-                text: systemState.supportReport
+                text: supportReport.report
                 readOnly: true
                 selectByMouse: true
                 wrapMode: TextEdit.Wrap
                 Accessible.name: i18n("Redacted support report")
+            }
+
+            Flow {
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+
+                QQC2.Button {
+                    text: i18n("Copy report")
+                    icon.name: "edit-copy"
+                    Accessible.name: text
+                    onClicked: supportReport.copyReport()
+                }
+
+                QQC2.Button {
+                    text: i18n("Export report")
+                    icon.name: "document-save"
+                    Accessible.name: text
+                    Accessible.description: i18n("Saves a redacted Markdown report in Documents")
+                    onClicked: supportReport.exportReport()
+                }
+            }
+
+            QQC2.Label {
+                Layout.fillWidth: true
+                visible: supportReport.statusText.length > 0
+                text: supportReport.statusText
+                color: Kirigami.Theme.disabledTextColor
+                wrapMode: Text.Wrap
+                Accessible.role: Accessible.StaticText
             }
         }
     }
 
     Kirigami.InlineMessage {
         Layout.fillWidth: true
-        visible: systemState.issueCode.length > 0
+        visible: supportReport.hasIssue
         type: Kirigami.MessageType.Warning
-        text: i18n("Diagnostic code: %1", systemState.issueCode)
+        text: i18n("Diagnostic code: %1", supportReport.issueCode)
     }
 }

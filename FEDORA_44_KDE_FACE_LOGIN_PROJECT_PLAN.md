@@ -550,6 +550,10 @@ feat: add transactional face-auth activation and rollback
 
 ## Phase 5 — Recovery, Accessibility, and Supportability
 
+**Implementation status:** Complete in the KCM. Recovery and support features
+remain available when profile or authentication mutation is blocked by the
+structured engine-contract gate.
+
 ### Objective and user value
 
 Make failures understandable and recoverable without searching online from another device.

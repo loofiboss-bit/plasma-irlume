@@ -1,6 +1,6 @@
 # Architecture
 
-## Phase 4 status
+## Phase 5 status
 
 The KCM provides live, read-only Fedora, Plasma, display-manager, Secure Boot,
 TPM, and irlume diagnostics. `SystemProbe` collects local platform facts and
@@ -17,6 +17,25 @@ Deterministic adapters and contract fixtures remain test-only.
 `KAuthActionRunner` is the only unprivileged-to-privileged boundary. The
 root-owned `AuthHelper` exposes six fixed actions: preview, lock-screen enable,
 login-screen enable, disable, verify, and rollback.
+
+`SupportReport` provides the Phase 5 recovery boundary. It consumes only typed
+state from `SystemState`, `ProfileModel`, and `AuthConfiguration`. It maps
+bounded error codes to localized recovery actions, creates a redacted Markdown
+report, copies recovery text through the desktop clipboard, and writes exports
+atomically to the user's Documents directory. It never consumes raw irlume
+stdout, journal entries, profile names, camera paths, or biometric data.
+
+The Diagnostics page can request an immediate disable through
+`AuthConfiguration::disableNow()`. This bypasses the optional UI preview, not
+the security boundary: the same fixed KAuth disable action regenerates and
+validates an irlume plan, applies it, verifies password fallback, and reports
+failure without accepting QML arguments.
+
+Display-manager migration is detected read-only. If the active Plasma Login
+Manager has stale SDDM wiring, or the active SDDM has stale Plasma Login Manager
+wiring, the state becomes `display-manager-migration` and activation remains
+blocked until the old integration is disabled. The KCM never rewrites the
+migration automatically.
 
 ## Read-only diagnostic boundary
 

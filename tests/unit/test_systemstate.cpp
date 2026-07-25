@@ -20,6 +20,7 @@ class SystemStateTest final : public QObject
     void liveProbeRestrictsRgbHardware();
     void liveProbeRejectsUnsupportedEngine();
     void liveProbeRejectsUnsupportedPlatform();
+    void liveProbeDetectsDisplayManagerMigration();
     void supportReportIsRedacted();
     void hostProbeProducesSafeSnapshot();
 };
@@ -151,6 +152,10 @@ void SystemStateTest::liveProbeRestrictsRgbHardware()
     inputs.irlumeStatusOutput = QStringLiteral("  daemon        : running ✅\n"
                                                "  enrollment    : none ⚠\n"
                                                "  cameras       : rgb=/dev/video0 ir=none\n");
+    inputs.irlumeLoginStatusOutput = QStringLiteral("[login] wiring status (face auth in PAM):\n"
+                                                    "  active login manager: sddm\n"
+                                                    "  /etc/pam.d/sddm                ● wired (face-first)\n"
+                                                    "  /etc/pam.d/kde                 ● wired\n");
 
     const auto state = SystemProbe::evaluate(inputs);
     QCOMPARE(state.activeDisplayManager, QStringLiteral("SDDM"));
@@ -179,6 +184,22 @@ void SystemStateTest::liveProbeRejectsUnsupportedPlatform()
     const auto state = SystemProbe::evaluate(inputs);
     QCOMPARE(state.securityTier, SystemStateSnapshot::SecurityTier::Unsupported);
     QCOMPARE(state.issueCode, QStringLiteral("platform-unsupported"));
+}
+
+void SystemStateTest::liveProbeDetectsDisplayManagerMigration()
+{
+    auto inputs = secureProbeInputs();
+    inputs.irlumeLoginStatusOutput = QStringLiteral("[login] wiring status (face auth in PAM):\n"
+                                                    "  active login manager: plasmalogin\n"
+                                                    "  /etc/pam.d/plasmalogin          ● wired (face-first)\n"
+                                                    "  /etc/pam.d/kde                  ● wired\n"
+                                                    "  /etc/pam.d/sddm                 ● wired (stale)\n");
+
+    const auto state = SystemProbe::evaluate(inputs);
+
+    QCOMPARE(state.pamStatus, SystemStateSnapshot::PamStatus::Drift);
+    QCOMPARE(state.securityTier, SystemStateSnapshot::SecurityTier::Unsupported);
+    QCOMPARE(state.issueCode, QStringLiteral("display-manager-migration"));
 }
 
 void SystemStateTest::supportReportIsRedacted()

@@ -15,6 +15,9 @@ not part of version 1.0.
 
 ## Recover from a TTY
 
+These instructions are intentionally self-contained. They do not require a web
+browser, a graphical session, or access to this repository.
+
 1. Press `Ctrl+Alt+F3` to open a text console.
 2. Sign in with the existing password.
 3. Run:
@@ -35,6 +38,25 @@ not part of version 1.0.
 
 Do not edit `/etc/pam.d`, `/usr/lib/pam.d`, `system-auth`, or display-manager PAM
 files manually. The recovery command lets irlume restore only the state it owns.
+
+## Recover from an active desktop session
+
+Open **System Settings → Face Login → Diagnostics** and select **Disable Face
+Login now**. The KCM sends no path, username, or shell command. Its fixed KAuth
+disable operation asks irlume to regenerate a clean-state plan, applies it, and
+verifies password fallback.
+
+Keep the session open until the KCM confirms success. If it cannot confirm
+rollback or disable, copy the TTY instructions from the same page and use them
+before logging out or rebooting.
+
+## Display-manager migration
+
+After an upgrade from SDDM to Plasma Login Manager, or the reverse, refresh
+Diagnostics before enabling Face Login. If stale wiring for the previous
+display manager is detected, activation is blocked. Disable the old integration
+first, refresh, and preview a new plan. The KCM does not migrate or rewrite PAM
+state automatically.
 
 ## Automatic rollback
 

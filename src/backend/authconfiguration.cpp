@@ -230,6 +230,19 @@ void AuthConfiguration::disable()
     startMutation(AuthAction::Disable);
 }
 
+void AuthConfiguration::disableNow()
+{
+    if (!canDisable())
+    {
+        finishLocalError(QStringLiteral("preflight-failed"),
+                         translate("Face authentication cannot be disabled safely from this session."));
+        return;
+    }
+    m_previewAvailable = false;
+    m_previewScope.clear();
+    startMutation(AuthAction::Disable);
+}
+
 void AuthConfiguration::rollbackLastTransaction()
 {
     if (m_busy || m_lastTransactionId.isEmpty())
