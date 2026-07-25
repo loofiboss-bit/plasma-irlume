@@ -4,18 +4,19 @@
 [`irlume`](https://github.com/archledger/irlume) face-authentication engine on
 Fedora KDE.
 
-The repository is currently at **Phase 3: native enrollment and profile
-management**. It contains a discoverable Plasma 6 KCM, live Fedora and hardware
-diagnostics, a strict structured irlume process adapter, a typed `ProfileModel`,
-and guided enrollment, recognition testing, appearance-scan, cancellation,
-camera-recovery, and profile-deletion flows.
+The repository is currently at **Phase 4: safe authentication activation**. It
+contains a discoverable Plasma 6 KCM, live Fedora and hardware diagnostics,
+guided profile management, a fixed-operation KAuth helper, transactional
+authentication planning and activation, post-apply verification, automatic
+rollback, and an in-product TTY recovery path.
 
 Profile mutations are fail-closed behind irlume's proposed versioned JSON/JSONL
 integration contract. The current irlume 0.6.1 release does not publish that
 contract, so installed 0.6.x systems show profile management as unavailable
-instead of parsing human output or using the private daemon protocol. There is
-still no privileged helper or PAM mutation; the KCM cannot change
-authentication.
+instead of parsing human output or using the private daemon protocol.
+Authentication mutations use the same fail-closed policy: irlume 0.6.1 does
+not advertise `login-transactions`, so the KCM cannot apply a live
+authentication change on that release.
 
 ## Engine compatibility
 
@@ -24,25 +25,31 @@ diagnostic adapter invokes only fixed commands (`--version`, `status`, `doctor`,
 and `login status`), parses a narrow set of known fields defensively, and fails
 closed for other versions or malformed output.
 
-Phase 3's mutation adapter invokes only fixed machine-mode commands, validates
+The mutation adapters invoke only fixed machine-mode commands and validate
 contract version, command, operation ID, monotonic sequence, terminal event,
 bounded output, safe opaque profile IDs, and the absence of sensitive fields.
-It never displays or stores frames and never accepts a username, executable,
-path, or free-form argument from QML. Enrollment is tested automatically; an
+They never display or store frames and never accept a username, executable,
+PAM path, or free-form command from QML. Enrollment is tested automatically; an
 unverified new profile is deleted through the same typed contract.
+
+Authentication activation is an irlume-owned plan → apply → verify transaction.
+The privileged helper validates Fedora 44, the active display manager,
+enrollment, password fallback, and Secure-tier eligibility. Failed verification
+triggers rollback before an error reaches the KCM.
 
 See:
 
 - [Engine contract](docs/ENGINE-CONTRACT.md)
 - [Architecture boundary](docs/ARCHITECTURE.md)
 - [Upstream API request](docs/UPSTREAM-API-REQUEST.md)
-- [Phase 3 test matrix](docs/TEST-MATRIX.md)
+- [Phase 4 test matrix](docs/TEST-MATRIX.md)
+- [TTY recovery](docs/RECOVERY.md)
 - [Fedora 44 KDE project plan](FEDORA_44_KDE_FACE_LOGIN_PROJECT_PLAN.md)
 
 ## Build and test
 
 Required development packages include Qt 6, Extra CMake Modules, and the KF6
-CoreAddons, I18n, Kirigami, and KCMUtils development packages.
+Auth, CoreAddons, I18n, Kirigami, and KCMUtils development packages.
 
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug

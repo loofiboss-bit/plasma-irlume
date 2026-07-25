@@ -1,6 +1,6 @@
 # Architecture
 
-## Phase 3 status
+## Phase 4 status
 
 The KCM provides live, read-only Fedora, Plasma, display-manager, Secure Boot,
 TPM, and irlume diagnostics. `SystemProbe` collects local platform facts and
@@ -12,6 +12,11 @@ workflow behind a versioned machine-contract gate. The current irlume 0.6.1
 release does not publish that contract, so production refuses mutation until a
 reviewed upstream release advertises both `profiles-json` and `events-jsonl`.
 Deterministic adapters and contract fixtures remain test-only.
+
+`AuthConfiguration` provides Phase 4 UI state and eligibility policy.
+`KAuthActionRunner` is the only unprivileged-to-privileged boundary. The
+root-owned `AuthHelper` exposes six fixed actions: preview, lock-screen enable,
+login-screen enable, disable, verify, and rollback.
 
 ## Read-only diagnostic boundary
 
@@ -81,11 +86,34 @@ Cancellation is considered successful only after a typed terminal cancellation
 event; an unconfirmed process exit is reported as unknown rather than claiming
 the camera was released.
 
-There is still no KAuth helper. Profile operations run as the desktop user and
-irlumed remains responsible for camera and biometric-template access. The GUI
-cannot edit PAM, start services, or change authentication.
+Profile operations continue to run as the desktop user. Authentication
+activation uses a separate boundary:
 
-Future authentication phases must retain these controls:
+```text
+AuthenticationPage
+  -> AuthConfiguration
+    -> KAuthActionRunner
+      -> root AuthHelper
+        -> fixed irlume plan/apply/verify/rollback commands
+          -> irlume owns PAM mutation and transaction recovery
+```
+
+The helper validates the structured engine capability, Fedora 44, independently
+detects the active display manager from systemd, and checks enrollment, password
+fallback, and requested security tier. The engine-reported display manager must
+match that local result. Lock-screen plans may target only `pam-service:kde`;
+login-screen plans may target only the active login manager; disable may target
+those two services. A successful apply is not reported until daemon, exact
+PAM-target, desired-state, and password-fallback checks pass. Failed
+verification invokes engine-owned rollback.
+
+The UI requires a successful read-only preview for the selected scope before
+enabling Apply. The helper does not trust or reuse that preview: it regenerates
+and validates a fresh state-bound plan inside the privileged transaction.
+
+The GUI and helper never edit PAM files directly, never accept executable or
+shell strings, and cannot enable face authentication for sudo or Polkit. The
+implementation retains these controls:
 
 - fixed operation enums instead of arbitrary commands;
 - no GUI or general backend running as root;

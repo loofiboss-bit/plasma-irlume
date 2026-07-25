@@ -111,9 +111,10 @@ image. Events must never contain frame data, embeddings, or credentials.
 Please provide a machine contract for:
 
 ```text
-irlume login enable --json
+irlume login enable --scope lock-screen --json
+irlume login enable --scope login-screen --json
 irlume login disable --json
-irlume login enable --apply --plan-id <id> --json
+irlume login enable --scope <lock-screen|login-screen> --apply --plan-id <id> --json
 irlume login disable --apply --plan-id <id> --json
 irlume login verify --transaction-id <id> --json
 irlume login rollback --transaction-id <id> --apply --json

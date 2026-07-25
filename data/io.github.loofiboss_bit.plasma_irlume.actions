@@ -1,0 +1,37 @@
+[Domain]
+Name=Face Login
+Icon=preferences-desktop-user
+
+[io.github.loofibossbit.plasmairlume.helper.preview]
+Name=Preview face authentication changes
+Description=Inspect the planned face authentication configuration without changing the system
+Policy=yes
+
+[io.github.loofibossbit.plasmairlume.helper.enablelockscreen]
+Name=Enable face unlock on the lock screen
+Description=Modify the active lock-screen authentication service through irlume
+Policy=auth_admin
+Persistence=session
+
+[io.github.loofibossbit.plasmairlume.helper.enableloginscreen]
+Name=Enable face authentication on the login screen
+Description=Modify the active login-screen authentication service through irlume
+Policy=auth_admin
+Persistence=session
+
+[io.github.loofibossbit.plasmairlume.helper.disable]
+Name=Disable face authentication
+Description=Remove irlume-managed face authentication from login and lock screens
+Policy=auth_admin
+Persistence=session
+
+[io.github.loofibossbit.plasmairlume.helper.verify]
+Name=Verify face authentication
+Description=Verify daemon, PAM, and password fallback state through irlume
+Policy=yes
+
+[io.github.loofibossbit.plasmairlume.helper.rollback]
+Name=Roll back face authentication changes
+Description=Restore the irlume transaction's previous authentication configuration
+Policy=auth_admin
+Persistence=session

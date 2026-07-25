@@ -1,4 +1,4 @@
-# Phase 3 test matrix
+# Phase 4 test matrix
 
 ## Automated contract coverage
 
@@ -14,6 +14,19 @@ python3 -m unittest discover -s tests -p 'test_*.py'
 
 The automated suite covers:
 
+- fixed KAuth action IDs and fixed irlume argument construction;
+- rejection of arbitrary scopes, executable paths, shell strings, PAM paths,
+  users, and unsafe opaque IDs;
+- Fedora 44, supported display-manager, profile, password-fallback, and
+  Secure-tier preflight;
+- rejection of an SDDM plan on Plasma Login Manager and vice versa;
+- plan/apply/verify lineage and required daemon, PAM, desired-state, and
+  password-fallback checks;
+- automatic rollback after an injected post-apply verification failure;
+- engine-reported rollback without a duplicate rollback attempt;
+- RGB Convenience gating to lock-screen only;
+- a successful matching preview before enable or disable;
+- recovery-command acknowledgement before the first enable;
 - fixed machine-mode commands with no shell, username, path, or free-form QML
   arguments;
 - contract version, command, engine version, operation ID, sequence, terminal
@@ -29,6 +42,8 @@ The automated suite covers:
 Synthetic fixtures prove consumer behavior only. They are not evidence that a
 released irlume build implements the proposed machine contract.
 
+The suite does not invoke Polkit, write PAM files, or mutate the host.
+
 ## Live contract gate
 
 Before enabling a new irlume release:
@@ -41,6 +56,8 @@ Before enabling a new irlume release:
 4. Verify exact capability names, command spelling, exit codes, cancellation,
    atomic cleanup, and selected-profile deletion against upstream tests.
 5. Review the release and explicitly update the accepted engine version range.
+6. Run plan/apply/verify/rollback failure injection in a disposable Fedora 44
+   VM before enabling the release in production.
 
 Human-oriented 0.6.x output, private daemon responses, and the presence of
 similarly named CLI commands do not pass this gate.

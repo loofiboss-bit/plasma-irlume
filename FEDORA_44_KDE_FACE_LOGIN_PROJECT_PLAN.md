@@ -461,6 +461,11 @@ feat: add guided face enrollment and profile management
 
 ## Phase 4 — Safe Authentication Activation
 
+**Implementation status:** Complete in the KCM and KAuth helper behind the
+required structured contract gate. irlume 0.6.1 does not advertise
+`login-transactions`, so live authentication mutation remains unavailable until
+a reviewed upstream release provides the contract.
+
 ### Objective and user value
 
 Enable face login and lock-screen unlock without risking a permanent lockout.

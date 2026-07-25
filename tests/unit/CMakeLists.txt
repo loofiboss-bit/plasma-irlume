@@ -34,6 +34,30 @@ target_link_libraries(test_profilemodel
 
 add_test(NAME profilemodel COMMAND test_profilemodel)
 
+add_executable(test_authhelper test_authhelper.cpp)
+
+target_compile_definitions(test_authhelper PRIVATE
+    IRLUME_SOURCE_DIR="${PROJECT_SOURCE_DIR}"
+)
+
+target_link_libraries(test_authhelper
+    irlume_auth_helper
+    Qt6::Core
+    Qt6::Test
+)
+
+add_test(NAME authhelper COMMAND test_authhelper)
+
+add_executable(test_authconfiguration test_authconfiguration.cpp)
+
+target_link_libraries(test_authconfiguration
+    irlume_backend
+    Qt6::Core
+    Qt6::Test
+)
+
+add_test(NAME authconfiguration COMMAND test_authconfiguration)
+
 add_executable(test_qmlpages test_qmlpages.cpp)
 
 target_compile_definitions(test_qmlpages PRIVATE

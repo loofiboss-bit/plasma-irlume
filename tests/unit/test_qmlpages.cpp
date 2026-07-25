@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "authconfiguration.h"
 #include "fakeadapter.h"
 #include "profilemodel.h"
 #include "systemstate.h"
@@ -22,6 +23,17 @@ class QmlPagesTest final : public QObject
 
 namespace
 {
+class NullAuthActionRunner final : public AuthActionRunner
+{
+  public:
+    using AuthActionRunner::AuthActionRunner;
+
+    bool start(AuthAction, const QVariantMap &) override
+    {
+        return false;
+    }
+};
+
 std::unique_ptr<QObject> createPage(QQmlEngine &engine, const QString &fileName, const QVariantMap &properties)
 {
     const QString path = QStringLiteral(IRLUME_SOURCE_DIR "/src/kcm/ui/") + fileName;
@@ -53,6 +65,8 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
     {
         SystemState state;
         state.apply(adapter.stateForScenario(index));
+        NullAuthActionRunner authRunner;
+        AuthConfiguration authConfiguration(&state, &authRunner);
 
         const QVariant stateValue = QVariant::fromValue(&state);
         auto overview =
@@ -70,6 +84,14 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
                                      });
         QVERIFY2(enrollment, qPrintable(QStringLiteral("Enrollment failed for scenario %1").arg(index)));
 
+        auto authentication =
+            createPage(engine, QStringLiteral("AuthenticationPage.qml"),
+                       {
+                           {QStringLiteral("systemState"), stateValue},
+                           {QStringLiteral("authConfiguration"), QVariant::fromValue(&authConfiguration)},
+                       });
+        QVERIFY2(authentication, qPrintable(QStringLiteral("Authentication failed for scenario %1").arg(index)));
+
         auto diagnostics =
             createPage(engine, QStringLiteral("DiagnosticsPage.qml"), {{QStringLiteral("systemState"), stateValue}});
         QVERIFY2(diagnostics, qPrintable(QStringLiteral("Diagnostics failed for scenario %1").arg(index)));
@@ -78,21 +100,25 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
         auto *securityItem = qobject_cast<QQuickItem *>(security.get());
         auto *enrollmentItem = qobject_cast<QQuickItem *>(enrollment.get());
         auto *diagnosticsItem = qobject_cast<QQuickItem *>(diagnostics.get());
+        auto *authenticationItem = qobject_cast<QQuickItem *>(authentication.get());
         QVERIFY(overviewItem);
         QVERIFY(securityItem);
         QVERIFY(enrollmentItem);
         QVERIFY(diagnosticsItem);
+        QVERIFY(authenticationItem);
         for (const int width : {320, 480, 960})
         {
             overviewItem->setSize(QSizeF(width, 720));
             securityItem->setSize(QSizeF(width, 720));
             enrollmentItem->setSize(QSizeF(width, 720));
             diagnosticsItem->setSize(QSizeF(width, 720));
+            authenticationItem->setSize(QSizeF(width, 720));
             QCoreApplication::processEvents();
             QVERIFY(overviewItem->implicitHeight() > 0);
             QVERIFY(securityItem->implicitHeight() > 0);
             QVERIFY(enrollmentItem->implicitHeight() > 0);
             QVERIFY(diagnosticsItem->implicitHeight() > 0);
+            QVERIFY(authenticationItem->implicitHeight() > 0);
         }
     }
 }

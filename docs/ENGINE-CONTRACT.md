@@ -87,6 +87,40 @@ the newly returned opaque profile ID. No process output may contain camera
 frames, images, embeddings, template material, credentials, passwords,
 usernames, or filesystem/device paths.
 
+## Phase 4 login-transaction surface
+
+Authentication mutation remains disabled unless `irlume version --json`
+returns contract version 1 and advertises `login-transactions`. The helper then
+uses only:
+
+```text
+irlume login enable --scope lock-screen --json
+irlume login enable --scope login-screen --json
+irlume login disable --json
+irlume login enable --scope <fixed-scope> --apply --plan-id <opaque-id> --json
+irlume login disable --apply --plan-id <opaque-id> --json
+irlume login verify --transaction-id <opaque-id> --json
+irlume login rollback --transaction-id <opaque-id> --apply --json
+```
+
+The helper accepts only the two literal enable scopes. Plan and transaction IDs
+must match a bounded opaque-ID grammar and originate from validated engine
+responses. QML cannot provide them.
+
+Every enable plan must report a supported Plasma Login Manager or SDDM target
+that matches the helper's independent systemd detection, a healthy engine, an
+enrolled profile, and preserved password fallback. Lock-screen plans may contain
+only `pam-service:kde`; login-screen plans may contain only the active display
+manager target. Login-screen plans additionally require the Secure tier. A
+disable plan may contain only those two targets and remains an engine-owned
+clean-state transaction.
+
+Apply must preserve plan lineage and return an opaque transaction ID. Verify
+must confirm daemon reachability, exact planned PAM targets, desired versus
+actual state, and password fallback. Verification failure always attempts
+rollback; an engine-reported completed rollback is accepted without repeating
+it.
+
 ## Evidence baseline
 
 The 0.6.x parser is based on official v0.6.0 and v0.6.1 sources and command
