@@ -401,6 +401,10 @@ feat: add Fedora and face-auth readiness diagnostics
 
 ## Phase 3 — Native Enrollment and Profile Management
 
+**Implementation status:** Complete in the KCM behind the required structured
+contract gate. irlume 0.6.1 does not publish that contract, so live profile
+mutation remains unavailable until a reviewed upstream release advertises it.
+
 ### Objective and user value
 
 Let the user create and maintain a face profile without using a terminal.

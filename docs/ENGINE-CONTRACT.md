@@ -8,11 +8,12 @@ The released 0.6.x CLI is human-oriented, but its documented diagnostic
 commands are sufficient for Phase 2 when consumed through a narrow,
 version-gated adapter. Lack of JSON is no longer a project blocker.
 
-| Engine release | Read-only diagnostics | Mutating workflows |
+| Engine release | Read-only diagnostics | Profile workflows |
 | --- | --- | --- |
-| v0.6.0 | Supported by the 0.6.x parser | Not implemented |
-| v0.6.1 | Supported by the 0.6.x parser | Not implemented |
-| Other versions | Rejected until reviewed | Not implemented |
+| v0.6.0 | Supported by the 0.6.x parser | Unavailable: no public structured contract |
+| v0.6.1 | Supported by the 0.6.x parser | Unavailable: no public structured contract |
+| Reviewed contract v1 release | Requires explicit review | Enabled only with advertised `profiles-json` and `events-jsonl` |
+| Other versions | Rejected until reviewed | Rejected until reviewed |
 
 ## Accepted surface
 
@@ -59,6 +60,32 @@ requires an explicit adapter review and test update.
 The proposed structured contract in `UPSTREAM-API-REQUEST.md` remains the
 preferred migration target. Once available, it should replace prose parsing
 behind `SystemProbe` without changing `SystemState` or QML.
+
+## Phase 3 machine surface
+
+The profile adapter is implemented against contract version 1 and remains
+disabled unless the version document advertises both required capabilities.
+The proposed fixed commands are:
+
+```text
+irlume version --json
+irlume profiles list --json
+irlume enroll --events=jsonl
+irlume auth test --events=jsonl
+irlume profiles add-scan --profile-id <opaque-id> --events=jsonl
+irlume profiles delete --profile-id <opaque-id> --json
+```
+
+These spellings are not claimed to exist in irlume 0.6.x. They freeze the
+consumer-side safety boundary and must be aligned with a reviewed official
+upstream release before its capability probe can pass.
+
+Enrollment events must end in a complete profile, cancellation with engine
+cleanup, or failure with engine cleanup. The KCM then performs a non-mutating
+claimed-user test. A failed or unsafe verification triggers deletion of only
+the newly returned opaque profile ID. No process output may contain camera
+frames, images, embeddings, template material, credentials, passwords,
+usernames, or filesystem/device paths.
 
 ## Evidence baseline
 

@@ -1,6 +1,6 @@
 {
     "KPlugin": {
-        "Description": "Review face-login readiness and diagnostics",
+        "Description": "Manage face profiles and review login readiness",
         "Icon": "preferences-desktop-user",
         "License": "GPL-3.0-or-later",
         "Name": "Face Login",

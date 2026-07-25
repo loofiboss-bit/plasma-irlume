@@ -17,10 +17,16 @@ KCMUtils.SimpleKCM {
 
         width: parent.width
         Accessible.name: i18n("Face Login sections")
-        KeyNavigation.down: currentIndex === 0 ? overview : (currentIndex === 1 ? security : diagnostics)
+        KeyNavigation.down: currentIndex === 0 ? overview
+            : (currentIndex === 1 ? enrollment : (currentIndex === 2 ? security : diagnostics))
 
         QQC2.TabButton {
             text: i18n("Overview")
+            Accessible.name: text
+        }
+
+        QQC2.TabButton {
+            text: i18n("Face profile")
             Accessible.name: text
         }
 
@@ -52,16 +58,26 @@ KCMUtils.SimpleKCM {
             id: security
 
             Layout.fillWidth: true
+            visible: tabs.currentIndex === 2
+            enabled: visible
+            systemState: kcm.systemState
+        }
+
+        EnrollmentPage {
+            id: enrollment
+
+            Layout.fillWidth: true
             visible: tabs.currentIndex === 1
             enabled: visible
             systemState: kcm.systemState
+            profileModel: kcm.profileModel
         }
 
         DiagnosticsPage {
             id: diagnostics
 
             Layout.fillWidth: true
-            visible: tabs.currentIndex === 2
+            visible: tabs.currentIndex === 3
             enabled: visible
             systemState: kcm.systemState
             refresh: () => kcm.refresh()

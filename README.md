@@ -4,31 +4,39 @@
 [`irlume`](https://github.com/archledger/irlume) face-authentication engine on
 Fedora KDE.
 
-The repository is currently at **Phase 2: live Fedora and hardware
-diagnostics**. It contains a discoverable Plasma 6 KCM, a typed `SystemState`
-model, deterministic fake-adapter states for tests, live local probes, and
-read-only Overview, Security, and Diagnostics pages.
+The repository is currently at **Phase 3: native enrollment and profile
+management**. It contains a discoverable Plasma 6 KCM, live Fedora and hardware
+diagnostics, a strict structured irlume process adapter, a typed `ProfileModel`,
+and guided enrollment, recognition testing, appearance-scan, cancellation,
+camera-recovery, and profile-deletion flows.
 
-There is no privileged helper, PAM mutation, enrollment workflow, or mutating
-irlume adapter. The KCM cannot change authentication.
+Profile mutations are fail-closed behind irlume's proposed versioned JSON/JSONL
+integration contract. The current irlume 0.6.1 release does not publish that
+contract, so installed 0.6.x systems show profile management as unavailable
+instead of parsing human output or using the private daemon protocol. There is
+still no privileged helper or PAM mutation; the KCM cannot change
+authentication.
 
 ## Engine compatibility
 
-Phase 2 supports the documented, read-only diagnostic commands in irlume
-0.6.x. The adapter invokes only fixed commands (`--version`, `status`, `doctor`,
+Read-only diagnostics support the documented commands in irlume 0.6.x. The
+diagnostic adapter invokes only fixed commands (`--version`, `status`, `doctor`,
 and `login status`), parses a narrow set of known fields defensively, and fails
-closed for other versions or malformed output. It never exposes raw output,
-profile names, usernames, device paths, images, or biometric data.
+closed for other versions or malformed output.
 
-A future structured JSON/NDJSON API remains preferable, especially before
-enrollment or authentication changes are implemented. It is an improvement
-path rather than a blocker for read-only diagnostics.
+Phase 3's mutation adapter invokes only fixed machine-mode commands, validates
+contract version, command, operation ID, monotonic sequence, terminal event,
+bounded output, safe opaque profile IDs, and the absence of sensitive fields.
+It never displays or stores frames and never accepts a username, executable,
+path, or free-form argument from QML. Enrollment is tested automatically; an
+unverified new profile is deleted through the same typed contract.
 
 See:
 
 - [Engine contract](docs/ENGINE-CONTRACT.md)
 - [Architecture boundary](docs/ARCHITECTURE.md)
 - [Upstream API request](docs/UPSTREAM-API-REQUEST.md)
+- [Phase 3 test matrix](docs/TEST-MATRIX.md)
 - [Fedora 44 KDE project plan](FEDORA_44_KDE_FACE_LOGIN_PROJECT_PLAN.md)
 
 ## Build and test
@@ -40,7 +48,7 @@ CoreAddons, I18n, Kirigami, and KCMUtils development packages.
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
 cmake --build build
 ctest --test-dir build --output-on-failure
-qmllint src/kcm/ui/*.qml src/kcm/ui/components/*.qml
+/usr/lib64/qt6/bin/qmllint src/kcm/ui/*.qml src/kcm/ui/components/*.qml
 ```
 
 The proposed structured-contract checks use only Python's standard library:

@@ -1,0 +1,2 @@
+{"contract_version":1,"engine_version":"0.6.2","command":"auth.test","operation_id":"operation-example-camera-busy","sequence":0,"event":"started","terminal":false}
+{"contract_version":1,"engine_version":"0.6.2","command":"auth.test","operation_id":"operation-example-camera-busy","sequence":1,"event":"failed","terminal":true,"error":{"code":"camera-busy","retryable":true}}

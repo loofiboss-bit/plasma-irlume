@@ -10,6 +10,30 @@ target_link_libraries(test_systemstate
 
 add_test(NAME systemstate COMMAND test_systemstate)
 
+add_executable(test_irlumeprocess test_irlumeprocess.cpp)
+
+target_compile_definitions(test_irlumeprocess PRIVATE
+    IRLUME_SOURCE_DIR="${PROJECT_SOURCE_DIR}"
+)
+
+target_link_libraries(test_irlumeprocess
+    irlume_adapter
+    Qt6::Core
+    Qt6::Test
+)
+
+add_test(NAME irlumeprocess COMMAND test_irlumeprocess)
+
+add_executable(test_profilemodel test_profilemodel.cpp)
+
+target_link_libraries(test_profilemodel
+    irlume_backend
+    Qt6::Core
+    Qt6::Test
+)
+
+add_test(NAME profilemodel COMMAND test_profilemodel)
+
 add_executable(test_qmlpages test_qmlpages.cpp)
 
 target_compile_definitions(test_qmlpages PRIVATE
