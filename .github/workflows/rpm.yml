@@ -64,7 +64,7 @@ jobs:
           mkdir -p artifacts
           cp "$HOME"/rpmbuild/RPMS/*/plasma-irlume-*.rpm artifacts/
           cp "$HOME"/rpmbuild/SRPMS/plasma-irlume-*.src.rpm artifacts/
-          sha256sum artifacts/* >artifacts/SHA256SUMS
+          (cd artifacts && sha256sum ./*.rpm >SHA256SUMS)
 
       - name: Upload RPM artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

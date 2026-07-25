@@ -50,6 +50,7 @@ class PackagingContractTests(unittest.TestCase):
                 self.assertIn(required, workflows)
 
         self.assertIn("plasma-irlume-[0-9]*.rpm", workflows)
+        self.assertIn("cd artifacts && sha256sum ./*.rpm >SHA256SUMS", workflows)
 
         action_refs = re.findall(r"uses:\s+\S+@([0-9a-f]+)", workflows)
         self.assertTrue(action_refs)
