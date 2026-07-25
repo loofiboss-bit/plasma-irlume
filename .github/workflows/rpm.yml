@@ -57,7 +57,7 @@ jobs:
       - name: Test install and uninstall lifecycle
         run: |
           packaging/fedora/rpm-smoke-test.sh \
-            "$(find "$HOME/rpmbuild/RPMS" -type f -name 'plasma-irlume-*.rpm' -print -quit)"
+            "$(find "$HOME/rpmbuild/RPMS" -type f -name 'plasma-irlume-[0-9]*.rpm' -print -quit)"
 
       - name: Collect RPM artifacts
         run: |

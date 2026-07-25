@@ -49,6 +49,8 @@ class PackagingContractTests(unittest.TestCase):
             with self.subTest(required=required):
                 self.assertIn(required, workflows)
 
+        self.assertIn("plasma-irlume-[0-9]*.rpm", workflows)
+
         action_refs = re.findall(r"uses:\s+\S+@([0-9a-f]+)", workflows)
         self.assertTrue(action_refs)
         self.assertTrue(all(len(ref) == 40 for ref in action_refs))
