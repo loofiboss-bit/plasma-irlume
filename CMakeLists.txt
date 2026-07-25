@@ -2,7 +2,7 @@
 
 cmake_minimum_required(VERSION 3.22)
 
-project(plasma-irlume VERSION 0.1.0 LANGUAGES CXX)
+project(plasma-irlume VERSION 1.0.0 LANGUAGES CXX)
 
 set(QT_MIN_VERSION "6.8.0")
 set(KF_MIN_VERSION "6.10.0")
@@ -24,6 +24,10 @@ include(KDECompilerSettings NO_POLICY_SCOPE)
 
 find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Core Qml Quick)
 find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS Auth CoreAddons I18n KCMUtils)
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/po")
+    ki18n_install(po)
+endif()
 
 add_subdirectory(src)
 add_subdirectory(data)

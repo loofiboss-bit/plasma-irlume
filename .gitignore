@@ -6,3 +6,7 @@ __pycache__/
 
 build/
 .cache/
+rpmbuild/
+*.rpm
+*.src.rpm
+plasma-irlume-*.tar.gz

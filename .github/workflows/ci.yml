@@ -1,0 +1,60 @@
+name: Fedora 44 CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    container: fedora:44
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+
+      - name: Install build dependencies
+        run: |
+          dnf install -y \
+            clang-tools-extra \
+            cmake \
+            extra-cmake-modules \
+            gcc-c++ \
+            kf6-kauth-devel \
+            kf6-kcmutils-devel \
+            kf6-kcoreaddons-devel \
+            kf6-ki18n-devel \
+            kf6-kirigami-devel \
+            ninja-build \
+            python3 \
+            qt6-qtbase-devel \
+            qt6-qtdeclarative-devel
+
+      - name: Check C++ formatting
+        run: |
+          find src tests/unit -type f \( -name '*.cpp' -o -name '*.h' \) -print0 \
+            | xargs -0 clang-format --dry-run --Werror
+
+      - name: Configure and build
+        run: |
+          cmake --fresh -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --parallel 2
+
+      - name: Run unit and fixture tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          ctest --test-dir build --output-on-failure
+          python3 -m unittest discover -s tests -p 'test_*.py'
+
+      - name: Lint QML
+        run: |
+          /usr/lib64/qt6/bin/qmllint \
+            src/kcm/ui/*.qml \
+            src/kcm/ui/components/*.qml

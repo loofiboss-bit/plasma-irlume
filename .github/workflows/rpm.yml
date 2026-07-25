@@ -1,0 +1,74 @@
+name: Fedora 44 RPM
+
+on:
+  push:
+    tags:
+      - "v*"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rpm:
+    runs-on: ubuntu-latest
+    container: fedora:44
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+
+      - name: Install RPM build dependencies
+        run: |
+          dnf install -y \
+            clang-tools-extra \
+            cmake \
+            cmake-rpm-macros \
+            desktop-file-utils \
+            extra-cmake-modules \
+            gcc-c++ \
+            kf6-kauth-devel \
+            kf6-kcmutils-devel \
+            kf6-kcoreaddons-devel \
+            kf6-ki18n-devel \
+            kf6-kirigami-devel \
+            ninja-build \
+            python3 \
+            qt6-qtbase-devel \
+            qt6-qtdeclarative-devel \
+            rpm-build \
+            rpmlint
+
+      - name: Build source archive
+        run: packaging/fedora/create-source-archive.sh
+
+      - name: Build and lint RPM
+        run: |
+          rpmbuild -ba packaging/fedora/plasma-irlume.spec \
+            --define "_sourcedir $PWD"
+          rpmlint packaging/fedora/plasma-irlume.spec \
+            "$HOME"/rpmbuild/RPMS/*/plasma-irlume-*.rpm \
+            "$HOME"/rpmbuild/SRPMS/plasma-irlume-*.src.rpm
+
+      - name: Test install and uninstall lifecycle
+        run: |
+          packaging/fedora/rpm-smoke-test.sh \
+            "$(find "$HOME/rpmbuild/RPMS" -type f -name 'plasma-irlume-*.rpm' -print -quit)"
+
+      - name: Collect RPM artifacts
+        run: |
+          mkdir -p artifacts
+          cp "$HOME"/rpmbuild/RPMS/*/plasma-irlume-*.rpm artifacts/
+          cp "$HOME"/rpmbuild/SRPMS/plasma-irlume-*.src.rpm artifacts/
+          sha256sum artifacts/* >artifacts/SHA256SUMS
+
+      - name: Upload RPM artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: plasma-irlume-fedora-44
+          path: artifacts/
+          if-no-files-found: error

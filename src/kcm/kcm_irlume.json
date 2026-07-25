@@ -1,10 +1,10 @@
 {
     "KPlugin": {
-        "Description": "Manage face profiles and review login readiness",
+        "Description": "Experimental face profile and login-readiness integration",
         "Icon": "preferences-desktop-user",
         "License": "GPL-3.0-or-later",
         "Name": "Face Login",
-        "Version": "0.1.0",
+        "Version": "1.0.0",
         "Website": "https://github.com/loofiboss-bit/plasma-irlume"
     },
     "X-KDE-Keywords": "Face Login,Face Unlock,Biometrics,irlume,Camera,Authentication",

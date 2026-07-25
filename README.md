@@ -4,13 +4,17 @@
 [`irlume`](https://github.com/archledger/irlume) face-authentication engine on
 Fedora KDE.
 
-The repository is currently at **Phase 5: recovery, accessibility, and
-supportability**. It
-contains a discoverable Plasma 6 KCM, live Fedora and hardware diagnostics,
-guided profile management, a fixed-operation KAuth helper, transactional
-authentication planning and activation, post-apply verification, automatic
-rollback, one-click verified disable, in-product TTY recovery, actionable error
-guidance, and redacted Markdown support-report export.
+The repository contains the **Phase 6 / 1.0.0 experimental release**: a
+discoverable Plasma 6 KCM, live Fedora and hardware diagnostics, guided profile
+management, a fixed-operation KAuth helper, transactional authentication
+planning and activation, post-apply verification, automatic rollback,
+one-click verified disable, in-product TTY recovery, actionable error guidance,
+redacted Markdown support-report export, and reproducible Fedora 44 packaging.
+
+> **Experimental:** version 1.0.0 is not a production release until the
+> real-hardware and clean-install release matrix in
+> [the test matrix](docs/TEST-MATRIX.md) passes. Packaging readiness does not
+> establish biometric or authentication safety on a particular computer.
 
 Profile mutations are fail-closed behind irlume's proposed versioned JSON/JSONL
 integration contract. The current irlume 0.6.1 release does not publish that
@@ -41,13 +45,39 @@ triggers rollback before an error reaches the KCM.
 
 See:
 
+- [Installation guide](docs/INSTALLATION.md)
+- [User guide](docs/USER-GUIDE.md)
 - [Engine contract](docs/ENGINE-CONTRACT.md)
 - [Architecture boundary](docs/ARCHITECTURE.md)
 - [Upstream API request](docs/UPSTREAM-API-REQUEST.md)
-- [Phase 5 test matrix](docs/TEST-MATRIX.md)
+- [Phase 6 test matrix](docs/TEST-MATRIX.md)
+- [Fedora packaging](packaging/fedora/README.md)
 - [TTY recovery](docs/RECOVERY.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Fedora 44 KDE project plan](FEDORA_44_KDE_FACE_LOGIN_PROJECT_PLAN.md)
+
+## Install on Fedora 44
+
+Enable the separate engine repository and the plasma-irlume repository, then
+install the KCM:
+
+```bash
+sudo dnf copr enable archledger/irlume
+sudo dnf copr enable loofitheboss/plasma-irlume
+sudo dnf install plasma-irlume
+```
+
+Open **System Settings → Security & Privacy → Face Login**, or run:
+
+```bash
+kcmshell6 kcm_irlume
+```
+
+Read the [installation guide](docs/INSTALLATION.md) before changing
+authentication. It covers the supported platform, the current engine contract
+gate, updates, removal, verification, and recovery preparation. The
+[user guide](docs/USER-GUIDE.md) explains every page and the safe first-run
+flow.
 
 ## Build and test
 
@@ -65,6 +95,20 @@ The proposed structured-contract checks use only Python's standard library:
 
 ```bash
 python3 -m unittest discover -s tests -p 'test_*.py'
+```
+
+Fedora 44 packaging requires the separate `irlume` security engine. The KCM
+does not bundle the engine, biometric models, profiles, PAM modules, or camera
+code. Read-only diagnostics support `irlume >= 0.6.0` and `< 0.7.0`; mutation
+features remain fail-closed unless a reviewed engine advertises the structured
+contract described in [the engine contract](docs/ENGINE-CONTRACT.md).
+
+Build the source and binary RPM locally with:
+
+```bash
+packaging/fedora/create-source-archive.sh
+rpmbuild -ba packaging/fedora/plasma-irlume.spec \
+  --define "_sourcedir $PWD"
 ```
 
 The fixtures under `tests/fixtures/irlume/observed-private/` are sanitized

@@ -1,4 +1,4 @@
-# Phase 5 test matrix
+# Phase 6 test matrix
 
 ## Automated contract coverage
 
@@ -10,6 +10,14 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 python3 -m unittest discover -s tests -p 'test_*.py'
 /usr/lib64/qt6/bin/qmllint src/kcm/ui/*.qml src/kcm/ui/components/*.qml
+find src tests/unit -type f \( -name '*.cpp' -o -name '*.h' \) -print0 \
+  | xargs -0 clang-format --dry-run --Werror
+packaging/fedora/create-source-archive.sh
+rpmbuild -ba packaging/fedora/plasma-irlume.spec \
+  --define "_sourcedir $PWD"
+rpmlint packaging/fedora/plasma-irlume.spec
+packaging/fedora/rpm-smoke-test.sh \
+  "$HOME/rpmbuild/RPMS/$(uname -m)/plasma-irlume-1.0.0-1.fc44.$(uname -m).rpm"
 ```
 
 The automated suite covers:
@@ -62,6 +70,42 @@ reader, 100%, 125%, 150%, and 200% scaling, and both light and dark Plasma
 color schemes.
 
 The suite does not invoke Polkit, write PAM files, or mutate the host.
+
+## Fedora package lifecycle gate
+
+The source archive is normalized by path order, ownership, permissions, and
+timestamp. The RPM build runs the C++ unit suite, Python fixture suite, QML
+lint, and C++ formatting check in a Fedora 44 buildroot.
+
+The lifecycle smoke test installs the RPM without dependencies into an isolated
+RPM root, verifies the KCM plugin, helper, desktop metadata, D-Bus policy, and
+Polkit action, then erases the package. It proves that:
+
+- every security-boundary file is owned by the RPM;
+- uninstall removes those package-owned files;
+- no package scriptlet invokes `irlume` or mutates authentication;
+- simulated engine profile and user-setting sentinels survive uninstall.
+
+This isolated test does not prove that a live engine, PAM stack, display
+manager, camera, TPM, or Polkit prompt works. Those remain manual release gates.
+
+An upgrade does not own or rewrite user settings, engine profiles, or PAM
+state. Opening the upgraded KCM performs a fresh version-gated engine probe, so
+compatibility is re-evaluated instead of being copied from package state.
+
+## Phase 6 release status
+
+The repository is packaging-complete for the experimental 1.0.0 release.
+GitHub and COPR publication do not satisfy or replace the following live
+checks, which are not claimed by this repository state:
+
+- Fedora 44 KDE fresh install with Plasma Login Manager;
+- Fedora 44 upgrade retaining SDDM;
+- Secure IR and RGB Convenience real-hardware paths;
+- password login and unlock before and after activation;
+- suspend/resume, TPM present/absent, and camera-busy recovery;
+- live install, upgrade, disable, and uninstall with the reviewed irlume
+  dependency.
 
 ## Live contract gate
 
