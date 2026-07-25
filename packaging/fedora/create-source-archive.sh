@@ -15,6 +15,8 @@ fi
 
 output="${1:-${repo_root}/plasma-irlume-${version}.tar.gz}"
 source_date_epoch="${SOURCE_DATE_EPOCH:-$(git -C "${repo_root}" log -1 --format=%ct 2>/dev/null || printf '0')}"
+temporary_archive="$(mktemp --tmpdir plasma-irlume-archive.XXXXXX.tar.gz)"
+trap 'rm -f -- "${temporary_archive}"' EXIT
 
 tar \
     --sort=name \
@@ -34,7 +36,10 @@ tar \
     --exclude='./*.src.rpm' \
     --exclude='./plasma-irlume-*.tar.gz' \
     -C "${repo_root}" \
-    -czf "${output}" \
+    -czf "${temporary_archive}" \
     .
+
+mv -- "${temporary_archive}" "${output}"
+trap - EXIT
 
 echo "${output}"
