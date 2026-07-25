@@ -1,0 +1,22 @@
+{
+  "contract_version": 1,
+  "engine_version": "0.6.2",
+  "command": "profiles.list",
+  "ok": true,
+  "data": {
+    "profiles": [
+      {
+        "profile_id": "profile-example-001",
+        "display_name": "Face Profile 1",
+        "scans": [
+          {
+            "scan_id": "scan-example-001",
+            "display_name": "Scan 1"
+          }
+        ]
+      }
+    ],
+    "require_eyes_open": false,
+    "require_challenge": false
+  }
+}

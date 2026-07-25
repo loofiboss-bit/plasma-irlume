@@ -1,0 +1,8 @@
+.directory
+.vscode/
+
+__pycache__/
+*.py[cod]
+
+build/
+.cache/

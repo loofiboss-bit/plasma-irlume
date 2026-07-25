@@ -1,0 +1,10 @@
+{
+  "Health": {
+    "tier": "secure",
+    "rgb_dev": null,
+    "ir_dev": null,
+    "mesh": true,
+    "adapter": false,
+    "version": "0.6.0"
+  }
+}

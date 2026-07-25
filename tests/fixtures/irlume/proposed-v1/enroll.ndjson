@@ -1,0 +1,4 @@
+{"contract_version":1,"engine_version":"0.6.2","command":"enroll","operation_id":"operation-example-enroll","sequence":0,"event":"started","terminal":false}
+{"contract_version":1,"engine_version":"0.6.2","command":"enroll","operation_id":"operation-example-enroll","sequence":1,"event":"stage","terminal":false,"data":{"stage":"camera-ready"}}
+{"contract_version":1,"engine_version":"0.6.2","command":"enroll","operation_id":"operation-example-enroll","sequence":2,"event":"progress","terminal":false,"data":{"captured_scans":1,"total_scans":3}}
+{"contract_version":1,"engine_version":"0.6.2","command":"enroll","operation_id":"operation-example-enroll","sequence":3,"event":"completed","terminal":true,"data":{"profile_id":"profile-example-001","created":true,"added_scans":3,"total_scans":3}}

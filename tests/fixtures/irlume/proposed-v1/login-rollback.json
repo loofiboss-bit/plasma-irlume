@@ -1,0 +1,21 @@
+{
+  "contract_version": 1,
+  "engine_version": "0.6.2",
+  "command": "login.rollback",
+  "ok": true,
+  "data": {
+    "transaction_id": "transaction-example-001",
+    "state": "rolled-back",
+    "restored": true,
+    "operations": [
+      {
+        "target": "pam-service:plasmalogin",
+        "result": "restored"
+      },
+      {
+        "target": "pam-service:kde",
+        "result": "restored"
+      }
+    ]
+  }
+}

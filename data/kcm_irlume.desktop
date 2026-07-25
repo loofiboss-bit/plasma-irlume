@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+NoDisplay=true
+X-KDE-AliasFor=systemsettings
+Exec=systemsettings kcm_irlume
+Icon=preferences-desktop-user
+Name=Face Login

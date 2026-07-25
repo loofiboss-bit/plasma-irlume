@@ -1,0 +1,15 @@
+{
+  "contract_version": 1,
+  "engine_version": "0.6.2",
+  "command": "version",
+  "ok": true,
+  "data": {
+    "capabilities": [
+      "status-json",
+      "doctor-json",
+      "profiles-json",
+      "events-jsonl",
+      "login-transactions"
+    ]
+  }
+}

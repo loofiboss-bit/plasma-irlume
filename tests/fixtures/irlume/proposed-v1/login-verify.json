@@ -1,0 +1,26 @@
+{
+  "contract_version": 1,
+  "engine_version": "0.6.2",
+  "command": "login.verify",
+  "ok": true,
+  "data": {
+    "transaction_id": "transaction-example-001",
+    "state": "verified",
+    "desired": "enabled",
+    "actual": "enabled",
+    "checks": [
+      {
+        "id": "daemon.reachable",
+        "state": "pass"
+      },
+      {
+        "id": "pam.targets-match-plan",
+        "state": "pass"
+      },
+      {
+        "id": "login.password-fallback",
+        "state": "pass"
+      }
+    ]
+  }
+}

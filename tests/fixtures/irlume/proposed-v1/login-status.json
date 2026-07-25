@@ -1,0 +1,29 @@
+{
+  "contract_version": 1,
+  "engine_version": "0.6.2",
+  "command": "login.status",
+  "ok": true,
+  "data": {
+    "display_manager": {
+      "id": "plasmalogin",
+      "supported": true
+    },
+    "desired": "enabled",
+    "actual": "enabled",
+    "drift": false,
+    "password_fallback": {
+      "present": true,
+      "verified": true
+    },
+    "targets": [
+      {
+        "id": "lock-screen",
+        "state": "enabled"
+      },
+      {
+        "id": "login-screen",
+        "state": "enabled"
+      }
+    ]
+  }
+}

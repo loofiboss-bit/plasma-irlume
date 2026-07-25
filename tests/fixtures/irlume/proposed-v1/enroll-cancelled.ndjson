@@ -1,0 +1,3 @@
+{"contract_version":1,"engine_version":"0.6.2","command":"enroll","operation_id":"operation-example-cancel","sequence":0,"event":"started","terminal":false}
+{"contract_version":1,"engine_version":"0.6.2","command":"enroll","operation_id":"operation-example-cancel","sequence":1,"event":"stage","terminal":false,"data":{"stage":"camera-ready"}}
+{"contract_version":1,"engine_version":"0.6.2","command":"enroll","operation_id":"operation-example-cancel","sequence":2,"event":"cancelled","terminal":true,"error":{"code":"user-cancelled","retryable":true}}

@@ -1,0 +1,52 @@
+{
+  "contract_version": 1,
+  "engine_version": "0.6.2",
+  "command": "login.plan",
+  "ok": true,
+  "data": {
+    "operation": "enable",
+    "plan_id": "plan-example-001",
+    "apply": false,
+    "mutated": false,
+    "display_manager": {
+      "id": "plasmalogin",
+      "supported": true
+    },
+    "security_tier": "secure",
+    "requested_scopes": [
+      "lock-screen",
+      "login-screen"
+    ],
+    "preconditions": [
+      {
+        "id": "engine.healthy",
+        "state": "pass"
+      },
+      {
+        "id": "profile.enrolled",
+        "state": "pass"
+      },
+      {
+        "id": "login.password-fallback",
+        "state": "pass"
+      }
+    ],
+    "changes": [
+      {
+        "target": "pam-service:plasmalogin",
+        "action": "create-local-override",
+        "before_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "after_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      {
+        "target": "pam-service:kde",
+        "action": "create-local-override",
+        "before_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "after_sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+      }
+    ],
+    "password_fallback": {
+      "preserved": true
+    }
+  }
+}

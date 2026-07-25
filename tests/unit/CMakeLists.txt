@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: BSD-2-Clause
+
+add_executable(test_systemstate test_systemstate.cpp)
+
+target_link_libraries(test_systemstate
+    irlume_backend
+    Qt6::Core
+    Qt6::Test
+)
+
+add_test(NAME systemstate COMMAND test_systemstate)
+
+add_executable(test_qmlpages test_qmlpages.cpp)
+
+target_compile_definitions(test_qmlpages PRIVATE
+    IRLUME_SOURCE_DIR="${PROJECT_SOURCE_DIR}"
+)
+
+target_link_libraries(test_qmlpages
+    irlume_backend
+    Qt6::Core
+    Qt6::Qml
+    Qt6::Quick
+    Qt6::Test
+    KF6::I18nQml
+)
+
+add_test(NAME qmlpages COMMAND test_qmlpages)
+set_tests_properties(qmlpages PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")

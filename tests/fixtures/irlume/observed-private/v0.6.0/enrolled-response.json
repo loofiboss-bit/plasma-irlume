@@ -1,0 +1,13 @@
+{
+  "Enrolled": {
+    "profile": "Face Profile 1",
+    "created": true,
+    "added": 3,
+    "total": 3,
+    "added_scans": [
+      "scan1",
+      "scan2",
+      "scan3"
+    ]
+  }
+}
