@@ -2,6 +2,17 @@
 
 All notable changes to plasma-irlume are documented in this file.
 
+## 2.0.0-dev - unreleased
+
+- Replace five technical tabs with Setup & Status, Face Profiles, Access, and
+  Support.
+- Add a version-gated, bounded in-memory IR/RGB enrollment preview with
+  FaceMesh landmarks and typed positioning guidance.
+- Add contract-v2 capability negotiation and engine-advertised profile limits.
+- Complete the Swedish UI and backend message catalog.
+- Keep irlume 0.6.x read-only and block stable publication until the reviewed
+  upstream contract and hardware matrix pass.
+
 ## 1.0.0 - 2026-07-26
 
 This is an experimental release. It must not be described as a

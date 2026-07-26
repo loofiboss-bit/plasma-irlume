@@ -1,18 +1,32 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+// qmllint disable unqualified
+// qmllint disable missing-property
+// qmllint disable import
+// qmllint disable unresolved-type
 
 import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import org.kde.plasma.irlume 2.0
 
 Kirigami.ScrollablePage {
     id: root
 
     required property QtObject systemState
     required property QtObject profileModel
+    required property QtObject enrollmentSession
 
-    title: i18n("Face profile")
+    title: i18n("Face Profiles")
     padding: Kirigami.Units.largeSpacing
+    onVisibleChanged: {
+        if (!visible && enrollmentSession.active) {
+            profileModel.cancel();
+        }
+        if (!visible) {
+            enrollmentSession.clearFrame();
+        }
+    }
 
     ColumnLayout {
         width: root.availableWidth
@@ -21,13 +35,13 @@ Kirigami.ScrollablePage {
         Kirigami.Heading {
             Layout.fillWidth: true
             level: 1
-            text: i18n("Face profile")
+            text: i18n("Face Profiles")
             wrapMode: Text.Wrap
         }
 
         QQC2.Label {
             Layout.fillWidth: true
-            text: i18n("Create and test a face profile without displaying or saving camera frames.")
+            text: i18n("Register, test, and improve recognition. Preview frames stay in memory and are cleared when the session ends.")
             color: Kirigami.Theme.disabledTextColor
             wrapMode: Text.Wrap
         }
@@ -120,7 +134,132 @@ Kirigami.ScrollablePage {
 
         Kirigami.AbstractCard {
             Layout.fillWidth: true
-            visible: profileModel.contractAvailable && profileModel.profileCount === 0
+            visible: enrollmentSession.active || enrollmentSession.frameAvailable
+            Accessible.role: Accessible.Grouping
+            Accessible.name: i18n("Live camera guidance")
+
+            contentItem: GridLayout {
+                columns: width < Kirigami.Units.gridUnit * 30 ? 1 : 2
+                columnSpacing: Kirigami.Units.largeSpacing
+                rowSpacing: Kirigami.Units.smallSpacing
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 20
+
+                    Item {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: Math.max(Kirigami.Units.gridUnit * 12, width * 0.75)
+
+                        EnrollmentPreview {
+                            anchors.fill: parent
+                            session: root.enrollmentSession
+                            mirrored: true
+                            Accessible.name: enrollmentSession.spectrum === "rgb"
+                                ? i18n("RGB camera preview with face landmarks")
+                                : i18n("Infrared camera preview with face landmarks")
+                            Accessible.description: enrollmentSession.guidance
+                        }
+
+                        QQC2.Label {
+                            anchors {
+                                left: parent.left
+                                top: parent.top
+                                margins: Kirigami.Units.smallSpacing
+                            }
+                            padding: Kirigami.Units.smallSpacing
+                            text: enrollmentSession.spectrum === "rgb" ? i18n("RGB · Convenience") : i18n("IR · Secure")
+                            color: "white"
+                            background: Rectangle {
+                                color: "#a0000000"
+                                radius: Kirigami.Units.cornerRadius
+                            }
+                        }
+
+                        QQC2.Label {
+                            anchors.centerIn: parent
+                            visible: enrollmentSession.countdown > 0
+                            text: enrollmentSession.countdown
+                            color: "white"
+                            font.pointSize: Kirigami.Theme.defaultFont.pointSize * 3
+                            font.weight: Font.Bold
+                            Accessible.name: i18n("Capture in %1", enrollmentSession.countdown)
+                        }
+                    }
+
+                    QQC2.Label {
+                        Layout.fillWidth: true
+                        text: enrollmentSession.guidance.length > 0
+                            ? enrollmentSession.guidance : i18n("Position your face inside the guide.")
+                        font.weight: Font.DemiBold
+                        horizontalAlignment: Text.AlignHCenter
+                        wrapMode: Text.Wrap
+                    }
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignTop
+
+                    Kirigami.Heading {
+                        Layout.fillWidth: true
+                        level: 2
+                        text: i18n("Camera guidance")
+                        wrapMode: Text.Wrap
+                    }
+
+                    Repeater {
+                        model: [
+                            { label: i18n("Face detected"), ready: enrollmentSession.faceDetected },
+                            { label: i18n("Centered"), ready: enrollmentSession.centered },
+                            { label: i18n("Distance"), ready: enrollmentSession.wellFramed },
+                            { label: i18n("Looking at camera"), ready: enrollmentSession.facingCamera },
+                            { label: i18n("Lighting"), ready: enrollmentSession.wellLit },
+                            { label: i18n("Infrared ready"), ready: enrollmentSession.irReady }
+                        ]
+
+                        delegate: RowLayout {
+                            required property var modelData
+
+                            Kirigami.Icon {
+                                Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                                Layout.preferredHeight: width
+                                source: modelData.ready ? "emblem-checked" : "emblem-unavailable"
+                                color: modelData.ready ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.disabledTextColor
+                                Accessible.ignored: true
+                            }
+
+                            QQC2.Label {
+                                Layout.fillWidth: true
+                                text: modelData.label
+                                color: modelData.ready ? Kirigami.Theme.textColor : Kirigami.Theme.disabledTextColor
+                                wrapMode: Text.Wrap
+                            }
+                        }
+                    }
+
+                    QQC2.ProgressBar {
+                        Layout.fillWidth: true
+                        from: 0
+                        to: 100
+                        value: enrollmentSession.quality
+                        Accessible.name: i18n("Capture quality: %1 percent", enrollmentSession.quality)
+                    }
+
+                    QQC2.Button {
+                        Layout.alignment: Qt.AlignRight
+                        text: i18n("Cancel preview")
+                        icon.name: "dialog-cancel"
+                        enabled: profileModel.cancellable
+                        onClicked: profileModel.cancel()
+                    }
+                }
+            }
+        }
+
+        Kirigami.AbstractCard {
+            Layout.fillWidth: true
+            visible: profileModel.contractAvailable && profileModel.profileCount < profileModel.maxProfiles
             Accessible.role: Accessible.Grouping
             Accessible.name: i18n("Create a face profile")
 
@@ -129,7 +268,8 @@ Kirigami.ScrollablePage {
 
                 Kirigami.Heading {
                     level: 2
-                    text: i18n("Set up face recognition")
+                    text: profileModel.profileCount === 0
+                        ? i18n("Set up face recognition") : i18n("Add another face profile")
                     wrapMode: Text.Wrap
                 }
 
@@ -149,6 +289,13 @@ Kirigami.ScrollablePage {
                         && systemState.cameraType !== 2
                         && systemState.cameraType !== 3
                     onClicked: profileModel.enroll()
+                }
+
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    text: i18n("%1 of %2 profiles used", profileModel.profileCount, profileModel.maxProfiles)
+                    color: Kirigami.Theme.disabledTextColor
+                    wrapMode: Text.Wrap
                 }
             }
         }

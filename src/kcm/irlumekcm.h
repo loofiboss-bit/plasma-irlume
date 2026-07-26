@@ -3,6 +3,7 @@
 #pragma once
 
 #include "authconfiguration.h"
+#include "enrollmentsession.h"
 #include "profilemodel.h"
 #include "supportreport.h"
 #include "systemprobe.h"
@@ -16,6 +17,7 @@ class IrlumeKcm final : public KQuickConfigModule
 
     Q_PROPERTY(SystemState *systemState READ systemState CONSTANT)
     Q_PROPERTY(ProfileModel *profileModel READ profileModel CONSTANT)
+    Q_PROPERTY(EnrollmentSession *enrollmentSession READ enrollmentSession CONSTANT)
     Q_PROPERTY(AuthConfiguration *authConfiguration READ authConfiguration CONSTANT)
     Q_PROPERTY(SupportReport *supportReport READ supportReport CONSTANT)
 
@@ -24,6 +26,7 @@ class IrlumeKcm final : public KQuickConfigModule
 
     [[nodiscard]] SystemState *systemState();
     [[nodiscard]] ProfileModel *profileModel();
+    [[nodiscard]] EnrollmentSession *enrollmentSession();
     [[nodiscard]] AuthConfiguration *authConfiguration();
     [[nodiscard]] SupportReport *supportReport();
     Q_INVOKABLE void refresh();
@@ -31,6 +34,8 @@ class IrlumeKcm final : public KQuickConfigModule
   private:
     SystemProbe m_probe;
     SystemState m_systemState;
+    IrlumeProcess m_profileProcess;
+    EnrollmentSession m_enrollmentSession;
     ProfileModel m_profileModel;
     AuthConfiguration m_authConfiguration;
     SupportReport m_supportReport;

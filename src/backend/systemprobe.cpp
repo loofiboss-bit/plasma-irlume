@@ -416,7 +416,7 @@ SystemStateSnapshot SystemProbe::evaluate(const SystemProbeInputs &inputs)
     {
         state.securityTier = SecurityTier::Unsupported;
         state.headline = translate("This operating system is not supported");
-        state.summary = translate("Version 1.0 supports Fedora 44 on mutable DNF-based installations.");
+        state.summary = translate("Version 2.0 supports Fedora 44 on mutable DNF-based installations.");
         state.issueCode = QStringLiteral("platform-unsupported");
     }
     else if (state.activeDisplayManager != QStringLiteral("Plasma Login Manager") &&

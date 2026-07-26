@@ -77,7 +77,10 @@ QJsonObject capabilities()
 {
     return {
         {QStringLiteral("capabilities"),
-         QJsonArray{QStringLiteral("status-json"), QStringLiteral("profiles-json"), QStringLiteral("events-jsonl")}},
+         QJsonArray{QStringLiteral("status-json"), QStringLiteral("profiles-json"), QStringLiteral("events-jsonl"),
+                    QStringLiteral("position-report"), QStringLiteral("preview-ir-jpeg")}},
+        {QStringLiteral("limits"),
+         QJsonObject{{QStringLiteral("max_profiles"), 3}, {QStringLiteral("max_scans_per_profile"), 30}}},
     };
 }
 

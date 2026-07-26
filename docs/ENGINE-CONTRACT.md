@@ -12,7 +12,7 @@ version-gated adapter. Lack of JSON is no longer a project blocker.
 | --- | --- | --- |
 | v0.6.0 | Supported by the 0.6.x parser | Unavailable: no public structured contract |
 | v0.6.1 | Supported by the 0.6.x parser | Unavailable: no public structured contract |
-| Reviewed contract v1 release | Requires explicit review | Enabled only with advertised `profiles-json` and `events-jsonl` |
+| Reviewed contract v2 release | Requires explicit review | Enabled only with every capability required by the selected workflow |
 | Other versions | Rejected until reviewed | Rejected until reviewed |
 
 ## Accepted surface
@@ -61,18 +61,19 @@ The proposed structured contract in `UPSTREAM-API-REQUEST.md` remains the
 preferred migration target. Once available, it should replace prose parsing
 behind `SystemProbe` without changing `SystemState` or QML.
 
-## Phase 3 machine surface
+## V2 profile and preview surface
 
-The profile adapter is implemented against contract version 1 and remains
-disabled unless the version document advertises both required capabilities.
+The profile adapter accepts the V2 event envelope and remains disabled unless
+the version document advertises `profiles-json`, `events-jsonl`,
+`position-report`, and `preview-ir-jpeg`.
 The proposed fixed commands are:
 
 ```text
 irlume version --json
 irlume profiles list --json
-irlume enroll --events=jsonl
-irlume auth test --events=jsonl
-irlume profiles add-scan --profile-id <opaque-id> --events=jsonl
+irlume enroll --events=jsonl --preview=ir-jpeg --preview-max-fps=8 --preview-max-size=640x480
+irlume auth test --events=jsonl --preview=ir-jpeg --preview-max-fps=8 --preview-max-size=640x480
+irlume profiles add-scan --profile-id <opaque-id> --events=jsonl --preview=ir-jpeg --preview-max-fps=8 --preview-max-size=640x480
 irlume profiles delete --profile-id <opaque-id> --json
 ```
 
@@ -87,10 +88,22 @@ the newly returned opaque profile ID. No process output may contain camera
 frames, images, embeddings, template material, credentials, passwords,
 usernames, or filesystem/device paths.
 
+Only the dedicated enrollment session may consume `preview` events. Each event
+must contain a session ID, monotonic sequence, JPEG of at most 128 KiB and
+640 by 480, `ir` or `rgb` spectrum, exactly 478 normalized landmarks, normalized
+face box, and typed `PositionReport`. It may never contain embeddings, match
+scores, template material, credentials, usernames, or paths.
+
+At most one preview session may exist. The consumer displays at most 8 frames
+per second, keeps only the newest frame, and clears image memory on terminal
+result, cancellation, timeout, page hide, or KCM destruction. Frames and
+landmarks are excluded from logs, clipboard operations, crash text, support
+reports, and disk.
+
 ## Phase 4 login-transaction surface
 
 Authentication mutation remains disabled unless `irlume version --json`
-returns contract version 1 and advertises `login-transactions`. The helper then
+returns a reviewed contract version and advertises `login-transactions`. The helper then
 uses only:
 
 ```text

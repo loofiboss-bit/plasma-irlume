@@ -2,6 +2,8 @@
 
 #include "profilemodel.h"
 
+#include "enrollmentsession.h"
+
 #include <QCoreApplication>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -25,16 +27,25 @@ bool isSafeDisplayName(const QString &value)
 }
 } // namespace
 
-ProfileModel::ProfileModel(QObject *parent) : ProfileModel(new IrlumeProcess, parent)
+ProfileModel::ProfileModel(QObject *parent) : ProfileModel(new IrlumeProcess, new EnrollmentSession, parent)
 {
     m_process->setParent(this);
+    m_enrollmentSession->setParent(this);
 }
 
-ProfileModel::ProfileModel(IrlumeProcess *process, QObject *parent) : QAbstractListModel(parent), m_process(process)
+ProfileModel::ProfileModel(IrlumeProcess *process, QObject *parent) : ProfileModel(process, nullptr, parent) {}
+
+ProfileModel::ProfileModel(IrlumeProcess *process, EnrollmentSession *enrollmentSession, QObject *parent)
+    : QAbstractListModel(parent), m_process(process), m_enrollmentSession(enrollmentSession)
 {
     Q_ASSERT(m_process);
     connect(m_process, &IrlumeProcess::eventReceived, this, &ProfileModel::handleEvent);
     connect(m_process, &IrlumeProcess::operationError, this, &ProfileModel::handleOperationError);
+    if (m_enrollmentSession)
+    {
+        connect(m_enrollmentSession, &EnrollmentSession::eventReceived, this, &ProfileModel::handleEvent);
+        connect(m_enrollmentSession, &EnrollmentSession::operationError, this, &ProfileModel::handleOperationError);
+    }
 }
 
 int ProfileModel::rowCount(const QModelIndex &parent) const
@@ -128,6 +139,11 @@ bool ProfileModel::cancellable() const
            m_workflow != Workflow::Deleting && m_workflow != Workflow::CleaningUp;
 }
 
+int ProfileModel::maxProfiles() const
+{
+    return m_maxProfiles;
+}
+
 void ProfileModel::refresh()
 {
     if (m_busy)
@@ -141,7 +157,7 @@ void ProfileModel::refresh()
 
 void ProfileModel::enroll()
 {
-    if (!m_contractAvailable || m_busy || !m_profiles.isEmpty())
+    if (!m_contractAvailable || m_busy || m_profiles.size() >= m_maxProfiles)
     {
         return;
     }
@@ -194,7 +210,14 @@ void ProfileModel::cancel()
     }
     m_statusText = translate("Cancelling and releasing the camera…");
     Q_EMIT stateChanged();
-    m_process->cancel();
+    if (m_enrollmentSession && m_enrollmentSession->active())
+    {
+        m_enrollmentSession->cancel();
+    }
+    else
+    {
+        m_process->cancel();
+    }
 }
 
 void ProfileModel::retry()
@@ -274,11 +297,25 @@ void ProfileModel::handleEvent(const IrlumeProcess::Event &event)
             return std::any_of(capabilities.cbegin(), capabilities.cend(),
                                [&required](const QJsonValue &entry) { return entry.toString() == required; });
         };
-        if (!hasCapability(QStringLiteral("profiles-json")) || !hasCapability(QStringLiteral("events-jsonl")))
+        if (!hasCapability(QStringLiteral("profiles-json")) || !hasCapability(QStringLiteral("events-jsonl")) ||
+            !hasCapability(QStringLiteral("position-report")) || !hasCapability(QStringLiteral("preview-ir-jpeg")))
         {
             finishError(QStringLiteral("structured-contract-unavailable"), false);
             return;
         }
+        const int maxProfiles =
+            event.data.value(QStringLiteral("limits")).toObject().value(QStringLiteral("max_profiles")).toInt(3);
+        const int maxScans = event.data.value(QStringLiteral("limits"))
+                                 .toObject()
+                                 .value(QStringLiteral("max_scans_per_profile"))
+                                 .toInt(20);
+        if (maxProfiles < 1 || maxProfiles > 8 || maxScans < 1 || maxScans > 100)
+        {
+            finishError(QStringLiteral("invalid-capability-limits"), false);
+            return;
+        }
+        m_maxProfiles = maxProfiles;
+        m_maxScansPerProfile = maxScans;
         m_contractAvailable = true;
         start(IrlumeProcess::Operation::ListProfiles, Workflow::LoadingProfiles);
         break;
@@ -378,7 +415,13 @@ bool ProfileModel::start(IrlumeProcess::Operation operation, Workflow workflow, 
     m_busy = true;
     m_activeProfileId = profileId;
     setWorkflow(workflow, {});
-    if (m_process->startOperation(operation, profileId))
+    const bool previewOperation = operation == IrlumeProcess::Operation::Enroll ||
+                                  operation == IrlumeProcess::Operation::AuthTest ||
+                                  operation == IrlumeProcess::Operation::AddScan;
+    const bool started = previewOperation && m_enrollmentSession
+                             ? m_enrollmentSession->startOperation(operation, profileId)
+                             : m_process->startOperation(operation, profileId);
+    if (started)
     {
         return true;
     }
@@ -391,10 +434,17 @@ void ProfileModel::updateProgress(const QJsonObject &data)
 {
     const int captured = data.value(QStringLiteral("captured_scans")).toInt(-1);
     const int total = data.value(QStringLiteral("total_scans")).toInt(-1);
-    if (captured < 0 || total <= 0 || captured > total || total > 20)
+    if (captured < 0 || total <= 0 || captured > total || total > m_maxScansPerProfile)
     {
         finishError(QStringLiteral("invalid-progress-event"), false);
-        m_process->cancel();
+        if (m_enrollmentSession && m_enrollmentSession->active())
+        {
+            m_enrollmentSession->cancel();
+        }
+        else
+        {
+            m_process->cancel();
+        }
         return;
     }
     m_capturedScans = captured;
@@ -412,7 +462,7 @@ bool ProfileModel::loadProfiles(const QJsonObject &data)
 
     QVector<Profile> profiles;
     const QJsonArray array = profilesValue.toArray();
-    if (array.size() > 8)
+    if (array.size() > m_maxProfiles)
     {
         return false;
     }

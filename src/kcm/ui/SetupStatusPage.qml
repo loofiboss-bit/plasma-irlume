@@ -1,0 +1,185 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// qmllint disable unqualified
+// qmllint disable missing-property
+
+import QtQuick
+import QtQuick.Controls as QQC2
+import QtQuick.Layouts
+import org.kde.kirigami as Kirigami
+import "components" as Components
+
+Kirigami.ScrollablePage {
+    id: root
+
+    required property QtObject systemState
+    required property QtObject profileModel
+    required property QtObject authConfiguration
+    property var openProfiles: () => {}
+    property var openAccess: () => {}
+    property var refresh: () => {}
+
+    readonly property bool engineReady: systemState.engineStatus === 0
+        && systemState.daemonStatus === 0
+        && profileModel.contractAvailable
+    readonly property bool cameraReady: systemState.cameraType === 0 || systemState.cameraType === 1
+    readonly property bool profileReady: profileModel.profileCount > 0
+    readonly property bool recoveryReady: authConfiguration.recoveryAcknowledged
+    readonly property int currentStep: !engineReady ? 0
+        : (!cameraReady ? 1
+        : (!profileReady ? 2
+        : (!recoveryReady ? 4 : 5)))
+    readonly property string nextAction: !engineReady
+        ? i18n("Upgrade irlume to unlock guided setup")
+        : (!cameraReady
+        ? i18n("Connect and test a supported camera")
+        : (!profileReady
+        ? i18n("Register your first face profile")
+        : (!recoveryReady
+        ? i18n("Review recovery before enabling")
+        : i18n("Review and enable Face Login"))))
+
+    title: i18n("Setup & Status")
+    padding: Kirigami.Units.largeSpacing
+
+    ColumnLayout {
+        width: root.availableWidth
+        spacing: Kirigami.Units.largeSpacing
+
+        Kirigami.AbstractCard {
+            Layout.fillWidth: true
+            Accessible.role: Accessible.Grouping
+            Accessible.name: root.nextAction
+
+            contentItem: GridLayout {
+                columns: width < Kirigami.Units.gridUnit * 28 ? 1 : 2
+                columnSpacing: Kirigami.Units.largeSpacing
+                rowSpacing: Kirigami.Units.smallSpacing
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+
+                    QQC2.Label {
+                        Layout.fillWidth: true
+                        text: i18n("Next action")
+                        color: Kirigami.Theme.disabledTextColor
+                        wrapMode: Text.Wrap
+                    }
+
+                    Kirigami.Heading {
+                        Layout.fillWidth: true
+                        level: 1
+                        text: root.nextAction
+                        wrapMode: Text.Wrap
+                    }
+
+                    QQC2.Label {
+                        Layout.fillWidth: true
+                        text: root.systemState.summary
+                        wrapMode: Text.Wrap
+                    }
+                }
+
+                QQC2.Button {
+                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                    text: root.currentStep < 2 ? i18n("Check again")
+                        : (root.currentStep === 2 ? i18n("Open Face Profiles") : i18n("Open Access"))
+                    icon.name: root.currentStep < 2 ? "view-refresh" : "go-next"
+                    onClicked: {
+                        if (root.currentStep < 2) {
+                            root.refresh();
+                        } else if (root.currentStep === 2) {
+                            root.openProfiles();
+                        } else {
+                            root.openAccess();
+                        }
+                    }
+                }
+            }
+        }
+
+        Kirigami.InlineMessage {
+            Layout.fillWidth: true
+            visible: !root.profileModel.contractAvailable && !root.profileModel.busy
+            type: Kirigami.MessageType.Warning
+            text: i18n("irlume 0.6.x remains available for read-only diagnostics. Guided setup requires the reviewed V2 engine contract.")
+        }
+
+        Kirigami.Heading {
+            Layout.fillWidth: true
+            level: 2
+            text: i18n("Setup path")
+            wrapMode: Text.Wrap
+        }
+
+        Repeater {
+            model: [
+                { title: i18n("Engine compatibility"), icon: "system-software-update", done: root.engineReady },
+                { title: i18n("Camera and infrared test"), icon: "camera-photo", done: root.cameraReady },
+                { title: i18n("Face profile registration"), icon: "user-identity", done: root.profileReady },
+                { title: i18n("Recognition test"), icon: "security-high", done: root.profileReady },
+                { title: i18n("Recovery readiness"), icon: "tools-report-bug", done: root.recoveryReady },
+                { title: i18n("Review and enable"), icon: "preferences-system-login",
+                  done: root.authConfiguration.lockScreenEnabled || root.authConfiguration.loginScreenEnabled }
+            ]
+
+            delegate: Kirigami.AbstractCard {
+                required property var modelData
+                required property int index
+
+                Layout.fillWidth: true
+                Accessible.role: Accessible.ListItem
+                Accessible.name: modelData.title + ", "
+                    + (modelData.done ? i18n("Complete") : (index === root.currentStep ? i18n("Current") : i18n("Pending")))
+
+                contentItem: RowLayout {
+                    Kirigami.Icon {
+                        Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
+                        Layout.preferredHeight: width
+                        source: modelData.done ? "emblem-checked" : modelData.icon
+                        color: modelData.done ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.textColor
+                        Accessible.ignored: true
+                    }
+
+                    QQC2.Label {
+                        Layout.fillWidth: true
+                        text: i18n("%1. %2", index + 1, modelData.title)
+                        font.weight: index === root.currentStep ? Font.DemiBold : Font.Normal
+                        wrapMode: Text.Wrap
+                    }
+
+                    Components.StatusPill {
+                        text: modelData.done ? i18n("Complete")
+                            : (index === root.currentStep ? i18n("Current") : i18n("Pending"))
+                        tone: modelData.done ? 1 : (index === root.currentStep ? 2 : 0)
+                    }
+                }
+            }
+        }
+
+        Kirigami.AbstractCard {
+            Layout.fillWidth: true
+            Accessible.role: Accessible.Grouping
+            Accessible.name: i18n("Current protection")
+
+            contentItem: ColumnLayout {
+                Components.DetailRow {
+                    Layout.fillWidth: true
+                    label: i18n("Security level")
+                    value: root.systemState.securityTierLabel
+                    tone: root.systemState.securityTier === 0 ? 1 : (root.systemState.securityTier === 1 ? 2 : 3)
+                }
+
+                Kirigami.Separator {
+                    Layout.fillWidth: true
+                }
+
+                Components.DetailRow {
+                    Layout.fillWidth: true
+                    label: i18n("Password fallback")
+                    value: root.systemState.passwordFallbackPreserved ? i18n("Available") : i18n("Not verified")
+                    tone: root.systemState.passwordFallbackPreserved ? 1 : 3
+                }
+            }
+        }
+    }
+}

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "authconfiguration.h"
+#include "enrollmentpreviewitem.h"
+#include "enrollmentsession.h"
 #include "fakeadapter.h"
 #include "profilemodel.h"
 #include "supportreport.h"
@@ -13,6 +15,7 @@
 #include <QQmlEngine>
 #include <QQuickItem>
 #include <QTest>
+#include <qqml.h>
 
 class QmlPagesTest final : public QObject
 {
@@ -58,6 +61,7 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
 {
     FakeSystemStateAdapter adapter;
     ProfileModel profileModel;
+    EnrollmentSession enrollmentSession(QStringLiteral("/nonexistent/irlume"));
     QQmlEngine engine;
     auto *localizedContext = KLocalization::setupLocalizedContext(&engine);
     localizedContext->setTranslationDomain(QStringLiteral("plasma_irlume"));
@@ -83,6 +87,7 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
                                      {
                                          {QStringLiteral("systemState"), stateValue},
                                          {QStringLiteral("profileModel"), QVariant::fromValue(&profileModel)},
+                                         {QStringLiteral("enrollmentSession"), QVariant::fromValue(&enrollmentSession)},
                                      });
         QVERIFY2(enrollment, qPrintable(QStringLiteral("Enrollment failed for scenario %1").arg(index)));
 
@@ -103,16 +108,27 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
                        });
         QVERIFY2(diagnostics, qPrintable(QStringLiteral("Diagnostics failed for scenario %1").arg(index)));
 
+        auto setupStatus =
+            createPage(engine, QStringLiteral("SetupStatusPage.qml"),
+                       {
+                           {QStringLiteral("systemState"), stateValue},
+                           {QStringLiteral("profileModel"), QVariant::fromValue(&profileModel)},
+                           {QStringLiteral("authConfiguration"), QVariant::fromValue(&authConfiguration)},
+                       });
+        QVERIFY2(setupStatus, qPrintable(QStringLiteral("Setup & Status failed for scenario %1").arg(index)));
+
         auto *overviewItem = qobject_cast<QQuickItem *>(overview.get());
         auto *securityItem = qobject_cast<QQuickItem *>(security.get());
         auto *enrollmentItem = qobject_cast<QQuickItem *>(enrollment.get());
         auto *diagnosticsItem = qobject_cast<QQuickItem *>(diagnostics.get());
         auto *authenticationItem = qobject_cast<QQuickItem *>(authentication.get());
+        auto *setupStatusItem = qobject_cast<QQuickItem *>(setupStatus.get());
         QVERIFY(overviewItem);
         QVERIFY(securityItem);
         QVERIFY(enrollmentItem);
         QVERIFY(diagnosticsItem);
         QVERIFY(authenticationItem);
+        QVERIFY(setupStatusItem);
         for (const int width : {320, 480, 960})
         {
             overviewItem->setSize(QSizeF(width, 720));
@@ -120,12 +136,14 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
             enrollmentItem->setSize(QSizeF(width, 720));
             diagnosticsItem->setSize(QSizeF(width, 720));
             authenticationItem->setSize(QSizeF(width, 720));
+            setupStatusItem->setSize(QSizeF(width, 720));
             QCoreApplication::processEvents();
             QVERIFY(overviewItem->implicitHeight() > 0);
             QVERIFY(securityItem->implicitHeight() > 0);
             QVERIFY(enrollmentItem->implicitHeight() > 0);
             QVERIFY(diagnosticsItem->implicitHeight() > 0);
             QVERIFY(authenticationItem->implicitHeight() > 0);
+            QVERIFY(setupStatusItem->implicitHeight() > 0);
         }
     }
 }
@@ -133,6 +151,7 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
 int main(int argc, char **argv)
 {
     QGuiApplication application(argc, argv);
+    qmlRegisterType<EnrollmentPreviewItem>("org.kde.plasma.irlume", 2, 0, "EnrollmentPreview");
     QmlPagesTest test;
     return QTest::qExec(&test, argc, argv);
 }

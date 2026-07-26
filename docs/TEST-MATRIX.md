@@ -1,4 +1,4 @@
-# Phase 6 test matrix
+# V2 test matrix
 
 ## Automated contract coverage
 
@@ -17,7 +17,7 @@ rpmbuild -ba packaging/fedora/plasma-irlume.spec \
   --define "_sourcedir $PWD"
 rpmlint packaging/fedora/plasma-irlume.spec
 packaging/fedora/rpm-smoke-test.sh \
-  "$HOME/rpmbuild/RPMS/$(uname -m)/plasma-irlume-1.0.0-1.fc44.$(uname -m).rpm"
+  "$HOME/rpmbuild/RPMS/$(uname -m)/plasma-irlume-2.0.0-0.1.dev.fc44.$(uname -m).rpm"
 ```
 
 The automated suite covers:
@@ -39,6 +39,8 @@ The automated suite covers:
   arguments;
 - contract version, command, engine version, operation ID, sequence, terminal
   state, output bounds, and sensitive-field rejection;
+- preview session ID, bounded JPEG, dimensions, spectrum, normalized landmarks,
+  typed positioning, frame dropping, cancellation, and memory clearing;
 - profile-list loading and safe opaque IDs;
 - enrollment followed by a non-mutating recognition test;
 - deletion of an unverified new profile after a failed test;
@@ -93,9 +95,10 @@ An upgrade does not own or rewrite user settings, engine profiles, or PAM
 state. Opening the upgraded KCM performs a fresh version-gated engine probe, so
 compatibility is re-evaluated instead of being copied from package state.
 
-## Phase 6 release status
+## V2 release status
 
-The repository is packaging-complete for the experimental 1.0.0 release.
+The V1 repository is packaging-complete for the experimental 1.0.0 release.
+V2 is a gated development implementation and is not approved for publication.
 GitHub and COPR publication do not satisfy or replace the following live
 checks, which are not claimed by this repository state:
 
@@ -111,7 +114,7 @@ checks, which are not claimed by this repository state:
 
 Before enabling a new irlume release:
 
-1. Confirm that its official documentation publishes contract version 1 and a
+1. Confirm that its official documentation publishes the reviewed V2 contract and a
    compatibility policy.
 2. Capture sanitized outputs for every command in `docs/ENGINE-CONTRACT.md`.
 3. Replace the synthetic event fixtures with release-derived sanitized

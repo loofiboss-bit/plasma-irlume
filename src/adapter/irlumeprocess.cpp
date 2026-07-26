@@ -32,6 +32,12 @@ bool hasSafeEngineVersion(const QJsonObject &object)
     return versionPattern.match(object.value(QStringLiteral("engine_version")).toString()).hasMatch();
 }
 
+bool hasSupportedContractVersion(const QJsonObject &object)
+{
+    const int version = object.value(QStringLiteral("contract_version")).toInt(-1);
+    return version == 1 || version == 2;
+}
+
 bool isTerminalType(const QString &type)
 {
     return type == QLatin1String("completed") || type == QLatin1String("cancelled") || type == QLatin1String("failed");
@@ -172,8 +178,8 @@ IrlumeProcess::ParseResult IrlumeProcess::parseStreamEvent(const QJsonObject &ob
     ParseResult result;
     result.event.operation = operation;
 
-    if (containsSensitiveField(object) || object.value(QStringLiteral("contract_version")).toInt(-1) != 1 ||
-        !hasSafeEngineVersion(object) || object.value(QStringLiteral("command")).toString() != commandName(operation) ||
+    if (containsSensitiveField(object) || !hasSupportedContractVersion(object) || !hasSafeEngineVersion(object) ||
+        object.value(QStringLiteral("command")).toString() != commandName(operation) ||
         !object.value(QStringLiteral("sequence")).isDouble() || !object.value(QStringLiteral("terminal")).isBool())
     {
         result.errorCode = QStringLiteral("invalid-event-contract");
@@ -185,7 +191,7 @@ IrlumeProcess::ParseResult IrlumeProcess::parseStreamEvent(const QJsonObject &ob
     const QString type = object.value(QStringLiteral("event")).toString();
     const bool terminal = object.value(QStringLiteral("terminal")).toBool();
     static const QSet<QString> eventTypes = {
-        QStringLiteral("started"),   QStringLiteral("stage"),     QStringLiteral("progress"),
+        QStringLiteral("started"),   QStringLiteral("stage"),     QStringLiteral("progress"), QStringLiteral("preview"),
         QStringLiteral("completed"), QStringLiteral("cancelled"), QStringLiteral("failed"),
     };
 
@@ -227,8 +233,8 @@ IrlumeProcess::ParseResult IrlumeProcess::parseDocument(const QJsonObject &objec
     ParseResult result;
     result.event.operation = operation;
 
-    if (containsSensitiveField(object) || object.value(QStringLiteral("contract_version")).toInt(-1) != 1 ||
-        !hasSafeEngineVersion(object) || object.value(QStringLiteral("command")).toString() != commandName(operation) ||
+    if (containsSensitiveField(object) || !hasSupportedContractVersion(object) || !hasSafeEngineVersion(object) ||
+        object.value(QStringLiteral("command")).toString() != commandName(operation) ||
         !object.value(QStringLiteral("ok")).isBool())
     {
         result.errorCode = QStringLiteral("invalid-document-contract");

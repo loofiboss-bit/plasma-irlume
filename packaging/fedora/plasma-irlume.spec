@@ -1,6 +1,6 @@
 Name:           plasma-irlume
-Version:        1.0.0
-Release:        1%{?dist}
+Version:        2.0.0
+Release:        0.1.dev%{?dist}
 Summary:        Experimental KDE integration for the irlume face-authentication engine
 
 License:        GPL-3.0-or-later
@@ -24,7 +24,6 @@ BuildRequires:  qt6-qtbase-devel >= 6.8.0
 BuildRequires:  qt6-qtdeclarative-devel >= 6.8.0
 
 Requires:       irlume >= 0.6.0
-Requires:       irlume < 0.7.0
 Requires:       kf6-kcmutils >= 6.10.0
 Requires:       kf6-kirigami >= 6.10.0
 Requires:       plasma-systemsettings
@@ -78,5 +77,8 @@ desktop-file-validate data/kcm_irlume.desktop
 %{_datadir}/polkit-1/actions/io.github.loofibossbit.plasmairlume.helper.policy
 
 %changelog
+* Sun Jul 26 2026 Loofi <noreply@example.invalid> - 2.0.0-0.1.dev
+- Add the gated V2 workflow and bounded in-memory enrollment preview
+
 * Sun Jul 26 2026 Loofi <noreply@example.invalid> - 1.0.0-1
 - Publish the experimental Fedora 44 release

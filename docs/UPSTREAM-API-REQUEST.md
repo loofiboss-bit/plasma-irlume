@@ -2,8 +2,8 @@
 
 ## Suggested title
 
-Add a versioned JSON/NDJSON integration contract for status, enrollment, auth
-testing, and transactional login wiring
+Add a versioned JSON/NDJSON integration contract for profiles, bounded camera
+preview, positioning, and transactional login wiring
 
 ## Context
 
@@ -28,8 +28,8 @@ Every JSON object should contain at least:
 
 ```json
 {
-  "contract_version": 1,
-  "engine_version": "0.6.x",
+  "contract_version": 2,
+  "engine_version": "NEXT_REVIEWED_RELEASE",
   "command": "status",
   "ok": true,
   "data": {}
@@ -50,8 +50,9 @@ Requirements:
   authorization, cancellation, and operation failure;
 - optional fields may be added compatibly, while removal or semantic changes
   require a new `contract_version`;
-- output contains no frames, images, embeddings, templates, passwords,
-  credential material, TPM secrets, or unnecessary host identifiers.
+- ordinary output contains no frames, images, embeddings, templates,
+  passwords, credential material, TPM secrets, or unnecessary host identifiers;
+- preview image data exists only in the explicitly requested enrollment stream.
 
 ## Read operations
 
@@ -86,8 +87,8 @@ should localize from stable IDs and codes.
 Please expose a safe event stream, for example:
 
 ```text
-irlume enroll --events=jsonl
-irlume auth test --events=jsonl
+irlume enroll --events=jsonl --preview=ir-jpeg
+irlume auth test --events=jsonl --preview=ir-jpeg
 ```
 
 `auth test` should perform claimed-user 1:1 verification only. It must not
@@ -103,8 +104,22 @@ terminal flag. The stream should support:
 - bounded progress where meaningful;
 - exactly one terminal `completed`, `cancelled`, or `failed` event.
 
-Cancellation must release the camera and leave no partial profile or temporary
-image. Events must never contain frame data, embeddings, or credentials.
+Every event also needs a session ID. A `preview` event may contain one base64
+JPEG no larger than 128 KiB or 640 by 480, an `ir` or `rgb` spectrum, a
+normalized face box, up to 478 normalized FaceMesh points, and a typed
+`PositionReport` for detection, centering, distance, pose, lighting,
+IR readiness, quality, guidance, and countdown. It must not contain embeddings,
+match scores, usernames, profile names, or paths.
+
+The engine must cap delivery at 8 frames per second and permit at most one
+same-user preview session. Cancellation, client disconnect, daemon restart, or
+session replacement must release the camera and leave no partial profile or
+temporary image.
+
+Please also advertise limits and capabilities for profile rename, scan list,
+single-scan deletion, improve recognition, merge confirmation, RGB/IR pair
+selection, emitter test, and capture-mode tuning. All mutation results need
+stable codes and explicit before/after identity.
 
 ## Transactional login operations
 
@@ -172,5 +187,6 @@ rollback result shape.
   transaction.
 
 Representative synthetic payloads are available in
-`tests/fixtures/irlume/proposed-v1/` in the `plasma-irlume` repository. They
+`tests/fixtures/irlume/proposed-v1/` and the V2 consumer tests in the
+`plasma-irlume` repository. They
 illustrate required semantics and are open to upstream naming adjustments.

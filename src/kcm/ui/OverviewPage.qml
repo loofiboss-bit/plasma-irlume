@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+// qmllint disable unqualified
+// qmllint disable missing-property
 
 import QtQuick
 import QtQuick.Controls as QQC2

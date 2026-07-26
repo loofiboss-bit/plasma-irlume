@@ -1,16 +1,17 @@
 # Architecture
 
-## Phase 5 status
+## V2 development status
 
 The KCM provides live, read-only Fedora, Plasma, display-manager, Secure Boot,
 TPM, and irlume diagnostics. `SystemProbe` collects local platform facts and
 invokes a fixed irlume 0.6.x command set. `SystemState` exposes typed,
 presentation-safe state to QML.
 
-`IrlumeProcess` and `ProfileModel` provide the Phase 3 enrollment and profile
-workflow behind a versioned machine-contract gate. The current irlume 0.6.1
-release does not publish that contract, so production refuses mutation until a
-reviewed upstream release advertises both `profiles-json` and `events-jsonl`.
+`IrlumeProcess`, `EnrollmentSession`, and `ProfileModel` provide the V2
+enrollment and profile workflow behind a versioned machine-contract gate. The
+current irlume 0.6.1 release does not publish that contract, so production
+refuses mutation until a reviewed upstream release advertises the complete
+profile and preview capability set.
 Deterministic adapters and contract fixtures remain test-only.
 
 `AuthConfiguration` provides Phase 4 UI state and eligibility policy.
@@ -81,7 +82,7 @@ generated from those typed fields, not from raw command output. It excludes:
 ```text
 EnrollmentPage
   -> ProfileModel
-    -> IrlumeProcess
+    -> EnrollmentSession
       -> fixed irlume machine-mode commands
         -> irlumed owns camera, templates, atomic mutation, and cleanup
 ```
@@ -92,10 +93,16 @@ profile deletion. QML can pass only an opaque profile ID that already exists in
 `ProfileModel`; it cannot pass a username, executable, path, environment value,
 or arbitrary command argument.
 
-Every event must match contract version 1, the expected command and operation
-ID, a monotonic sequence, and exactly one terminal state. Output is bounded and
-rejected if it contains frame, image, embedding, template, credential,
-password, username, user, or path fields. Stderr is never presented.
+Every event must match a supported contract version, the expected command,
+operation ID, session ID, a monotonic sequence, and exactly one terminal state.
+The normal `IrlumeProcess` remains image-blind and rejects image fields.
+`EnrollmentSession` alone accepts bounded preview events and exposes only the
+current decoded image, landmarks, face box, spectrum, and typed positioning
+state to the painted QML item.
+
+Preview memory is isolated from `SystemProbe` and `SupportReport`. The adapter
+drops stale frames to enforce 8 fps, retains no frame queue, clears buffers at
+every exit, and never logs raw events. The daemon remains the only camera owner.
 
 Fresh enrollment is immediately followed by a claimed-user recognition test.
 The test contract must state that it released no credential and modified no

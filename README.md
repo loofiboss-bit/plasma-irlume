@@ -4,7 +4,8 @@
 [`irlume`](https://github.com/archledger/irlume) face-authentication engine on
 Fedora KDE.
 
-The repository contains the **Phase 6 / 1.0.0 experimental release**: a
+The repository contains the **V2 development implementation**, built on the
+experimental 1.0.0 safety boundary: a
 discoverable Plasma 6 KCM, live Fedora and hardware diagnostics, guided profile
 management, a fixed-operation KAuth helper, transactional authentication
 planning and activation, post-apply verification, automatic rollback,
@@ -15,6 +16,10 @@ redacted Markdown support-report export, and reproducible Fedora 44 packaging.
 > real-hardware and clean-install release matrix in
 > [the test matrix](docs/TEST-MATRIX.md) passes. Packaging readiness does not
 > establish biometric or authentication safety on a particular computer.
+
+V2 adds four task-oriented areas, a resumable live-state setup path, an
+engine-advertised multi-profile limit, and a dedicated in-memory IR/RGB preview
+with FaceMesh landmarks and typed camera guidance.
 
 Profile mutations are fail-closed behind irlume's proposed versioned JSON/JSONL
 integration contract. The current irlume 0.6.1 release does not publish that
@@ -34,8 +39,10 @@ closed for other versions or malformed output.
 The mutation adapters invoke only fixed machine-mode commands and validate
 contract version, command, operation ID, monotonic sequence, terminal event,
 bounded output, safe opaque profile IDs, and the absence of sensitive fields.
-They never display or store frames and never accept a username, executable,
-PAM path, or free-form command from QML. Enrollment is tested automatically; an
+The dedicated V2 enrollment adapter may display one bounded in-memory frame;
+the diagnostic adapter still rejects all image fields. Neither adapter stores
+frames or accepts a username, executable, PAM path, or free-form command from
+QML. Enrollment is tested automatically; an
 unverified new profile is deleted through the same typed contract.
 
 Authentication activation is an irlume-owned plan → apply → verify transaction.
@@ -48,6 +55,7 @@ See:
 - [Installation guide](docs/INSTALLATION.md)
 - [User guide](docs/USER-GUIDE.md)
 - [Engine contract](docs/ENGINE-CONTRACT.md)
+- [V2 implementation status](docs/V2-IMPLEMENTATION.md)
 - [Architecture boundary](docs/ARCHITECTURE.md)
 - [Upstream API request](docs/UPSTREAM-API-REQUEST.md)
 - [Phase 6 test matrix](docs/TEST-MATRIX.md)

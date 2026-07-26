@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+// qmllint disable unqualified
+// qmllint disable missing-property
 
 import QtQuick
 import QtQuick.Controls as QQC2
@@ -11,7 +13,7 @@ Kirigami.ScrollablePage {
     required property QtObject systemState
     required property QtObject authConfiguration
 
-    title: i18n("Authentication")
+    title: i18n("Access")
     padding: Kirigami.Units.largeSpacing
 
     ColumnLayout {
@@ -21,13 +23,13 @@ Kirigami.ScrollablePage {
         Kirigami.Heading {
             Layout.fillWidth: true
             level: 1
-            text: i18n("Authentication")
+            text: i18n("Access")
             wrapMode: Text.Wrap
         }
 
         QQC2.Label {
             Layout.fillWidth: true
-            text: i18n("irlume plans and applies every authentication change. The KCM never edits PAM files directly.")
+            text: i18n("Review and enable Face Login for each supported scope. irlume plans every change; the KCM never edits PAM files directly.")
             color: Kirigami.Theme.disabledTextColor
             wrapMode: Text.Wrap
         }
@@ -120,14 +122,14 @@ Kirigami.ScrollablePage {
                     }
 
                     QQC2.Button {
-                        text: i18n("Preview")
+                        text: i18n("Review plan")
                         icon.name: "document-preview"
                         enabled: authConfiguration.canEnableLockScreen
                         onClicked: authConfiguration.previewLockScreen()
                     }
 
                     QQC2.Button {
-                        text: i18n("Enable")
+                        text: i18n("Review and enable")
                         icon.name: "security-high"
                         enabled: authConfiguration.canApplyLockScreen
                         onClicked: authConfiguration.enableLockScreen()
@@ -172,14 +174,14 @@ Kirigami.ScrollablePage {
                     }
 
                     QQC2.Button {
-                        text: i18n("Preview")
+                        text: i18n("Review plan")
                         icon.name: "document-preview"
                         enabled: authConfiguration.canEnableLoginScreen
                         onClicked: authConfiguration.previewLoginScreen()
                     }
 
                     QQC2.Button {
-                        text: i18n("Enable")
+                        text: i18n("Review and enable")
                         icon.name: "security-high"
                         enabled: authConfiguration.canApplyLoginScreen
                         onClicked: authConfiguration.enableLoginScreen()
@@ -291,7 +293,7 @@ Kirigami.ScrollablePage {
             Layout.fillWidth: true
             visible: true
             type: Kirigami.MessageType.Information
-            text: i18n("Face authentication for sudo and Polkit is outside version 1.0 and cannot be enabled here.")
+            text: i18n("Face authentication for sudo, su, SSH, and Polkit is outside V2 and cannot be enabled here.")
         }
     }
 }

@@ -1,7 +1,7 @@
 # Fedora packaging
 
-The spec targets Fedora 44 and builds plasma-irlume 1.0.0 as an experimental
-package. `irlume` remains a separate upstream security dependency and is never
+The spec targets Fedora 44 and builds plasma-irlume 2.0.0-0.1.dev as a gated
+development package. `irlume` remains a separate upstream security dependency and is never
 vendored into this source or RPM.
 
 ## Local build
@@ -24,7 +24,7 @@ RPM:
 
 ```bash
 packaging/fedora/rpm-smoke-test.sh \
-  "$HOME/rpmbuild/RPMS/$(uname -m)/plasma-irlume-1.0.0-1.fc44.$(uname -m).rpm"
+  "$HOME/rpmbuild/RPMS/$(uname -m)/plasma-irlume-2.0.0-0.1.dev.fc44.$(uname -m).rpm"
 ```
 
 The smoke test uses a temporary RPM root and `--nodeps`. It validates payload
@@ -33,7 +33,8 @@ live Fedora 44 KDE and real-hardware release matrix.
 
 ## Dependency and lifecycle policy
 
-- Runtime diagnostics require `irlume >= 0.6.0` and `< 0.7.0`.
+- Runtime diagnostics require `irlume >= 0.6.0`; only the reviewed 0.6.x parser
+  is enabled until a newer release passes the explicit compatibility gate.
 - Profile and authentication mutations additionally require the reviewed
   structured capabilities documented in `docs/ENGINE-CONTRACT.md`.
 - Installing, upgrading, or erasing this RPM runs no irlume, PAM, authselect,
@@ -45,7 +46,8 @@ live Fedora 44 KDE and real-hardware release matrix.
 
 ## Release policy
 
-Version 1.0.0 is published only as an experimental package. COPR availability
+Version 2.0.0-0.1.dev is a local development package and must not be published
+as stable. COPR availability
 proves that the package can be built and distributed; it does not satisfy the
 real-hardware, live PAM, display-manager, or recovery gates in
 `docs/TEST-MATRIX.md`. Do not describe the package as production-ready until

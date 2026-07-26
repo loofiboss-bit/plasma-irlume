@@ -621,7 +621,8 @@ bool AuthHelper::parseRollback(const QJsonObject &document, const QString &trans
 bool AuthHelper::validEnvelope(const QJsonObject &document, const QString &command)
 {
     static const QRegularExpression versionPattern(QStringLiteral(R"(\A\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?\z)"));
-    return !containsSensitiveField(document) && document.value(QStringLiteral("contract_version")).toInt(-1) == 1 &&
+    const int contractVersion = document.value(QStringLiteral("contract_version")).toInt(-1);
+    return !containsSensitiveField(document) && (contractVersion == 1 || contractVersion == 2) &&
            versionPattern.match(document.value(QStringLiteral("engine_version")).toString()).hasMatch() &&
            document.value(QStringLiteral("command")).toString() == command &&
            document.value(QStringLiteral("ok")).isBool() && document.value(QStringLiteral("data")).isObject();

@@ -8,6 +8,8 @@
 #include <QString>
 #include <QVector>
 
+class EnrollmentSession;
+
 class ProfileModel final : public QAbstractListModel
 {
     Q_OBJECT
@@ -23,6 +25,7 @@ class ProfileModel final : public QAbstractListModel
     Q_PROPERTY(QString errorCode READ errorCode NOTIFY stateChanged)
     Q_PROPERTY(bool canRetry READ canRetry NOTIFY stateChanged)
     Q_PROPERTY(bool cancellable READ cancellable NOTIFY stateChanged)
+    Q_PROPERTY(int maxProfiles READ maxProfiles NOTIFY stateChanged)
 
   public:
     enum Role
@@ -48,6 +51,7 @@ class ProfileModel final : public QAbstractListModel
 
     explicit ProfileModel(QObject *parent = nullptr);
     ProfileModel(IrlumeProcess *process, QObject *parent);
+    ProfileModel(IrlumeProcess *process, EnrollmentSession *enrollmentSession, QObject *parent);
 
     [[nodiscard]] int rowCount(const QModelIndex &parent = {}) const override;
     [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
@@ -64,6 +68,7 @@ class ProfileModel final : public QAbstractListModel
     [[nodiscard]] QString errorCode() const;
     [[nodiscard]] bool canRetry() const;
     [[nodiscard]] bool cancellable() const;
+    [[nodiscard]] int maxProfiles() const;
 
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void enroll();
@@ -111,6 +116,7 @@ class ProfileModel final : public QAbstractListModel
     [[nodiscard]] QString messageForError(const QString &code) const;
 
     IrlumeProcess *m_process = nullptr;
+    EnrollmentSession *m_enrollmentSession = nullptr;
     QVector<Profile> m_profiles;
     bool m_contractAvailable = false;
     bool m_busy = false;
@@ -121,6 +127,8 @@ class ProfileModel final : public QAbstractListModel
     int m_totalScans = 0;
     QString m_errorCode;
     bool m_canRetry = false;
+    int m_maxProfiles = 3;
+    int m_maxScansPerProfile = 20;
     RequestedAction m_lastAction = RequestedAction::None;
     QString m_lastProfileId;
     QString m_activeProfileId;

@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+// qmllint disable unqualified
+// qmllint disable missing-property
 
 import QtQuick
 import QtQuick.Controls as QQC2
@@ -16,38 +18,33 @@ KCMUtils.SimpleKCM {
 
         width: parent.width
         Accessible.name: i18n("Face Login sections")
-        KeyNavigation.down: currentIndex === 0 ? overview : (currentIndex === 1 ? enrollment : (currentIndex === 2 ? authentication : (currentIndex === 3 ? security : diagnostics)))
+        KeyNavigation.down: currentIndex === 0 ? setupStatus
+            : (currentIndex === 1 ? enrollment
+            : (currentIndex === 2 ? authentication : diagnostics))
 
         QQC2.TabButton {
-            text: i18n("Overview")
+            text: i18n("Setup & Status")
             icon.name: "view-dashboard"
             display: tabs.width < 520 ? QQC2.AbstractButton.IconOnly : QQC2.AbstractButton.TextOnly
             Accessible.name: text
         }
 
         QQC2.TabButton {
-            text: i18n("Face profile")
+            text: i18n("Face Profiles")
             icon.name: "user-identity"
             display: tabs.width < 520 ? QQC2.AbstractButton.IconOnly : QQC2.AbstractButton.TextOnly
             Accessible.name: text
         }
 
         QQC2.TabButton {
-            text: i18n("Authentication")
+            text: i18n("Access")
             icon.name: "preferences-system-login"
             display: tabs.width < 520 ? QQC2.AbstractButton.IconOnly : QQC2.AbstractButton.TextOnly
             Accessible.name: text
         }
 
         QQC2.TabButton {
-            text: i18n("Security")
-            icon.name: "security-high"
-            display: tabs.width < 520 ? QQC2.AbstractButton.IconOnly : QQC2.AbstractButton.TextOnly
-            Accessible.name: text
-        }
-
-        QQC2.TabButton {
-            text: i18n("Diagnostics")
+            text: i18n("Support")
             icon.name: "tools-report-bug"
             display: tabs.width < 520 ? QQC2.AbstractButton.IconOnly : QQC2.AbstractButton.TextOnly
             Accessible.name: text
@@ -58,22 +55,21 @@ KCMUtils.SimpleKCM {
         width: parent.width
         spacing: 0
 
-        OverviewPage {
-            id: overview
+        SetupStatusPage {
+            id: setupStatus
 
             Layout.fillWidth: true
             visible: tabs.currentIndex === 0
             enabled: visible
             systemState: kcm.systemState
-        }
-
-        SecurityPage {
-            id: security
-
-            Layout.fillWidth: true
-            visible: tabs.currentIndex === 3
-            enabled: visible
-            systemState: kcm.systemState
+            profileModel: kcm.profileModel
+            authConfiguration: kcm.authConfiguration
+            openProfiles: () => tabs.currentIndex = 1
+            openAccess: () => tabs.currentIndex = 2
+            refresh: () => {
+                kcm.refresh();
+                kcm.profileModel.refresh();
+            }
         }
 
         EnrollmentPage {
@@ -84,6 +80,7 @@ KCMUtils.SimpleKCM {
             enabled: visible
             systemState: kcm.systemState
             profileModel: kcm.profileModel
+            enrollmentSession: kcm.enrollmentSession
         }
 
         AuthenticationPage {
@@ -100,7 +97,7 @@ KCMUtils.SimpleKCM {
             id: diagnostics
 
             Layout.fillWidth: true
-            visible: tabs.currentIndex === 4
+            visible: tabs.currentIndex === 3
             enabled: visible
             systemState: kcm.systemState
             authConfiguration: kcm.authConfiguration

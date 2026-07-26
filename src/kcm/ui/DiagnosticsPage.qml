@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+// qmllint disable unqualified
+// qmllint disable missing-property
 
 import QtQuick
 import QtQuick.Controls as QQC2
@@ -15,6 +17,13 @@ ColumnLayout {
     property var refresh: () => {}
 
     spacing: Kirigami.Units.largeSpacing
+
+    Kirigami.Heading {
+        Layout.fillWidth: true
+        level: 1
+        text: i18n("Support")
+        wrapMode: Text.Wrap
+    }
 
     Kirigami.InlineMessage {
         Layout.fillWidth: true

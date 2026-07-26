@@ -18,6 +18,7 @@ class AuthHelperTest final : public QObject
     void planMustMatchTheActiveDisplayManager();
     void previewRejectsInactiveDisplayManagerTargets();
     void secureLockScreenTransactionIsVerified();
+    void contractVersionTwoTransactionIsVerified();
     void disableTransactionReachesVerifiedCleanState();
     void failedApplyTriggersRollback();
     void failedVerificationTriggersRollback();
@@ -82,6 +83,12 @@ QJsonObject disabledVerify()
 AuthHelper::CommandResult response(QJsonObject document)
 {
     return {document.value(QStringLiteral("ok")).toBool(), std::move(document), {}};
+}
+
+QJsonObject contractVersionTwo(QJsonObject document)
+{
+    document.insert(QStringLiteral("contract_version"), 2);
+    return document;
 }
 
 struct Script
@@ -185,6 +192,24 @@ void AuthHelperTest::secureLockScreenTransactionIsVerified()
     QCOMPARE(script.calls.at(2),
              AuthHelper::applyArguments(QStringLiteral("lock-screen"), QStringLiteral("plan-example-001")));
     QCOMPARE(script.calls.at(3), AuthHelper::verifyArguments(QStringLiteral("transaction-example-001")));
+}
+
+void AuthHelperTest::contractVersionTwoTransactionIsVerified()
+{
+    Script script;
+    script.replies = {
+        response(contractVersionTwo(fixture(QStringLiteral("version.json")))),
+        response(contractVersionTwo(lockScreenPlan())),
+        response(contractVersionTwo(lockScreenApply())),
+        response(contractVersionTwo(fixture(QStringLiteral("login-verify.json")))),
+    };
+    AuthHelper helper([&script](const QStringList &arguments) { return script.run(arguments); }, fedora44(),
+                      QStringLiteral("plasmalogin"));
+
+    const auto reply = helper.enablelockscreen({});
+
+    QCOMPARE(reply.type(), KAuth::ActionReply::SuccessType);
+    QCOMPARE(reply.data().value(QStringLiteral("verified")).toBool(), true);
 }
 
 void AuthHelperTest::failedVerificationTriggersRollback()
