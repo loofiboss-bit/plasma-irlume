@@ -101,6 +101,13 @@ The following evidence was refreshed on 2026-07-26:
   membership, and retains per-request root-or-self authorization through
   `SO_PEERCRED`. Ordinary-user version and camera probes passed after a clean
   daemon restart;
+- PR #115 final head `d28527a18a2ad991d210c526e82ad92d608de905`
+  passed the complete non-hardware-gated Rust workspace suite, workspace
+  clippy with warnings as errors, formatting, rustdoc, and Packit Fedora 43/44
+  builds. Its Fedora 44 RPM passed `rpm -V`, retained the verified socket and
+  camera behavior after restart, and made `irlume enroll --help` a proven
+  non-capturing operation: exit 0, no daemon journal entry, and identical
+  empty profile state before and after;
 - the locally built `plasma-irlume-2.0.0-0.1.dev.fc44` RPM was reinstalled on
   Fedora 44, passed `rpm -V`, exposed every fixed camera KAuth policy action,
   opened through `kcmshell6` without QML/runtime errors, and passed the
