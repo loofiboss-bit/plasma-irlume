@@ -3,6 +3,7 @@
 #pragma once
 
 #include "authconfiguration.h"
+#include "cameraconfiguration.h"
 #include "enrollmentsession.h"
 #include "profilemodel.h"
 #include "supportreport.h"
@@ -19,6 +20,7 @@ class IrlumeKcm final : public KQuickConfigModule
     Q_PROPERTY(ProfileModel *profileModel READ profileModel CONSTANT)
     Q_PROPERTY(EnrollmentSession *enrollmentSession READ enrollmentSession CONSTANT)
     Q_PROPERTY(AuthConfiguration *authConfiguration READ authConfiguration CONSTANT)
+    Q_PROPERTY(CameraConfiguration *cameraConfiguration READ cameraConfiguration CONSTANT)
     Q_PROPERTY(SupportReport *supportReport READ supportReport CONSTANT)
 
   public:
@@ -28,6 +30,7 @@ class IrlumeKcm final : public KQuickConfigModule
     [[nodiscard]] ProfileModel *profileModel();
     [[nodiscard]] EnrollmentSession *enrollmentSession();
     [[nodiscard]] AuthConfiguration *authConfiguration();
+    [[nodiscard]] CameraConfiguration *cameraConfiguration();
     [[nodiscard]] SupportReport *supportReport();
     Q_INVOKABLE void refresh();
 
@@ -35,8 +38,10 @@ class IrlumeKcm final : public KQuickConfigModule
     SystemProbe m_probe;
     SystemState m_systemState;
     IrlumeProcess m_profileProcess;
+    IrlumeProcess m_cameraProcess;
     EnrollmentSession m_enrollmentSession;
     ProfileModel m_profileModel;
     AuthConfiguration m_authConfiguration;
+    CameraConfiguration m_cameraConfiguration;
     SupportReport m_supportReport;
 };

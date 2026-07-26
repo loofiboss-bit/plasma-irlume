@@ -158,6 +158,10 @@ QString IrlumeProcess::commandName(Operation operation)
     case Operation::RenameProfile:
     case Operation::RenameScan:
         return QStringLiteral("profiles.rename");
+    case Operation::ListCameras:
+        return QStringLiteral("cameras.list");
+    case Operation::TestEmitter:
+        return QStringLiteral("cameras.emitter-test");
     }
     return {};
 }
@@ -197,6 +201,10 @@ QStringList IrlumeProcess::argumentsForOperation(Operation operation, const QStr
                 QStringLiteral("--scan-id"),    scanId,
                 QStringLiteral("--name"),       newName,
                 QStringLiteral("--json")};
+    case Operation::ListCameras:
+        return {QStringLiteral("cameras"), QStringLiteral("list"), QStringLiteral("--json")};
+    case Operation::TestEmitter:
+        return {QStringLiteral("cameras"), QStringLiteral("emitter-test"), QStringLiteral("--json")};
     }
     return {};
 }

@@ -25,6 +25,10 @@ class AuthHelperTest final : public QObject
     void engineReportedRollbackIsNotRepeated();
     void loginScreenRequiresSecureTier();
     void unsupportedPlatformNeverInvokesEngine();
+    void cameraMutationCommandsAreFixed();
+    void cameraSelectionIsIndependentlyVerified();
+    void emitterSetupIsIndependentlyVerified();
+    void cameraTuningResultIsBounded();
 };
 
 namespace
@@ -113,6 +117,38 @@ QByteArray fedora44()
 {
     return QByteArrayLiteral("ID=fedora\nVERSION_ID=\"44\"\n");
 }
+
+QJsonObject cameraEnvelope(const QString &command, const QJsonObject &data)
+{
+    return {
+        {QStringLiteral("contract_version"), 2}, {QStringLiteral("engine_version"), QStringLiteral("0.7.0")},
+        {QStringLiteral("command"), command},    {QStringLiteral("ok"), true},
+        {QStringLiteral("data"), data},
+    };
+}
+
+QJsonObject cameraVersion()
+{
+    return cameraEnvelope(QStringLiteral("version"),
+                          {{QStringLiteral("capabilities"), QJsonArray{QStringLiteral("camera-config-json")}}});
+}
+
+QJsonObject cameraList(const QString &pairId)
+{
+    return cameraEnvelope(
+        QStringLiteral("cameras.list"),
+        {
+            {QStringLiteral("pairs"), QJsonArray{QJsonObject{
+                                          {QStringLiteral("pair_id"), pairId},
+                                          {QStringLiteral("display_name"), QStringLiteral("Built-in secure camera 1")},
+                                          {QStringLiteral("built_in"), true},
+                                          {QStringLiteral("active"), true},
+                                          {QStringLiteral("security_tier"), QStringLiteral("secure")},
+                                      }}},
+            {QStringLiteral("active_known"), true},
+            {QStringLiteral("selection_requires_authorization"), true},
+        });
+}
 } // namespace
 
 void AuthHelperTest::commandsAreFixedAndIdentifiersAreValidated()
@@ -127,7 +163,88 @@ void AuthHelperTest::commandsAreFixedAndIdentifiersAreValidated()
     QVERIFY(AuthHelper::applyArguments(QStringLiteral("lock-screen"), QStringLiteral("../plan")).isEmpty());
     QVERIFY(AuthHelper::verifyArguments(QStringLiteral("tx;reboot")).isEmpty());
     QVERIFY(AuthHelper::rollbackArguments(QStringLiteral("/tmp/tx")).isEmpty());
+    QVERIFY(AuthHelper::selectCameraArguments(QStringLiteral("/dev/video0")).isEmpty());
     QVERIFY(AuthHelper::isSafeOpaqueId(QStringLiteral("transaction-example-001")));
+}
+
+void AuthHelperTest::cameraMutationCommandsAreFixed()
+{
+    const QString pairId = QStringLiteral("camera-pair-example-001");
+    QCOMPARE(AuthHelper::selectCameraArguments(pairId),
+             QStringList({QStringLiteral("cameras"), QStringLiteral("select"), QStringLiteral("--pair-id"), pairId,
+                          QStringLiteral("--apply"), QStringLiteral("--json")}));
+    QCOMPARE(AuthHelper::setupEmitterArguments(),
+             QStringList({QStringLiteral("cameras"), QStringLiteral("emitter-setup"), QStringLiteral("--apply"),
+                          QStringLiteral("--json")}));
+    QCOMPARE(AuthHelper::tuneCameraArguments(), QStringList({QStringLiteral("cameras"), QStringLiteral("tune"),
+                                                             QStringLiteral("--apply"), QStringLiteral("--json")}));
+}
+
+void AuthHelperTest::cameraSelectionIsIndependentlyVerified()
+{
+    const QString pairId = QStringLiteral("camera-pair-example-001");
+    Script script;
+    script.replies = {
+        response(cameraVersion()),
+        response(cameraEnvelope(QStringLiteral("cameras.select"), {{QStringLiteral("pair_id"), pairId},
+                                                                   {QStringLiteral("selected"), true},
+                                                                   {QStringLiteral("mutated"), true}})),
+        response(cameraList(pairId)),
+    };
+    AuthHelper helper([&script](const QStringList &arguments) { return script.run(arguments); }, fedora44(),
+                      QStringLiteral("plasmalogin"));
+
+    const auto reply = helper.selectcamera({{QStringLiteral("pairId"), pairId}});
+
+    QCOMPARE(reply.type(), KAuth::ActionReply::SuccessType);
+    QVERIFY(reply.data().value(QStringLiteral("verified")).toBool());
+    QCOMPARE(script.calls.at(1), AuthHelper::selectCameraArguments(pairId));
+    QCOMPARE(script.calls.at(2),
+             QStringList({QStringLiteral("cameras"), QStringLiteral("list"), QStringLiteral("--json")}));
+}
+
+void AuthHelperTest::emitterSetupIsIndependentlyVerified()
+{
+    Script script;
+    script.replies = {
+        response(cameraVersion()),
+        response(cameraEnvelope(QStringLiteral("cameras.emitter-setup"),
+                                {{QStringLiteral("configured"), true}, {QStringLiteral("mutated"), true}})),
+        response(cameraEnvelope(QStringLiteral("cameras.emitter-test"), {{QStringLiteral("available"), true},
+                                                                         {QStringLiteral("control_count"), 2},
+                                                                         {QStringLiteral("mutated"), false}})),
+    };
+    AuthHelper helper([&script](const QStringList &arguments) { return script.run(arguments); }, fedora44(),
+                      QStringLiteral("plasmalogin"));
+
+    const auto reply = helper.setupemitter({});
+
+    QCOMPARE(reply.type(), KAuth::ActionReply::SuccessType);
+    QVERIFY(reply.data().value(QStringLiteral("verified")).toBool());
+    QCOMPARE(reply.data().value(QStringLiteral("controlCount")).toInt(), 2);
+}
+
+void AuthHelperTest::cameraTuningResultIsBounded()
+{
+    Script script;
+    script.replies = {
+        response(cameraVersion()),
+        response(cameraEnvelope(QStringLiteral("cameras.tune"),
+                                {{QStringLiteral("capture_mode"), QStringLiteral("sequential")},
+                                 {QStringLiteral("retained_rgb"), 0.5},
+                                 {QStringLiteral("retained_ir"), 0.9},
+                                 {QStringLiteral("saved_ms"), 120.0},
+                                 {QStringLiteral("conclusive"), true},
+                                 {QStringLiteral("mutated"), true}})),
+    };
+    AuthHelper helper([&script](const QStringList &arguments) { return script.run(arguments); }, fedora44(),
+                      QStringLiteral("plasmalogin"));
+
+    const auto reply = helper.tunecamera({});
+
+    QCOMPARE(reply.type(), KAuth::ActionReply::SuccessType);
+    QCOMPARE(reply.data().value(QStringLiteral("captureMode")).toString(), QStringLiteral("sequential"));
+    QVERIFY(reply.data().value(QStringLiteral("conclusive")).toBool());
 }
 
 void AuthHelperTest::previewRejectsInactiveDisplayManagerTargets()

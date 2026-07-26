@@ -69,6 +69,16 @@ target_link_libraries(test_authconfiguration
 
 add_test(NAME authconfiguration COMMAND test_authconfiguration)
 
+add_executable(test_cameraconfiguration test_cameraconfiguration.cpp)
+
+target_link_libraries(test_cameraconfiguration
+    irlume_backend
+    Qt6::Core
+    Qt6::Test
+)
+
+add_test(NAME cameraconfiguration COMMAND test_cameraconfiguration)
+
 add_executable(test_supportreport test_supportreport.cpp)
 
 target_link_libraries(test_supportreport

@@ -10,3 +10,7 @@ version is enabled.
 
 All identifiers and checksums are deterministic placeholders. They do not
 identify a real account, device, profile, transaction, or host.
+
+The camera examples contain only opaque pair identities and bounded typed
+results. They intentionally contain no camera node, serial number, USB
+identity, selector, frame, or caller-controlled tuning parameter.

@@ -1,0 +1,11 @@
+{
+  "contract_version": 1,
+  "engine_version": "0.6.2",
+  "command": "cameras.emitter-test",
+  "ok": true,
+  "data": {
+    "available": true,
+    "control_count": 2,
+    "mutated": false
+  }
+}

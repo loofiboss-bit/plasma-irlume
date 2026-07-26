@@ -539,6 +539,10 @@ void ProfileModel::handleEvent(const IrlumeProcess::Event &event)
         refresh();
         break;
     }
+    case IrlumeProcess::Operation::ListCameras:
+    case IrlumeProcess::Operation::TestEmitter:
+        finishError(QStringLiteral("unexpected-profile-response"), false);
+        break;
     }
 }
 

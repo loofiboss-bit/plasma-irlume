@@ -14,6 +14,7 @@ Kirigami.ScrollablePage {
     required property QtObject systemState
     required property QtObject profileModel
     required property QtObject authConfiguration
+    required property QtObject cameraConfiguration
     property var openProfiles: () => {}
     property var openAccess: () => {}
     property var refresh: () => {}
@@ -21,7 +22,9 @@ Kirigami.ScrollablePage {
     readonly property bool engineReady: systemState.engineStatus === 0
         && systemState.daemonStatus === 0
         && profileModel.contractAvailable
-    readonly property bool cameraReady: systemState.cameraType === 0 || systemState.cameraType === 1
+    readonly property bool cameraReady: cameraConfiguration.ready
+        && cameraConfiguration.emitterTested
+        && cameraConfiguration.emitterAvailable
     readonly property bool profileReady: profileModel.profileCount > 0
     readonly property bool recoveryReady: authConfiguration.recoveryAcknowledged
     readonly property int currentStep: !engineReady ? 0
@@ -102,6 +105,145 @@ Kirigami.ScrollablePage {
             visible: !root.profileModel.contractAvailable && !root.profileModel.busy
             type: Kirigami.MessageType.Warning
             text: i18n("irlume 0.6.x remains available for read-only diagnostics. Guided setup requires the reviewed V2 engine contract.")
+        }
+
+        Kirigami.AbstractCard {
+            Layout.fillWidth: true
+            Accessible.role: Accessible.Grouping
+            Accessible.name: i18n("Camera configuration")
+
+            contentItem: ColumnLayout {
+                spacing: Kirigami.Units.smallSpacing
+
+                RowLayout {
+                    Layout.fillWidth: true
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+
+                        QQC2.Label {
+                            text: i18n("Secure camera pair")
+                            font.weight: Font.DemiBold
+                        }
+
+                        QQC2.Label {
+                            Layout.fillWidth: true
+                            text: root.cameraConfiguration.statusText
+                            color: root.cameraConfiguration.errorCode.length > 0
+                                ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.disabledTextColor
+                            wrapMode: Text.Wrap
+                        }
+                    }
+
+                    QQC2.BusyIndicator {
+                        visible: running
+                        running: root.cameraConfiguration.busy
+                    }
+                }
+
+                Kirigami.InlineMessage {
+                    Layout.fillWidth: true
+                    visible: !root.cameraConfiguration.contractAvailable
+                        && !root.cameraConfiguration.busy
+                    type: Kirigami.MessageType.Warning
+                    text: i18n("Camera management requires the reviewed irlume camera contract.")
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    visible: root.cameraConfiguration.contractAvailable
+
+                    QQC2.ComboBox {
+                        id: cameraPair
+
+                        Layout.fillWidth: true
+                        model: root.cameraConfiguration.pairLabels
+                        currentIndex: root.cameraConfiguration.selectedPairIndex
+                        enabled: !root.cameraConfiguration.busy
+                            && root.cameraConfiguration.pairLabels.length > 0
+                        Accessible.name: i18n("Secure camera pair")
+                        onActivated: index => root.cameraConfiguration.selectedPairIndex = index
+                    }
+
+                    QQC2.Button {
+                        text: i18n("Use pair")
+                        icon.name: "dialog-ok-apply"
+                        enabled: !root.cameraConfiguration.busy
+                            && root.cameraConfiguration.selectedPairIndex >= 0
+                            && root.cameraConfiguration.selectedPairIndex
+                                !== root.cameraConfiguration.activePairIndex
+                        onClicked: root.cameraConfiguration.selectPair()
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    visible: root.cameraConfiguration.contractAvailable
+
+                    QQC2.Button {
+                        text: i18n("Check again")
+                        icon.name: "view-refresh"
+                        enabled: !root.cameraConfiguration.busy
+                        onClicked: root.cameraConfiguration.refresh()
+                    }
+
+                    QQC2.Button {
+                        text: i18n("Set up emitter")
+                        icon.name: "preferences-system-power-management"
+                        enabled: !root.cameraConfiguration.busy && root.cameraConfiguration.ready
+                        onClicked: root.cameraConfiguration.setupEmitter()
+                    }
+
+                    QQC2.Button {
+                        text: i18n("Tune capture")
+                        icon.name: "configure"
+                        enabled: !root.cameraConfiguration.busy && root.cameraConfiguration.ready
+                        onClicked: root.cameraConfiguration.tuneCamera()
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
+                    }
+                }
+
+                Components.DetailRow {
+                    Layout.fillWidth: true
+                    visible: root.cameraConfiguration.contractAvailable
+                    label: i18n("Active pair")
+                    value: root.cameraConfiguration.activePairIndex >= 0
+                        ? i18n("Verified") : i18n("Not selected")
+                    tone: root.cameraConfiguration.activePairIndex >= 0 ? 1 : 2
+                }
+
+                Kirigami.Separator {
+                    Layout.fillWidth: true
+                    visible: root.cameraConfiguration.contractAvailable
+                }
+
+                Components.DetailRow {
+                    Layout.fillWidth: true
+                    visible: root.cameraConfiguration.contractAvailable
+                    label: i18n("Infrared emitter")
+                    value: !root.cameraConfiguration.emitterTested ? i18n("Not tested")
+                        : (root.cameraConfiguration.emitterAvailable
+                        ? i18n("Available") : i18n("Unavailable"))
+                    tone: root.cameraConfiguration.emitterAvailable ? 1
+                        : (root.cameraConfiguration.emitterTested ? 3 : 0)
+                }
+
+                Kirigami.Separator {
+                    Layout.fillWidth: true
+                    visible: root.cameraConfiguration.captureMode.length > 0
+                }
+
+                Components.DetailRow {
+                    Layout.fillWidth: true
+                    visible: root.cameraConfiguration.captureMode.length > 0
+                    label: i18n("Capture mode")
+                    value: root.cameraConfiguration.captureMode
+                    tone: root.cameraConfiguration.tuneConclusive ? 1 : 2
+                }
+            }
         }
 
         Kirigami.Heading {

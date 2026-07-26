@@ -63,6 +63,10 @@ void IrlumeProcessTest::buildsOnlyFixedCommands()
              QStringList({QStringLiteral("version"), QStringLiteral("--json")}));
     QCOMPARE(IrlumeProcess::argumentsForOperation(IrlumeProcess::Operation::AuthTest),
              QStringList({QStringLiteral("auth"), QStringLiteral("test"), QStringLiteral("--events=jsonl")}));
+    QCOMPARE(IrlumeProcess::argumentsForOperation(IrlumeProcess::Operation::ListCameras),
+             QStringList({QStringLiteral("cameras"), QStringLiteral("list"), QStringLiteral("--json")}));
+    QCOMPARE(IrlumeProcess::argumentsForOperation(IrlumeProcess::Operation::TestEmitter),
+             QStringList({QStringLiteral("cameras"), QStringLiteral("emitter-test"), QStringLiteral("--json")}));
 
     const QString profileId = QStringLiteral("profile-example-001");
     const QStringList deleteArguments =

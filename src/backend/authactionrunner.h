@@ -13,6 +13,9 @@ enum class AuthAction
     Disable,
     Verify,
     Rollback,
+    SelectCamera,
+    SetupEmitter,
+    TuneCamera,
 };
 
 class AuthActionRunner : public QObject

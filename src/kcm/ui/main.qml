@@ -64,11 +64,13 @@ KCMUtils.SimpleKCM {
             systemState: kcm.systemState
             profileModel: kcm.profileModel
             authConfiguration: kcm.authConfiguration
+            cameraConfiguration: kcm.cameraConfiguration
             openProfiles: () => tabs.currentIndex = 1
             openAccess: () => tabs.currentIndex = 2
             refresh: () => {
                 kcm.refresh();
                 kcm.profileModel.refresh();
+                kcm.cameraConfiguration.refresh();
             }
         }
 

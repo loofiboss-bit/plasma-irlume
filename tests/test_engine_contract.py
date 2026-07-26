@@ -56,6 +56,8 @@ class PublicEnvelopeTests(unittest.TestCase):
             "doctor",
             "profiles.list",
             "login.status",
+            "cameras.list",
+            "cameras.emitter-test",
         }
         observed = {
             load_json(path)["command"]
@@ -242,6 +244,31 @@ class TransactionContractTests(unittest.TestCase):
             failed["error"]["code"],
             "post-apply-verification-failed",
         )
+
+
+class CameraContractTests(unittest.TestCase):
+    def test_camera_operations_are_bounded_and_verifiable(self):
+        listed = load_json(PROPOSED / "cameras-list.json")["data"]
+        selected = load_json(PROPOSED / "cameras-select.json")["data"]
+        probe = load_json(PROPOSED / "cameras-emitter-test.json")["data"]
+        setup = load_json(PROPOSED / "cameras-emitter-setup.json")["data"]
+        tune = load_json(PROPOSED / "cameras-tune.json")["data"]
+
+        active = [pair for pair in listed["pairs"] if pair["active"]]
+        self.assertEqual(len(active), 1)
+        self.assertEqual(active[0]["pair_id"], selected["pair_id"])
+        self.assertTrue(selected["selected"])
+        self.assertTrue(selected["mutated"])
+        self.assertTrue(probe["available"])
+        self.assertFalse(probe["mutated"])
+        self.assertGreaterEqual(probe["control_count"], 1)
+        self.assertLessEqual(probe["control_count"], 256)
+        self.assertTrue(setup["configured"])
+        self.assertTrue(setup["mutated"])
+        self.assertIn(tune["capture_mode"], {"concurrent", "sequential"})
+        self.assertLessEqual(tune["retained_rgb"], 2.0)
+        self.assertLessEqual(tune["retained_ir"], 2.0)
+        self.assertLessEqual(tune["saved_ms"], 60_000.0)
 
 
 class SanitizationTests(unittest.TestCase):

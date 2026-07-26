@@ -35,3 +35,21 @@ Name=Roll back face authentication changes
 Description=Restore the irlume transaction's previous authentication configuration
 Policy=auth_admin
 Persistence=session
+
+[io.github.loofibossbit.plasmairlume.helper.selectcamera]
+Name=Select a secure camera pair
+Description=Select an allowlisted camera pair through irlume
+Policy=auth_admin
+Persistence=session
+
+[io.github.loofibossbit.plasmairlume.helper.setupemitter]
+Name=Configure the infrared emitter
+Description=Configure the active camera's infrared emitter through irlume
+Policy=auth_admin
+Persistence=session
+
+[io.github.loofibossbit.plasmairlume.helper.tunecamera]
+Name=Tune face authentication cameras
+Description=Measure and select the active camera capture mode through irlume
+Policy=auth_admin
+Persistence=session

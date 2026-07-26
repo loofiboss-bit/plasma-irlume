@@ -134,6 +134,32 @@ actual state, and password fallback. Verification failure always attempts
 rollback; an engine-reported completed rollback is accepted without repeating
 it.
 
+## V2 camera-configuration surface
+
+Camera management remains disabled unless `irlume version --json` advertises
+`camera-config-json`. The consumer uses only:
+
+```text
+irlume cameras list --json
+irlume cameras select --pair-id <opaque-id> --apply --json
+irlume cameras emitter-test --json
+irlume cameras emitter-setup --apply --json
+irlume cameras tune --apply --json
+```
+
+List output may contain at most 16 secure pairs and only bounded display
+labels, opaque pair IDs, built-in and active booleans, and active-state
+availability. Selection runs through KAuth and must be confirmed by an
+independent list readback with exactly one matching active pair. Emitter setup
+must be confirmed by a separate non-mutating emitter test with a control count
+from 1 through 256. Capture tuning has a fixed engine-owned measurement count
+and returns only `concurrent` or `sequential`, bounded retained-signal ratios,
+bounded saved milliseconds, and a conclusive flag.
+
+No operation accepts or returns a camera node, filesystem path, USB identity,
+serial number, UVC selector, arbitrary round count, executable, environment
+value, or shell argument.
+
 ## Evidence baseline
 
 The 0.6.x parser is based on official v0.6.0 and v0.6.1 sources and command

@@ -21,7 +21,9 @@ V2 adds four task-oriented areas, a resumable live-state setup path, an
 engine-advertised multi-profile limit, and a dedicated in-memory IR/RGB preview
 with FaceMesh landmarks and typed camera guidance. Profile maintenance includes
 record rename, guarded single-scan deletion, and explicit confirmation when a
-new capture matches an existing identity.
+new capture matches an existing identity. Camera setup lists only opaque,
+reviewed secure pairs; selection, emitter setup, and capture tuning use fixed
+KAuth operations with post-operation verification.
 
 Profile mutations are fail-closed behind irlume's proposed versioned JSON/JSONL
 integration contract. The current irlume 0.6.1 release does not publish that
@@ -51,6 +53,12 @@ Authentication activation is an irlume-owned plan → apply → verify transacti
 The privileged helper validates Fedora 44, the active display manager,
 enrollment, password fallback, and Secure-tier eligibility. Failed verification
 triggers rollback before an error reaches the KCM.
+
+Camera mutation is independently gated by `camera-config-json`. The desktop
+process can only list bounded labels and run the non-mutating emitter probe.
+The root helper accepts an opaque pair ID from that list or one of two
+argument-free actions; device nodes, UVC controls, round counts, paths, and
+shell input never cross the KAuth boundary.
 
 See:
 

@@ -27,6 +27,12 @@ QString actionSuffix(AuthAction action)
         return QStringLiteral("verify");
     case AuthAction::Rollback:
         return QStringLiteral("rollback");
+    case AuthAction::SelectCamera:
+        return QStringLiteral("selectcamera");
+    case AuthAction::SetupEmitter:
+        return QStringLiteral("setupemitter");
+    case AuthAction::TuneCamera:
+        return QStringLiteral("tunecamera");
     }
     return {};
 }

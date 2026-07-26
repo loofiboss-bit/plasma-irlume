@@ -26,6 +26,9 @@ class AuthHelper final : public QObject
         Disable,
         Verify,
         Rollback,
+        SelectCamera,
+        SetupEmitter,
+        TuneCamera,
     };
     Q_ENUM(Operation)
 
@@ -45,6 +48,9 @@ class AuthHelper final : public QObject
     [[nodiscard]] static QStringList applyArguments(const QString &scope, const QString &planId);
     [[nodiscard]] static QStringList verifyArguments(const QString &transactionId);
     [[nodiscard]] static QStringList rollbackArguments(const QString &transactionId);
+    [[nodiscard]] static QStringList selectCameraArguments(const QString &pairId);
+    [[nodiscard]] static QStringList setupEmitterArguments();
+    [[nodiscard]] static QStringList tuneCameraArguments();
     [[nodiscard]] static bool isSafeOpaqueId(const QString &value);
 
   public Q_SLOTS:
@@ -54,6 +60,9 @@ class AuthHelper final : public QObject
     KAuth::ActionReply disable(const QVariantMap &arguments);
     KAuth::ActionReply verify(const QVariantMap &arguments);
     KAuth::ActionReply rollback(const QVariantMap &arguments);
+    KAuth::ActionReply selectcamera(const QVariantMap &arguments);
+    KAuth::ActionReply setupemitter(const QVariantMap &arguments);
+    KAuth::ActionReply tunecamera(const QVariantMap &arguments);
 
   private:
     struct Plan
@@ -77,8 +86,10 @@ class AuthHelper final : public QObject
     [[nodiscard]] KAuth::ActionReply runTransaction(const QString &scope);
     [[nodiscard]] KAuth::ActionReply runVerify(const QString &transactionId, const QString &desiredState);
     [[nodiscard]] KAuth::ActionReply runRollback(const QString &transactionId);
+    [[nodiscard]] KAuth::ActionReply runCameraMutation(Operation operation, const QString &pairId = {});
     [[nodiscard]] CommandResult execute(const QStringList &arguments) const;
     [[nodiscard]] bool checkContract(QString *errorCode) const;
+    [[nodiscard]] bool checkCapability(const QString &capability, QString *errorCode) const;
     [[nodiscard]] bool checkFedora(QString *errorCode) const;
     [[nodiscard]] bool parsePlan(const QJsonObject &document, const QString &scope, Plan *plan,
                                  QString *errorCode) const;

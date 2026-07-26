@@ -5,6 +5,8 @@ add_library(irlume_backend STATIC
     authactionrunner.h
     authconfiguration.cpp
     authconfiguration.h
+    cameraconfiguration.cpp
+    cameraconfiguration.h
     fakeadapter.cpp
     fakeadapter.h
     profilemodel.cpp

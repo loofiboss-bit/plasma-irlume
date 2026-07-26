@@ -1523,3 +1523,89 @@ msgstr "• %1"
 
 #~ msgid "Overview"
 #~ msgstr "Översikt"
+msgid "Camera tuning completed with a conclusive capture mode."
+msgstr "Kamerajustering slutfördes med ett entydigt bildtagningsläge."
+
+msgid "Camera tuning completed; the measurement was not conclusive."
+msgstr "Kamerajustering slutfördes, men mätningen var inte entydig."
+
+msgid "Check the reviewed camera pair and infrared emitter."
+msgstr "Kontrollera det granskade kameraparet och den infraröda sändaren."
+
+msgid "Checking the camera configuration contract…"
+msgstr "Kontrollerar kontraktet för kamerakonfiguration…"
+
+msgid "Configuring and verifying the infrared emitter…"
+msgstr "Konfigurerar och verifierar den infraröda sändaren…"
+
+msgid "Measuring and selecting the bounded capture mode…"
+msgstr "Mäter och väljer det avgränsade bildtagningsläget…"
+
+msgid "Reading reviewed camera pairs…"
+msgstr "Läser granskade kamerapar…"
+
+msgid "Selecting and verifying the secure camera pair…"
+msgstr "Väljer och verifierar det säkra kameraparet…"
+
+msgid "Testing infrared emitter controls without changing them…"
+msgstr "Testar styrning av den infraröda sändaren utan att ändra den…"
+
+msgid "The active camera and infrared emitter controls are ready."
+msgstr "Den aktiva kameran och styrningen av den infraröda sändaren är klara."
+
+msgid "The camera operation failed without a verified configuration change."
+msgstr "Kameraåtgärden misslyckades utan någon verifierad konfigurationsändring."
+
+msgid "The camera pair is available, but no infrared emitter control was found."
+msgstr "Kameraparet är tillgängligt, men ingen styrning av den infraröda sändaren hittades."
+
+msgid "The camera pair was selected and independently verified."
+msgstr "Kameraparet valdes och verifierades oberoende."
+
+msgid "The infrared emitter was configured and verified."
+msgstr "Den infraröda sändaren konfigurerades och verifierades."
+
+msgid "The installed irlume release does not provide the reviewed camera contract."
+msgstr "Den installerade irlume-versionen tillhandahåller inte det granskade kamerakontraktet."
+
+msgid "The selected camera pair is already active."
+msgstr "Det valda kameraparet är redan aktivt."
+
+msgid "Active pair"
+msgstr "Aktivt par"
+
+msgid "Camera configuration"
+msgstr "Kamerakonfiguration"
+
+msgid "Camera management requires the reviewed irlume camera contract."
+msgstr "Kamerahantering kräver det granskade kamerakontraktet i irlume."
+
+msgid "Capture mode"
+msgstr "Bildtagningsläge"
+
+msgid "Infrared emitter"
+msgstr "Infraröd sändare"
+
+msgid "Not selected"
+msgstr "Inte valt"
+
+msgid "Not tested"
+msgstr "Inte testat"
+
+msgid "Secure camera pair"
+msgstr "Säkert kamerapar"
+
+msgid "Set up emitter"
+msgstr "Konfigurera sändare"
+
+msgid "Tune capture"
+msgstr "Justera bildtagning"
+
+msgid "Unavailable"
+msgstr "Inte tillgänglig"
+
+msgid "Use pair"
+msgstr "Använd par"
+
+msgid "Verified"
+msgstr "Verifierat"

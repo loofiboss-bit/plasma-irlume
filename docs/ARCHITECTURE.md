@@ -7,7 +7,8 @@ TPM, and irlume diagnostics. `SystemProbe` collects local platform facts and
 invokes a fixed irlume 0.6.x command set. `SystemState` exposes typed,
 presentation-safe state to QML.
 
-`IrlumeProcess`, `EnrollmentSession`, and `ProfileModel` provide the V2
+`IrlumeProcess`, `EnrollmentSession`, `ProfileModel`, and
+`CameraConfiguration` provide the V2
 enrollment and profile workflow behind a versioned machine-contract gate. The
 current irlume 0.6.1 release does not publish that contract, so production
 refuses mutation until a reviewed upstream release advertises the complete
@@ -16,8 +17,9 @@ Deterministic adapters and contract fixtures remain test-only.
 
 `AuthConfiguration` provides Phase 4 UI state and eligibility policy.
 `KAuthActionRunner` is the only unprivileged-to-privileged boundary. The
-root-owned `AuthHelper` exposes six fixed actions: preview, lock-screen enable,
-login-screen enable, disable, verify, and rollback.
+root-owned `AuthHelper` exposes nine fixed actions: preview, lock-screen enable,
+login-screen enable, disable, verify, rollback, secure camera selection,
+infrared emitter setup, and bounded capture tuning.
 
 `SupportReport` provides the Phase 5 recovery boundary. It consumes only typed
 state from `SystemState`, `ProfileModel`, and `AuthConfiguration`. It maps
@@ -146,6 +148,27 @@ implementation retains these controls:
 - irlume-owned PAM planning and mutation;
 - password fallback validation;
 - post-apply verification and automatic rollback.
+
+Camera configuration uses a parallel fixed-operation boundary:
+
+```text
+SetupStatusPage
+  -> CameraConfiguration
+    -> IrlumeProcess for list and emitter-test
+    -> KAuthActionRunner for select, emitter-setup, and tune
+      -> root AuthHelper
+        -> fixed irlume camera machine commands
+```
+
+The unprivileged list contains only bounded display labels, opaque pair IDs,
+built-in and active flags, and the security tier. Selection accepts only one
+validated opaque ID and is complete only when a fresh list reports exactly
+that single active pair. Emitter setup is complete only after a separate
+read-only probe reports a bounded control count. Tuning accepts no caller
+parameters and returns only a fixed capture mode, bounded signal ratios, saved
+milliseconds, and a conclusive flag. Device paths, USB identities, serial
+numbers, UVC selectors, round counts, environment values, and shell input are
+rejected or never accepted.
 
 A structured upstream JSON/NDJSON API remains the preferred long-term
 transport. The current CLI adapter is deliberately narrow and independently

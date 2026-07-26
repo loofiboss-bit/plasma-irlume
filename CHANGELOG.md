@@ -9,6 +9,11 @@ All notable changes to plasma-irlume are documented in this file.
 - Add a version-gated, bounded in-memory IR/RGB enrollment preview with
   FaceMesh landmarks and typed positioning guidance.
 - Add contract-v2 capability negotiation and engine-advertised profile limits.
+- Add fail-closed profile/scan rename, guarded scan deletion, and exact
+  enrollment-merge cleanup.
+- Add reviewed camera-pair discovery, independently verified selection,
+  read-only emitter probing, verified emitter setup, and bounded capture
+  tuning through fixed machine commands and KAuth actions.
 - Complete the Swedish UI and backend message catalog.
 - Keep irlume 0.6.x read-only and block stable publication until the reviewed
   upstream contract and hardware matrix pass.

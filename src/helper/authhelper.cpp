@@ -230,6 +230,27 @@ QStringList AuthHelper::rollbackArguments(const QString &transactionId)
             transactionId,           QStringLiteral("--apply"),  QStringLiteral("--json")};
 }
 
+QStringList AuthHelper::selectCameraArguments(const QString &pairId)
+{
+    if (!isSafeOpaqueId(pairId))
+    {
+        return {};
+    }
+    return {QStringLiteral("cameras"), QStringLiteral("select"), QStringLiteral("--pair-id"), pairId,
+            QStringLiteral("--apply"), QStringLiteral("--json")};
+}
+
+QStringList AuthHelper::setupEmitterArguments()
+{
+    return {QStringLiteral("cameras"), QStringLiteral("emitter-setup"), QStringLiteral("--apply"),
+            QStringLiteral("--json")};
+}
+
+QStringList AuthHelper::tuneCameraArguments()
+{
+    return {QStringLiteral("cameras"), QStringLiteral("tune"), QStringLiteral("--apply"), QStringLiteral("--json")};
+}
+
 bool AuthHelper::isSafeOpaqueId(const QString &value)
 {
     static const QRegularExpression pattern(QStringLiteral(R"(\A[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\z)"));
@@ -286,6 +307,28 @@ KAuth::ActionReply AuthHelper::rollback(const QVariantMap &arguments)
         return errorReply(QStringLiteral("invalid-operation-arguments"));
     }
     return runRollback(transactionId);
+}
+
+KAuth::ActionReply AuthHelper::selectcamera(const QVariantMap &arguments)
+{
+    const QString pairId = arguments.value(QStringLiteral("pairId")).toString();
+    if (arguments.size() != 1 || !isSafeOpaqueId(pairId))
+    {
+        return errorReply(QStringLiteral("invalid-operation-arguments"));
+    }
+    return runCameraMutation(Operation::SelectCamera, pairId);
+}
+
+KAuth::ActionReply AuthHelper::setupemitter(const QVariantMap &arguments)
+{
+    return arguments.isEmpty() ? runCameraMutation(Operation::SetupEmitter)
+                               : errorReply(QStringLiteral("invalid-operation-arguments"));
+}
+
+KAuth::ActionReply AuthHelper::tunecamera(const QVariantMap &arguments)
+{
+    return arguments.isEmpty() ? runCameraMutation(Operation::TuneCamera)
+                               : errorReply(QStringLiteral("invalid-operation-arguments"));
 }
 
 KAuth::ActionReply AuthHelper::runPreview(const QString &scope)
@@ -395,6 +438,140 @@ KAuth::ActionReply AuthHelper::runRollback(const QString &transactionId)
     });
 }
 
+KAuth::ActionReply AuthHelper::runCameraMutation(Operation operation, const QString &pairId)
+{
+    QString errorCode;
+    if (!checkFedora(&errorCode) || !checkCapability(QStringLiteral("camera-config-json"), &errorCode))
+    {
+        return errorReply(errorCode);
+    }
+
+    QString command;
+    QStringList arguments;
+    if (operation == Operation::SelectCamera)
+    {
+        command = QStringLiteral("cameras.select");
+        arguments = selectCameraArguments(pairId);
+    }
+    else if (operation == Operation::SetupEmitter)
+    {
+        command = QStringLiteral("cameras.emitter-setup");
+        arguments = setupEmitterArguments();
+    }
+    else if (operation == Operation::TuneCamera)
+    {
+        command = QStringLiteral("cameras.tune");
+        arguments = tuneCameraArguments();
+    }
+    else
+    {
+        return errorReply(QStringLiteral("invalid-engine-command"));
+    }
+
+    const CommandResult result = execute(arguments);
+    if (!result.ok || !validEnvelope(result.document, command) || !result.document.value(QStringLiteral("ok")).toBool())
+    {
+        return errorReply(result.errorCode.isEmpty() ? QStringLiteral("invalid-camera-result") : result.errorCode);
+    }
+    const QJsonObject data = result.document.value(QStringLiteral("data")).toObject();
+
+    if (operation == Operation::SelectCamera)
+    {
+        if (data.value(QStringLiteral("pair_id")).toString() != pairId ||
+            !data.value(QStringLiteral("selected")).toBool(false) ||
+            !data.value(QStringLiteral("mutated")).toBool(false))
+        {
+            return errorReply(QStringLiteral("camera-selection-unverified"));
+        }
+
+        const CommandResult verification =
+            execute({QStringLiteral("cameras"), QStringLiteral("list"), QStringLiteral("--json")});
+        if (!verification.ok || !validEnvelope(verification.document, QStringLiteral("cameras.list")) ||
+            !verification.document.value(QStringLiteral("ok")).toBool())
+        {
+            return errorReply(QStringLiteral("camera-selection-unverified"));
+        }
+        const QJsonObject listData = verification.document.value(QStringLiteral("data")).toObject();
+        int activeMatches = 0;
+        int activePairs = 0;
+        const QJsonArray pairs = listData.value(QStringLiteral("pairs")).toArray();
+        if (pairs.size() > 16)
+        {
+            return errorReply(QStringLiteral("camera-selection-unverified"));
+        }
+        for (const QJsonValue &value : pairs)
+        {
+            const QJsonObject pair = value.toObject();
+            if (!value.isObject() || !pair.value(QStringLiteral("active")).isBool() ||
+                !isSafeOpaqueId(pair.value(QStringLiteral("pair_id")).toString()))
+            {
+                return errorReply(QStringLiteral("camera-selection-unverified"));
+            }
+            if (pair.value(QStringLiteral("active")).toBool(false))
+            {
+                ++activePairs;
+                if (pair.value(QStringLiteral("pair_id")).toString() == pairId)
+                {
+                    ++activeMatches;
+                }
+            }
+        }
+        if (!listData.value(QStringLiteral("active_known")).toBool(false) || activePairs != 1 || activeMatches != 1)
+        {
+            return errorReply(QStringLiteral("camera-selection-unverified"));
+        }
+        return successReply({
+            {QStringLiteral("pairId"), pairId},
+            {QStringLiteral("selected"), true},
+            {QStringLiteral("verified"), true},
+        });
+    }
+
+    if (operation == Operation::SetupEmitter)
+    {
+        if (!data.value(QStringLiteral("configured")).toBool(false) ||
+            !data.value(QStringLiteral("mutated")).toBool(false))
+        {
+            return errorReply(QStringLiteral("emitter-setup-unverified"));
+        }
+        const CommandResult verification =
+            execute({QStringLiteral("cameras"), QStringLiteral("emitter-test"), QStringLiteral("--json")});
+        const QJsonObject probe = verification.document.value(QStringLiteral("data")).toObject();
+        const int controlCount = probe.value(QStringLiteral("control_count")).toInt(-1);
+        if (!verification.ok || !validEnvelope(verification.document, QStringLiteral("cameras.emitter-test")) ||
+            !verification.document.value(QStringLiteral("ok")).toBool() ||
+            !probe.value(QStringLiteral("available")).toBool(false) ||
+            probe.value(QStringLiteral("mutated")).toBool(true) || controlCount < 1 || controlCount > 256)
+        {
+            return errorReply(QStringLiteral("emitter-setup-unverified"));
+        }
+        return successReply({
+            {QStringLiteral("configured"), true},
+            {QStringLiteral("verified"), true},
+            {QStringLiteral("controlCount"), controlCount},
+        });
+    }
+
+    const QString captureMode = data.value(QStringLiteral("capture_mode")).toString();
+    const double retainedRgb = data.value(QStringLiteral("retained_rgb")).toDouble(-1.0);
+    const double retainedIr = data.value(QStringLiteral("retained_ir")).toDouble(-1.0);
+    const double savedMs = data.value(QStringLiteral("saved_ms")).toDouble(-1.0);
+    if ((captureMode != QLatin1String("concurrent") && captureMode != QLatin1String("sequential")) ||
+        retainedRgb < 0.0 || retainedRgb > 2.0 || retainedIr < 0.0 || retainedIr > 2.0 || savedMs < 0.0 ||
+        savedMs > 60000.0 || !data.value(QStringLiteral("conclusive")).isBool() ||
+        !data.value(QStringLiteral("mutated")).toBool(false))
+    {
+        return errorReply(QStringLiteral("camera-tuning-unverified"));
+    }
+    return successReply({
+        {QStringLiteral("captureMode"), captureMode},
+        {QStringLiteral("retainedRgb"), retainedRgb},
+        {QStringLiteral("retainedIr"), retainedIr},
+        {QStringLiteral("savedMs"), savedMs},
+        {QStringLiteral("conclusive"), data.value(QStringLiteral("conclusive")).toBool()},
+    });
+}
+
 AuthHelper::CommandResult AuthHelper::execute(const QStringList &arguments) const
 {
     if (arguments.isEmpty())
@@ -406,6 +583,11 @@ AuthHelper::CommandResult AuthHelper::execute(const QStringList &arguments) cons
 
 bool AuthHelper::checkContract(QString *errorCode) const
 {
+    return checkCapability(QStringLiteral("login-transactions"), errorCode);
+}
+
+bool AuthHelper::checkCapability(const QString &capability, QString *errorCode) const
+{
     const CommandResult result = execute({QStringLiteral("version"), QStringLiteral("--json")});
     if (!result.ok || !validEnvelope(result.document, QStringLiteral("version")))
     {
@@ -414,8 +596,9 @@ bool AuthHelper::checkContract(QString *errorCode) const
     }
     const QJsonArray capabilities =
         result.document.value(QStringLiteral("data")).toObject().value(QStringLiteral("capabilities")).toArray();
-    const bool available = std::any_of(capabilities.cbegin(), capabilities.cend(), [](const QJsonValue &value)
-                                       { return value.toString() == QLatin1String("login-transactions"); });
+    const bool available =
+        std::any_of(capabilities.cbegin(), capabilities.cend(),
+                    [&capability](const QJsonValue &value) { return value.toString() == capability; });
     if (!available)
     {
         *errorCode = QStringLiteral("structured-contract-unavailable");

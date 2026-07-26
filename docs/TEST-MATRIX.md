@@ -124,7 +124,8 @@ Before enabling a new irlume release:
 3. Replace the synthetic event fixtures with release-derived sanitized
    fixtures.
 4. Verify exact capability names, command spelling, exit codes, cancellation,
-   atomic cleanup, and selected-profile deletion against upstream tests.
+   atomic cleanup, selected-profile deletion, exact merge scan IDs, camera
+   readback, emitter verification, and bounded tuning against upstream tests.
 5. Review the release and explicitly update the accepted engine version range.
 6. Run plan/apply/verify/rollback failure injection in a disposable Fedora 44
    VM before enabling the release in production.
@@ -148,6 +149,9 @@ confirm that no image file is created:
 | Suspend/resume before test | Test recovers or fails with a typed retryable error |
 | Failed post-enrollment test | New profile is deleted before failure is shown |
 | Delete selected profile | Only that current-account profile is removed |
+| Select secure camera pair | Exactly the selected opaque pair is active after readback |
+| Configure IR emitter | Separate read-only probe reports one or more controls |
+| Tune camera capture | Typed bounded result; no caller-provided rounds or paths |
 
 After each run:
 

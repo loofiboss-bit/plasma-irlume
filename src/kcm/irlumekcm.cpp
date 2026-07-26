@@ -8,16 +8,19 @@
 #include <qqml.h>
 
 IrlumeKcm::IrlumeKcm(QObject *parent, const KPluginMetaData &data)
-    : KQuickConfigModule(parent, data), m_systemState(this), m_profileProcess(this), m_enrollmentSession(this),
-      m_profileModel(&m_profileProcess, &m_enrollmentSession, this), m_authConfiguration(&m_systemState, this),
+    : KQuickConfigModule(parent, data), m_systemState(this), m_profileProcess(this), m_cameraProcess(this),
+      m_enrollmentSession(this), m_profileModel(&m_profileProcess, &m_enrollmentSession, this),
+      m_authConfiguration(&m_systemState, this), m_cameraConfiguration(&m_cameraProcess, this),
       m_supportReport(&m_systemState, &m_profileModel, &m_authConfiguration, this)
 {
     qmlRegisterType<EnrollmentPreviewItem>("org.kde.plasma.irlume", 2, 0, "EnrollmentPreview");
     setButtons(NoAdditionalButton);
     connect(&m_profileModel, &ProfileModel::profilesChanged, this, &IrlumeKcm::refresh);
     connect(&m_authConfiguration, &AuthConfiguration::configurationChanged, this, &IrlumeKcm::refresh);
+    connect(&m_cameraConfiguration, &CameraConfiguration::configurationChanged, this, &IrlumeKcm::refresh);
     refresh();
     m_profileModel.refresh();
+    m_cameraConfiguration.refresh();
 }
 
 SystemState *IrlumeKcm::systemState()
@@ -38,6 +41,11 @@ EnrollmentSession *IrlumeKcm::enrollmentSession()
 AuthConfiguration *IrlumeKcm::authConfiguration()
 {
     return &m_authConfiguration;
+}
+
+CameraConfiguration *IrlumeKcm::cameraConfiguration()
+{
+    return &m_cameraConfiguration;
 }
 
 SupportReport *IrlumeKcm::supportReport()

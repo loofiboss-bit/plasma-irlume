@@ -5,11 +5,20 @@
   "ok": true,
   "data": {
     "capabilities": [
+      "version-json",
       "status-json",
       "doctor-json",
       "profiles-json",
+      "profile-mutations-json",
       "events-jsonl",
-      "login-transactions"
-    ]
+      "position-report",
+      "preview-ir-jpeg",
+      "login-transactions",
+      "camera-config-json"
+    ],
+    "limits": {
+      "max_profiles": 3,
+      "max_scans_per_profile": 20
+    }
   }
 }

@@ -27,6 +27,8 @@ class IrlumeProcess : public QObject
         DeleteScan,
         RenameProfile,
         RenameScan,
+        ListCameras,
+        TestEmitter,
     };
     Q_ENUM(Operation)
 

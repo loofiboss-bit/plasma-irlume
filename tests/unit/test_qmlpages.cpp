@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "authconfiguration.h"
+#include "cameraconfiguration.h"
 #include "enrollmentpreviewitem.h"
 #include "enrollmentsession.h"
 #include "fakeadapter.h"
@@ -62,6 +63,7 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
     FakeSystemStateAdapter adapter;
     ProfileModel profileModel;
     EnrollmentSession enrollmentSession(QStringLiteral("/nonexistent/irlume"));
+    IrlumeProcess cameraProcess(QStringLiteral("/nonexistent/irlume"));
     QQmlEngine engine;
     auto *localizedContext = KLocalization::setupLocalizedContext(&engine);
     localizedContext->setTranslationDomain(QStringLiteral("plasma_irlume"));
@@ -71,7 +73,9 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
         SystemState state;
         state.apply(adapter.stateForScenario(index));
         NullAuthActionRunner authRunner;
+        NullAuthActionRunner cameraRunner;
         AuthConfiguration authConfiguration(&state, &authRunner);
+        CameraConfiguration cameraConfiguration(&cameraProcess, &cameraRunner);
         SupportReport supportReport(&state, &profileModel, &authConfiguration);
 
         const QVariant stateValue = QVariant::fromValue(&state);
@@ -114,6 +118,7 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
                            {QStringLiteral("systemState"), stateValue},
                            {QStringLiteral("profileModel"), QVariant::fromValue(&profileModel)},
                            {QStringLiteral("authConfiguration"), QVariant::fromValue(&authConfiguration)},
+                           {QStringLiteral("cameraConfiguration"), QVariant::fromValue(&cameraConfiguration)},
                        });
         QVERIFY2(setupStatus, qPrintable(QStringLiteral("Setup & Status failed for scenario %1").arg(index)));
 

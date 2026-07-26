@@ -34,6 +34,13 @@ focus handling, and controls remain authoritative.
 - four task-oriented areas and a live-state setup path;
 - existing fixed KAuth plan, apply, verify, rollback, and emergency-disable
   boundary retained for Access;
+- a `CameraConfiguration` model that gates on `camera-config-json`, validates
+  bounded secure-pair labels and opaque IDs, and exposes only typed camera,
+  emitter, and capture-mode state;
+- fixed KAuth actions for camera selection, emitter setup, and capture tuning;
+  selection is read back independently, emitter setup is followed by a
+  non-mutating probe, and no device path or free-form engine argument is
+  accepted;
 - QML creation tests at 320, 480, and 960 logical pixels and a warning-free
   repository lint command.
 
@@ -47,8 +54,6 @@ fixtures and unit tests prove the consumer boundary, not upstream support.
 The following items cannot be marked release-complete in this repository:
 
 - upstream schemas, implementation, tests, and release-derived fixtures;
-- camera-pair selection, emitter testing, and capture tuning through public
-  engine operations;
 - release-derived validation of profile rename, individual scan deletion, and
   identity-merge results;
 - daemon-restart reconnection against a real V2 engine;
@@ -73,12 +78,12 @@ The following evidence was refreshed on 2026-07-26:
   `82165049f95440b281b78f3152dcd8901e4effbf` do not publish the required
   machine contract; upstream tracking is
   [archledger/irlume#108](https://github.com/archledger/irlume/issues/108).
-  The first implementation slice is under upstream review in
-  [archledger/irlume#109](https://github.com/archledger/irlume/pull/109): it
-  adds a versioned JSON envelope, capability negotiation, read-only profile
-  output, stable error codes, compatibility/privacy documentation, and tests.
-  It deliberately does not advertise enrollment streams, mutation, preview, or
-  login transactions, so it does not yet satisfy the stable V2 gate;
+  The consolidated implementation is under upstream review in
+  [archledger/irlume#115](https://github.com/archledger/irlume/pull/115). It
+  provides the complete versioned JSON/JSONL profile, preview, cancellation,
+  exact merge-lineage, login-transaction, and bounded camera configuration
+  contract required by this consumer. It remains prerelease evidence until it
+  is merged, documented, and published in an official irlume release;
 - COPR build
   [`10774932`](https://copr.fedorainfracloud.org/coprs/build/10774932) reports
   terminal `succeeded` for the V1 package after the earlier Pulp outage.
@@ -101,8 +106,8 @@ exists:
    release-derived fixtures;
 2. execute failure injection for cancellation, oversized and stale frames,
    daemon restart, verification failure, and rollback;
-3. implement and gate the remaining camera/profile operations advertised by
-   that release;
+3. confirm the release-derived profile and camera results against the already
+   gated consumer operations;
 4. run the complete hardware and Fedora package matrix in
    [`TEST-MATRIX.md`](TEST-MATRIX.md);
 5. only then change the Fedora dependency to the reviewed minimum engine and
