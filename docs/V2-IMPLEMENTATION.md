@@ -55,6 +55,30 @@ Stable `2.0.0` publication is blocked until every item above has release
 evidence. The private daemon protocol, human CLI parsing for mutation, and
 parallel camera access are never acceptable substitutes.
 
+## Qualification evidence
+
+The following evidence was refreshed on 2026-07-26:
+
+- the complete local build, CTest, Python fixture, QML lint, C++ formatting,
+  source archive, RPM build, rpmlint, and isolated package lifecycle gates
+  passed;
+- a host upgrade from `1.0.0-1.fc44` to `2.0.0-0.1.dev.fc44` preserved the
+  engine status and every PAM file digest;
+- official irlume `0.6.1` and upstream `main` at
+  `82165049f95440b281b78f3152dcd8901e4effbf` do not publish the required
+  machine contract; upstream tracking is
+  [archledger/irlume#108](https://github.com/archledger/irlume/issues/108);
+- COPR build
+  [`10774932`](https://copr.fedorainfracloud.org/coprs/build/10774932) reports
+  terminal `succeeded` for the V1 package after the earlier Pulp outage, but
+  its result URL returns 404 and the public repository metadata remains empty;
+  clean installation therefore still fails. The repository-publication defect
+  is tracked in
+  [fedora-copr/copr#4401](https://github.com/fedora-copr/copr/issues/4401#issuecomment-5084418359).
+
+Neither terminal COPR API state without package availability nor synthetic
+contract fixtures satisfy the stable V2 release gate.
+
 ## Upstream handoff
 
 The exact required transport is specified in
