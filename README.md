@@ -19,7 +19,9 @@ redacted Markdown support-report export, and reproducible Fedora 44 packaging.
 
 V2 adds four task-oriented areas, a resumable live-state setup path, an
 engine-advertised multi-profile limit, and a dedicated in-memory IR/RGB preview
-with FaceMesh landmarks and typed camera guidance.
+with FaceMesh landmarks and typed camera guidance. Profile maintenance includes
+record rename, guarded single-scan deletion, and explicit confirmation when a
+new capture matches an existing identity.
 
 Profile mutations are fail-closed behind irlume's proposed versioned JSON/JSONL
 integration contract. The current irlume 0.6.1 release does not publish that

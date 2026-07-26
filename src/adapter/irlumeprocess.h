@@ -24,6 +24,9 @@ class IrlumeProcess : public QObject
         AuthTest,
         AddScan,
         DeleteProfile,
+        DeleteScan,
+        RenameProfile,
+        RenameScan,
     };
     Q_ENUM(Operation)
 
@@ -51,13 +54,16 @@ class IrlumeProcess : public QObject
     explicit IrlumeProcess(QString executable, QObject *parent = nullptr);
     ~IrlumeProcess() override;
 
-    virtual bool startOperation(Operation operation, const QString &profileId = {});
+    virtual bool startOperation(Operation operation, const QString &profileId = {}, const QString &scanId = {},
+                                const QString &newName = {});
     virtual void cancel();
 
     [[nodiscard]] bool isRunning() const;
     [[nodiscard]] static QString commandName(Operation operation);
-    [[nodiscard]] static QStringList argumentsForOperation(Operation operation, const QString &profileId = {});
+    [[nodiscard]] static QStringList argumentsForOperation(Operation operation, const QString &profileId = {},
+                                                           const QString &scanId = {}, const QString &newName = {});
     [[nodiscard]] static bool isSafeOpaqueId(const QString &value);
+    [[nodiscard]] static bool isSafeDisplayName(const QString &value);
     [[nodiscard]] static ParseResult parseStreamEvent(const QJsonObject &object, Operation operation,
                                                       int expectedSequence, const QString &expectedOperationId = {});
     [[nodiscard]] static ParseResult parseDocument(const QJsonObject &object, Operation operation);

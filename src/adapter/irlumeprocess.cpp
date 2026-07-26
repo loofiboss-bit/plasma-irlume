@@ -80,15 +80,29 @@ IrlumeProcess::~IrlumeProcess()
     }
 }
 
-bool IrlumeProcess::startOperation(Operation operation, const QString &profileId)
+bool IrlumeProcess::startOperation(Operation operation, const QString &profileId, const QString &scanId,
+                                   const QString &newName)
 {
     if (m_running)
     {
         return false;
     }
-    if ((operation == Operation::AddScan || operation == Operation::DeleteProfile) && !isSafeOpaqueId(profileId))
+    if ((operation == Operation::AddScan || operation == Operation::DeleteProfile ||
+         operation == Operation::DeleteScan || operation == Operation::RenameProfile ||
+         operation == Operation::RenameScan) &&
+        !isSafeOpaqueId(profileId))
     {
         Q_EMIT operationError(operation, QStringLiteral("invalid-profile-id"), false);
+        return false;
+    }
+    if ((operation == Operation::DeleteScan || operation == Operation::RenameScan) && !isSafeOpaqueId(scanId))
+    {
+        Q_EMIT operationError(operation, QStringLiteral("invalid-scan-id"), false);
+        return false;
+    }
+    if ((operation == Operation::RenameProfile || operation == Operation::RenameScan) && !isSafeDisplayName(newName))
+    {
+        Q_EMIT operationError(operation, QStringLiteral("invalid-display-name"), false);
         return false;
     }
 
@@ -101,7 +115,7 @@ bool IrlumeProcess::startOperation(Operation operation, const QString &profileId
     environment.insert(QStringLiteral("LANG"), QStringLiteral("C"));
     m_process.setProcessEnvironment(environment);
     m_process.setProgram(m_executable);
-    m_process.setArguments(argumentsForOperation(operation, profileId));
+    m_process.setArguments(argumentsForOperation(operation, profileId, scanId, newName));
     m_process.setProcessChannelMode(QProcess::SeparateChannels);
     m_process.start(QIODevice::ReadOnly);
     m_timeout.start(OperationTimeoutMs);
@@ -139,12 +153,17 @@ QString IrlumeProcess::commandName(Operation operation)
     case Operation::AddScan:
         return QStringLiteral("profiles.add-scan");
     case Operation::DeleteProfile:
+    case Operation::DeleteScan:
         return QStringLiteral("profiles.delete");
+    case Operation::RenameProfile:
+    case Operation::RenameScan:
+        return QStringLiteral("profiles.rename");
     }
     return {};
 }
 
-QStringList IrlumeProcess::argumentsForOperation(Operation operation, const QString &profileId)
+QStringList IrlumeProcess::argumentsForOperation(Operation operation, const QString &profileId, const QString &scanId,
+                                                 const QString &newName)
 {
     switch (operation)
     {
@@ -162,6 +181,22 @@ QStringList IrlumeProcess::argumentsForOperation(Operation operation, const QStr
     case Operation::DeleteProfile:
         return {QStringLiteral("profiles"), QStringLiteral("delete"), QStringLiteral("--profile-id"), profileId,
                 QStringLiteral("--json")};
+    case Operation::DeleteScan:
+        return {QStringLiteral("profiles"),     QStringLiteral("delete"),
+                QStringLiteral("--profile-id"), profileId,
+                QStringLiteral("--scan-id"),    scanId,
+                QStringLiteral("--json")};
+    case Operation::RenameProfile:
+        return {QStringLiteral("profiles"),     QStringLiteral("rename"),
+                QStringLiteral("--profile-id"), profileId,
+                QStringLiteral("--name"),       newName,
+                QStringLiteral("--json")};
+    case Operation::RenameScan:
+        return {QStringLiteral("profiles"),     QStringLiteral("rename"),
+                QStringLiteral("--profile-id"), profileId,
+                QStringLiteral("--scan-id"),    scanId,
+                QStringLiteral("--name"),       newName,
+                QStringLiteral("--json")};
     }
     return {};
 }
@@ -170,6 +205,15 @@ bool IrlumeProcess::isSafeOpaqueId(const QString &value)
 {
     static const QRegularExpression idPattern(QStringLiteral(R"(\A[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\z)"));
     return idPattern.match(value).hasMatch();
+}
+
+bool IrlumeProcess::isSafeDisplayName(const QString &value)
+{
+    if (value.isEmpty() || value.size() > 80 || value != value.trimmed())
+    {
+        return false;
+    }
+    return std::all_of(value.cbegin(), value.cend(), [](QChar character) { return character.isPrint(); });
 }
 
 IrlumeProcess::ParseResult IrlumeProcess::parseStreamEvent(const QJsonObject &object, Operation operation,

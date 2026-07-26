@@ -27,6 +27,10 @@ focus handling, and controls remain authoritative.
   quality, and text checklist;
 - preview cancellation and buffer clearing when the profile page is hidden;
 - engine-advertised profile-count limits;
+- profile and scan rename, guarded single-scan deletion, and exact
+  before/after mutation validation;
+- explicit confirmation when enrollment merges into an existing identity, with
+  exact scan-ID cleanup on decline or failed recognition verification;
 - four task-oriented areas and a live-state setup path;
 - existing fixed KAuth plan, apply, verify, rollback, and emergency-disable
   boundary retained for Access;
@@ -45,7 +49,8 @@ The following items cannot be marked release-complete in this repository:
 - upstream schemas, implementation, tests, and release-derived fixtures;
 - camera-pair selection, emitter testing, and capture tuning through public
   engine operations;
-- profile rename, individual scan deletion, and identity-merge results;
+- release-derived validation of profile rename, individual scan deletion, and
+  identity-merge results;
 - daemon-restart reconnection against a real V2 engine;
 - real Secure IR and RGB Convenience hardware;
 - Fedora 44 clean install, V1-to-V2 upgrade, password fallback, and terminal

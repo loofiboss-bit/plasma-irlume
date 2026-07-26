@@ -1410,6 +1410,113 @@ msgstr "Säker infraröd maskinvara och närvarokontroller är redo."
 msgid "plasma-irlume supports the read-only diagnostic output of irlume 0.6.x."
 msgstr "plasma-irlume stöder skrivskyddad diagnostik från irlume 0.6.x."
 
+#: src/kcm/ui/EnrollmentPage.qml
+msgid "Keep scans in the existing profile?"
+msgstr "Behåll skanningarna i den befintliga profilen?"
+
+#: src/kcm/ui/EnrollmentPage.qml
+msgid ""
+"irlume recognized this face as “%2” and added %1 scan. Choose OK to keep it "
+"and run a recognition test, or Cancel to remove only the new scan."
+msgid_plural ""
+"irlume recognized this face as “%2” and added %1 scans. Choose OK to keep "
+"them and run a recognition test, or Cancel to remove only the new scans."
+msgstr[0] ""
+"irlume kände igen ansiktet som ”%2” och lade till %1 skanning. Välj OK för "
+"att behålla den och köra ett igenkänningstest, eller Avbryt för att bara ta "
+"bort den nya skanningen."
+msgstr[1] ""
+"irlume kände igen ansiktet som ”%2” och lade till %1 skanningar. Välj OK för "
+"att behålla dem och köra ett igenkänningstest, eller Avbryt för att bara ta "
+"bort de nya skanningarna."
+
+#: src/backend/profilemodel.cpp
+msgid ""
+"irlume matched an existing identity. Confirm whether to keep the added scans."
+msgstr ""
+"irlume matchade en befintlig identitet. Bekräfta om de tillagda skanningarna "
+"ska behållas."
+
+#: src/backend/profilemodel.cpp
+msgid "The added scans were kept and recognition was verified."
+msgstr "De tillagda skanningarna behölls och igenkänningen verifierades."
+
+#: src/backend/profilemodel.cpp
+msgid "The added scans were removed; the existing profile was left unchanged."
+msgstr ""
+"De tillagda skanningarna togs bort; den befintliga profilen lämnades "
+"oförändrad."
+
+#: src/backend/profilemodel.cpp
+msgid "Restoring the profile state from before enrollment…"
+msgstr "Återställer profilens tillstånd från före registreringen…"
+
+#: src/kcm/ui/EnrollmentPage.qml
+msgid "Rename scan"
+msgstr "Byt namn på skanning"
+
+#: src/kcm/ui/EnrollmentPage.qml
+msgid "Rename scan “%1”"
+msgstr "Byt namn på skanningen ”%1”"
+
+#: src/kcm/ui/EnrollmentPage.qml
+msgid "Delete scan"
+msgstr "Ta bort skanning"
+
+#: src/kcm/ui/EnrollmentPage.qml
+msgid "Delete scan “%1”"
+msgstr "Ta bort skanningen ”%1”"
+
+#: src/kcm/ui/EnrollmentPage.qml
+msgid "Rename profile"
+msgstr "Byt namn på profil"
+
+#: src/kcm/ui/EnrollmentPage.qml
+msgid "Rename appearance scan"
+msgstr "Byt namn på utseendeskanning"
+
+#: src/kcm/ui/EnrollmentPage.qml
+msgid "Rename face profile"
+msgstr "Byt namn på ansiktsprofil"
+
+#: src/kcm/ui/EnrollmentPage.qml
+msgid "Rename"
+msgstr "Byt namn"
+
+#: src/kcm/ui/EnrollmentPage.qml
+msgid "Display name"
+msgstr "Visningsnamn"
+
+#: src/kcm/ui/EnrollmentPage.qml
+msgid "Delete appearance scan?"
+msgstr "Ta bort utseendeskanning?"
+
+#: src/kcm/ui/EnrollmentPage.qml
+msgid ""
+"Delete “%1” only? The profile and its other appearance scans will be kept."
+msgstr ""
+"Ta bara bort ”%1”? Profilen och dess övriga utseendeskanningar behålls."
+
+#: src/backend/profilemodel.cpp
+msgid "Appearance scan deleted."
+msgstr "Utseendeskanningen togs bort."
+
+#: src/backend/profilemodel.cpp
+msgid "Appearance scan renamed."
+msgstr "Utseendeskanningen fick ett nytt namn."
+
+#: src/backend/profilemodel.cpp
+msgid "Face profile renamed."
+msgstr "Ansiktsprofilen fick ett nytt namn."
+
+#: src/backend/profilemodel.cpp
+msgid "Deleting the selected appearance scan…"
+msgstr "Tar bort den valda utseendeskanningen…"
+
+#: src/backend/profilemodel.cpp
+msgid "Renaming the selected profile record…"
+msgstr "Byter namn på den valda profilposten…"
+
 #: src/kcm/ui/AuthenticationPage.qml:222
 msgid "• %1"
 msgstr "• %1"

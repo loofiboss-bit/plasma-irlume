@@ -15,13 +15,16 @@ class FakeIrlumeProcess final : public IrlumeProcess
     {
         Operation operation;
         QString profileId;
+        QString scanId;
+        QString newName;
     };
 
     explicit FakeIrlumeProcess(QObject *parent = nullptr) : IrlumeProcess(QStringLiteral("/usr/bin/false"), parent) {}
 
-    bool startOperation(Operation operation, const QString &profileId) override
+    bool startOperation(Operation operation, const QString &profileId, const QString &scanId,
+                        const QString &newName) override
     {
-        starts.push_back({operation, profileId});
+        starts.push_back({operation, profileId, scanId, newName});
         return startSucceeds;
     }
 
@@ -64,11 +67,15 @@ class ProfileModelTest final : public QObject
     void malformedProfileListFailsClosed();
     void enrollmentIsVerifiedBeforeItIsKept();
     void failedEnrollmentVerificationDeletesNewProfile();
+    void mergedEnrollmentRequiresConfirmationAndDeclineRemovesOnlyAddedScans();
+    void failedMergedEnrollmentVerificationRemovesOnlyAddedScans();
     void failedStandaloneTestDoesNotModifyProfiles();
     void cameraBusyCanRetryAndCancellationIsForwarded();
     void appearanceScanRequiresSelectedProfileResult();
     void deletionIsLimitedToKnownProfile();
     void unsafeDeletionResultFailsClosed();
+    void individualScanDeletionKeepsAtLeastOneScan();
+    void renameRequiresExactSelectedRecordResult();
 };
 
 namespace
@@ -77,7 +84,8 @@ QJsonObject capabilities()
 {
     return {
         {QStringLiteral("capabilities"),
-         QJsonArray{QStringLiteral("status-json"), QStringLiteral("profiles-json"), QStringLiteral("events-jsonl"),
+         QJsonArray{QStringLiteral("status-json"), QStringLiteral("profiles-json"),
+                    QStringLiteral("profile-mutations-json"), QStringLiteral("events-jsonl"),
                     QStringLiteral("position-report"), QStringLiteral("preview-ir-jpeg")}},
         {QStringLiteral("limits"),
          QJsonObject{{QStringLiteral("max_profiles"), 3}, {QStringLiteral("max_scans_per_profile"), 30}}},
@@ -179,6 +187,10 @@ void ProfileModelTest::enrollmentIsVerifiedBeforeItIsKept()
                      {QStringLiteral("profile_id"), QStringLiteral("profile-example-new")},
                      {QStringLiteral("created"), true},
                      {QStringLiteral("added_scans"), 3},
+                     {QStringLiteral("total_scans"), 3},
+                     {QStringLiteral("added_scan_ids"),
+                      QJsonArray{QStringLiteral("scan-example-new-1"), QStringLiteral("scan-example-new-2"),
+                                 QStringLiteral("scan-example-new-3")}},
                  });
     QCOMPARE(model.workflow(), ProfileModel::Workflow::VerifyingEnrollment);
     QCOMPARE(process.starts.constLast().operation, IrlumeProcess::Operation::AuthTest);
@@ -202,6 +214,9 @@ void ProfileModelTest::failedEnrollmentVerificationDeletesNewProfile()
                  {
                      {QStringLiteral("profile_id"), QStringLiteral("profile-example-new")},
                      {QStringLiteral("created"), true},
+                     {QStringLiteral("added_scans"), 1},
+                     {QStringLiteral("total_scans"), 1},
+                     {QStringLiteral("added_scan_ids"), QJsonArray{QStringLiteral("scan-example-new")}},
                  });
     process.send(IrlumeProcess::Operation::AuthTest, QStringLiteral("completed"), safeAuthResult(false));
 
@@ -217,6 +232,88 @@ void ProfileModelTest::failedEnrollmentVerificationDeletesNewProfile()
                  });
     QVERIFY(!model.busy());
     QCOMPARE(model.errorCode(), QStringLiteral("recognition-not-matched"));
+}
+
+void ProfileModelTest::mergedEnrollmentRequiresConfirmationAndDeclineRemovesOnlyAddedScans()
+{
+    FakeIrlumeProcess process;
+    ProfileModel model(&process, nullptr);
+    makeReady(model, process, true);
+
+    model.enroll();
+    process.send(IrlumeProcess::Operation::Enroll, QStringLiteral("completed"),
+                 {
+                     {QStringLiteral("profile_id"), QStringLiteral("profile-example-001")},
+                     {QStringLiteral("created"), false},
+                     {QStringLiteral("added_scans"), 2},
+                     {QStringLiteral("total_scans"), 3},
+                     {QStringLiteral("added_scan_ids"),
+                      QJsonArray{QStringLiteral("scan-example-new-1"), QStringLiteral("scan-example-new-2")}},
+                 });
+
+    QVERIFY(model.mergeConfirmationRequired());
+    QVERIFY(!model.busy());
+    QCOMPARE(model.pendingMergeProfileName(), QStringLiteral("Face Profile 1"));
+    QCOMPARE(model.pendingMergeScanCount(), 2);
+
+    model.confirmIdentityMerge(false);
+    QCOMPARE(process.starts.constLast().operation, IrlumeProcess::Operation::DeleteScan);
+    QCOMPARE(process.starts.constLast().profileId, QStringLiteral("profile-example-001"));
+    QCOMPARE(process.starts.constLast().scanId, QStringLiteral("scan-example-new-1"));
+
+    process.send(IrlumeProcess::Operation::DeleteScan, QStringLiteral("completed"),
+                 {
+                     {QStringLiteral("profile_id"), QStringLiteral("profile-example-001")},
+                     {QStringLiteral("scan_id"), QStringLiteral("scan-example-new-1")},
+                     {QStringLiteral("deleted"), true},
+                     {QStringLiteral("mutated_other_profiles"), false},
+                 });
+    QCOMPARE(process.starts.constLast().scanId, QStringLiteral("scan-example-new-2"));
+    process.send(IrlumeProcess::Operation::DeleteScan, QStringLiteral("completed"),
+                 {
+                     {QStringLiteral("profile_id"), QStringLiteral("profile-example-001")},
+                     {QStringLiteral("scan_id"), QStringLiteral("scan-example-new-2")},
+                     {QStringLiteral("deleted"), true},
+                     {QStringLiteral("mutated_other_profiles"), false},
+                 });
+
+    QVERIFY(!model.busy());
+    QVERIFY(!model.mergeConfirmationRequired());
+    QCOMPARE(model.errorCode(), QStringLiteral("identity-merge-declined"));
+    QCOMPARE(model.rowCount(), 1);
+}
+
+void ProfileModelTest::failedMergedEnrollmentVerificationRemovesOnlyAddedScans()
+{
+    FakeIrlumeProcess process;
+    ProfileModel model(&process, nullptr);
+    makeReady(model, process, true);
+
+    model.enroll();
+    process.send(IrlumeProcess::Operation::Enroll, QStringLiteral("completed"),
+                 {
+                     {QStringLiteral("profile_id"), QStringLiteral("profile-example-001")},
+                     {QStringLiteral("created"), false},
+                     {QStringLiteral("added_scans"), 1},
+                     {QStringLiteral("total_scans"), 2},
+                     {QStringLiteral("added_scan_ids"), QJsonArray{QStringLiteral("scan-example-new")}},
+                 });
+    model.confirmIdentityMerge(true);
+    QCOMPARE(process.starts.constLast().operation, IrlumeProcess::Operation::AuthTest);
+    process.send(IrlumeProcess::Operation::AuthTest, QStringLiteral("completed"), safeAuthResult(false));
+
+    QCOMPARE(process.starts.constLast().operation, IrlumeProcess::Operation::DeleteScan);
+    QCOMPARE(process.starts.constLast().scanId, QStringLiteral("scan-example-new"));
+    process.send(IrlumeProcess::Operation::DeleteScan, QStringLiteral("completed"),
+                 {
+                     {QStringLiteral("profile_id"), QStringLiteral("profile-example-001")},
+                     {QStringLiteral("scan_id"), QStringLiteral("scan-example-new")},
+                     {QStringLiteral("deleted"), true},
+                     {QStringLiteral("mutated_other_profiles"), false},
+                 });
+
+    QCOMPARE(model.errorCode(), QStringLiteral("recognition-not-matched"));
+    QCOMPARE(model.rowCount(), 1);
 }
 
 void ProfileModelTest::failedStandaloneTestDoesNotModifyProfiles()
@@ -308,6 +405,83 @@ void ProfileModelTest::unsafeDeletionResultFailsClosed()
     QVERIFY(!model.busy());
     QCOMPARE(model.errorCode(), QStringLiteral("unsafe-profile-mutation-result"));
     QCOMPARE(model.rowCount(), 1);
+}
+
+void ProfileModelTest::individualScanDeletionKeepsAtLeastOneScan()
+{
+    FakeIrlumeProcess process;
+    ProfileModel model(&process, nullptr);
+    makeReady(model, process, true);
+    const int startsBeforeDelete = process.starts.size();
+
+    model.deleteScan(QStringLiteral("profile-example-001"), QStringLiteral("scan-example-001"));
+    QCOMPARE(process.starts.size(), startsBeforeDelete);
+
+    QJsonObject withTwoScans = profiles(true);
+    QJsonArray profileArray = withTwoScans.value(QStringLiteral("profiles")).toArray();
+    QJsonObject profile = profileArray.at(0).toObject();
+    QJsonArray scans = profile.value(QStringLiteral("scans")).toArray();
+    scans.push_back(QJsonObject{
+        {QStringLiteral("scan_id"), QStringLiteral("scan-example-002")},
+        {QStringLiteral("display_name"), QStringLiteral("Glasses")},
+    });
+    profile.insert(QStringLiteral("scans"), scans);
+    profileArray[0] = profile;
+    withTwoScans.insert(QStringLiteral("profiles"), profileArray);
+    model.refresh();
+    process.send(IrlumeProcess::Operation::Capabilities, QStringLiteral("completed"), capabilities());
+    process.send(IrlumeProcess::Operation::ListProfiles, QStringLiteral("completed"), withTwoScans);
+
+    model.deleteScan(QStringLiteral("profile-example-001"), QStringLiteral("scan-example-002"));
+    QCOMPARE(process.starts.constLast().operation, IrlumeProcess::Operation::DeleteScan);
+    process.send(IrlumeProcess::Operation::DeleteScan, QStringLiteral("completed"),
+                 {
+                     {QStringLiteral("profile_id"), QStringLiteral("profile-example-001")},
+                     {QStringLiteral("scan_id"), QStringLiteral("scan-example-002")},
+                     {QStringLiteral("total_scans"), 1},
+                     {QStringLiteral("deleted"), true},
+                     {QStringLiteral("mutated_other_profiles"), false},
+                 });
+    QCOMPARE(process.starts.constLast().operation, IrlumeProcess::Operation::Capabilities);
+}
+
+void ProfileModelTest::renameRequiresExactSelectedRecordResult()
+{
+    FakeIrlumeProcess process;
+    ProfileModel model(&process, nullptr);
+    makeReady(model, process, true);
+
+    model.renameProfile(QStringLiteral("profile-example-001"), QStringLiteral("Primary"));
+    QCOMPARE(process.starts.constLast().operation, IrlumeProcess::Operation::RenameProfile);
+    QCOMPARE(process.starts.constLast().newName, QStringLiteral("Primary"));
+    process.send(IrlumeProcess::Operation::RenameProfile, QStringLiteral("completed"),
+                 {
+                     {QStringLiteral("operation"), QStringLiteral("rename-profile")},
+                     {QStringLiteral("profile_id"), QStringLiteral("profile-example-001")},
+                     {QStringLiteral("scan_id"), QJsonValue::Null},
+                     {QStringLiteral("before"),
+                      QJsonObject{
+                          {QStringLiteral("profile_id"), QStringLiteral("profile-example-001")},
+                          {QStringLiteral("profile_name"), QStringLiteral("Face Profile 1")},
+                          {QStringLiteral("scan_id"), QJsonValue::Null},
+                          {QStringLiteral("scan_name"), QJsonValue::Null},
+                      }},
+                     {QStringLiteral("after"),
+                      QJsonObject{
+                          {QStringLiteral("profile_id"), QStringLiteral("profile-example-001")},
+                          {QStringLiteral("profile_name"), QStringLiteral("Primary")},
+                          {QStringLiteral("scan_id"), QJsonValue::Null},
+                          {QStringLiteral("scan_name"), QJsonValue::Null},
+                      }},
+                     {QStringLiteral("mutated_other_profiles"), false},
+                 });
+    QCOMPARE(process.starts.constLast().operation, IrlumeProcess::Operation::Capabilities);
+
+    process.send(IrlumeProcess::Operation::Capabilities, QStringLiteral("completed"), capabilities());
+    process.send(IrlumeProcess::Operation::ListProfiles, QStringLiteral("completed"), profiles(true));
+    model.renameScan(QStringLiteral("profile-example-001"), QStringLiteral("scan-example-001"),
+                     QStringLiteral(" padded "));
+    QCOMPARE(process.starts.constLast().operation, IrlumeProcess::Operation::ListProfiles);
 }
 
 QTEST_MAIN(ProfileModelTest)

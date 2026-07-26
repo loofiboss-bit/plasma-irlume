@@ -47,6 +47,10 @@ The automated suite covers:
 - standalone recognition failure without profile mutation;
 - camera-busy retry and cancellation forwarding;
 - selected-profile deletion and rejection of cross-profile mutation results;
+- profile/scan rename with exact record identity, refusal to delete a profile's
+  final scan, and selected-scan-only deletion;
+- post-capture identity-merge confirmation and exact cleanup of only newly
+  returned scan IDs on decline or failed verification;
 - QML creation at 320, 480, and 960 pixel widths for every diagnostic state.
 - one-click disable routing through the fixed verified KAuth disable action;
 - actionable recovery guidance for every Phase 5 error code;

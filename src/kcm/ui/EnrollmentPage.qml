@@ -28,6 +28,15 @@ Kirigami.ScrollablePage {
         }
     }
 
+    Connections {
+        target: profileModel
+        function onStateChanged() {
+            if (profileModel.mergeConfirmationRequired && !mergeDialog.visible) {
+                mergeDialog.open();
+            }
+        }
+    }
+
     ColumnLayout {
         width: root.availableWidth
         spacing: Kirigami.Units.largeSpacing
@@ -309,6 +318,7 @@ Kirigami.ScrollablePage {
                 required property string profileId
                 required property string displayName
                 required property int scanCount
+                required property var scans
 
                 Layout.fillWidth: true
                 Accessible.role: Accessible.Grouping
@@ -353,6 +363,60 @@ Kirigami.ScrollablePage {
                         wrapMode: Text.Wrap
                     }
 
+                    Repeater {
+                        model: profileCard.scans
+
+                        delegate: RowLayout {
+                            required property var modelData
+
+                            Layout.fillWidth: true
+
+                            Kirigami.Icon {
+                                Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
+                                Layout.preferredHeight: width
+                                source: "view-list-details"
+                                Accessible.ignored: true
+                            }
+
+                            QQC2.Label {
+                                Layout.fillWidth: true
+                                text: modelData.displayName
+                                elide: Text.ElideRight
+                            }
+
+                            QQC2.ToolButton {
+                                text: i18n("Rename scan")
+                                icon.name: "edit-rename"
+                                display: QQC2.AbstractButton.IconOnly
+                                enabled: !profileModel.busy && !profileModel.mergeConfirmationRequired
+                                Accessible.name: i18n("Rename scan “%1”", modelData.displayName)
+                                onClicked: {
+                                    renameDialog.profileId = profileCard.profileId;
+                                    renameDialog.scanId = modelData.scanId;
+                                    renameDialog.currentName = modelData.displayName;
+                                    renameDialog.scanRecord = true;
+                                    renameDialog.open();
+                                }
+                            }
+
+                            QQC2.ToolButton {
+                                text: i18n("Delete scan")
+                                icon.name: "edit-delete"
+                                display: QQC2.AbstractButton.IconOnly
+                                enabled: !profileModel.busy
+                                    && !profileModel.mergeConfirmationRequired
+                                    && profileCard.scanCount > 1
+                                Accessible.name: i18n("Delete scan “%1”", modelData.displayName)
+                                onClicked: {
+                                    deleteScanDialog.profileId = profileCard.profileId;
+                                    deleteScanDialog.scanId = modelData.scanId;
+                                    deleteScanDialog.scanName = modelData.displayName;
+                                    deleteScanDialog.open();
+                                }
+                            }
+                        }
+                    }
+
                     Flow {
                         Layout.fillWidth: true
                         spacing: Kirigami.Units.smallSpacing
@@ -360,21 +424,34 @@ Kirigami.ScrollablePage {
                         QQC2.Button {
                             text: i18n("Test recognition")
                             icon.name: "security-high"
-                            enabled: !profileModel.busy
+                            enabled: !profileModel.busy && !profileModel.mergeConfirmationRequired
                             onClicked: profileModel.testRecognition(profileCard.profileId)
                         }
 
                         QQC2.Button {
                             text: i18n("Add appearance scan")
                             icon.name: "list-add"
-                            enabled: !profileModel.busy
+                            enabled: !profileModel.busy && !profileModel.mergeConfirmationRequired
                             onClicked: profileModel.addAppearanceScan(profileCard.profileId)
+                        }
+
+                        QQC2.Button {
+                            text: i18n("Rename profile")
+                            icon.name: "edit-rename"
+                            enabled: !profileModel.busy && !profileModel.mergeConfirmationRequired
+                            onClicked: {
+                                renameDialog.profileId = profileCard.profileId;
+                                renameDialog.scanId = "";
+                                renameDialog.currentName = profileCard.displayName;
+                                renameDialog.scanRecord = false;
+                                renameDialog.open();
+                            }
                         }
 
                         QQC2.Button {
                             text: i18n("Delete profile")
                             icon.name: "edit-delete"
-                            enabled: !profileModel.busy
+                            enabled: !profileModel.busy && !profileModel.mergeConfirmationRequired
                             onClicked: {
                                 deleteDialog.profileId = profileCard.profileId;
                                 deleteDialog.profileName = profileCard.displayName;
@@ -391,6 +468,94 @@ Kirigami.ScrollablePage {
             visible: systemState.cameraType === 2 || systemState.cameraType === 3
             type: Kirigami.MessageType.Warning
             text: i18n("A usable camera must be available before enrollment or recognition testing.")
+        }
+    }
+
+    Kirigami.PromptDialog {
+        id: mergeDialog
+
+        title: i18n("Keep scans in the existing profile?")
+        subtitle: i18np(
+            "irlume recognized this face as “%2” and added %1 scan. Choose OK to keep it and run a recognition test, or Cancel to remove only the new scan.",
+            "irlume recognized this face as “%2” and added %1 scans. Choose OK to keep them and run a recognition test, or Cancel to remove only the new scans.",
+            profileModel.pendingMergeScanCount,
+            profileModel.pendingMergeProfileName)
+        standardButtons: QQC2.Dialog.Cancel | QQC2.Dialog.Ok
+        onAccepted: profileModel.confirmIdentityMerge(true)
+        onRejected: profileModel.confirmIdentityMerge(false)
+    }
+
+    Kirigami.PromptDialog {
+        id: renameDialog
+
+        property string profileId
+        property string scanId
+        property string currentName
+        property bool scanRecord: false
+
+        title: scanRecord ? i18n("Rename appearance scan") : i18n("Rename face profile")
+        standardButtons: Kirigami.Dialog.NoButton
+        onOpened: nameField.forceActiveFocus()
+        onClosed: {
+            profileId = "";
+            scanId = "";
+            currentName = "";
+            scanRecord = false;
+        }
+        customFooterActions: [
+            Kirigami.Action {
+                text: i18n("Rename")
+                icon.name: "dialog-ok"
+                enabled: nameField.text.length > 0
+                    && nameField.text.length <= 80
+                    && nameField.text === nameField.text.trim()
+                    && nameField.text !== renameDialog.currentName
+                onTriggered: {
+                    if (renameDialog.scanRecord) {
+                        profileModel.renameScan(renameDialog.profileId, renameDialog.scanId, nameField.text);
+                    } else {
+                        profileModel.renameProfile(renameDialog.profileId, nameField.text);
+                    }
+                    renameDialog.close();
+                }
+            },
+            Kirigami.Action {
+                text: i18n("Cancel")
+                icon.name: "dialog-cancel"
+                onTriggered: renameDialog.close()
+            }
+        ]
+
+        QQC2.TextField {
+            id: nameField
+
+            text: renameDialog.currentName
+            maximumLength: 80
+            placeholderText: i18n("Display name")
+            Accessible.name: renameDialog.title
+            onAccepted: {
+                if (renameDialog.customFooterActions[0].enabled) {
+                    renameDialog.customFooterActions[0].trigger();
+                }
+            }
+        }
+    }
+
+    Kirigami.PromptDialog {
+        id: deleteScanDialog
+
+        property string profileId
+        property string scanId
+        property string scanName
+
+        title: i18n("Delete appearance scan?")
+        subtitle: i18n("Delete “%1” only? The profile and its other appearance scans will be kept.", scanName)
+        standardButtons: QQC2.Dialog.Cancel | QQC2.Dialog.Ok
+        onAccepted: profileModel.deleteScan(profileId, scanId)
+        onClosed: {
+            profileId = "";
+            scanId = "";
+            scanName = "";
         }
     }
 

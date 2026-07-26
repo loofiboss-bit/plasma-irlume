@@ -69,10 +69,26 @@ void IrlumeProcessTest::buildsOnlyFixedCommands()
         IrlumeProcess::argumentsForOperation(IrlumeProcess::Operation::DeleteProfile, profileId);
     QCOMPARE(deleteArguments, QStringList({QStringLiteral("profiles"), QStringLiteral("delete"),
                                            QStringLiteral("--profile-id"), profileId, QStringLiteral("--json")}));
+    const QString scanId = QStringLiteral("scan-example-001");
+    const QStringList deleteScanArguments =
+        IrlumeProcess::argumentsForOperation(IrlumeProcess::Operation::DeleteScan, profileId, scanId);
+    QCOMPARE(deleteScanArguments,
+             QStringList({QStringLiteral("profiles"), QStringLiteral("delete"), QStringLiteral("--profile-id"),
+                          profileId, QStringLiteral("--scan-id"), scanId, QStringLiteral("--json")}));
+    const QStringList renameArguments = IrlumeProcess::argumentsForOperation(
+        IrlumeProcess::Operation::RenameScan, profileId, scanId, QStringLiteral("Glasses"));
+    QCOMPARE(renameArguments,
+             QStringList({QStringLiteral("profiles"), QStringLiteral("rename"), QStringLiteral("--profile-id"),
+                          profileId, QStringLiteral("--scan-id"), scanId, QStringLiteral("--name"),
+                          QStringLiteral("Glasses"), QStringLiteral("--json")}));
     QVERIFY(!deleteArguments.contains(QStringLiteral("--user")));
+    QVERIFY(!deleteScanArguments.contains(QStringLiteral("--user")));
     QVERIFY(IrlumeProcess::isSafeOpaqueId(profileId));
     QVERIFY(!IrlumeProcess::isSafeOpaqueId(QStringLiteral("../../etc/shadow")));
     QVERIFY(!IrlumeProcess::isSafeOpaqueId(QStringLiteral("profile id")));
+    QVERIFY(IrlumeProcess::isSafeDisplayName(QStringLiteral("Glasses")));
+    QVERIFY(!IrlumeProcess::isSafeDisplayName(QStringLiteral(" padded ")));
+    QVERIFY(!IrlumeProcess::isSafeDisplayName(QStringLiteral("line\nbreak")));
 }
 
 void IrlumeProcessTest::parsesEnrollmentEventSequence()

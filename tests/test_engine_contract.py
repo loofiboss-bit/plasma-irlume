@@ -192,6 +192,15 @@ class EventContractTests(unittest.TestCase):
         self.assertEqual(terminal["event"], "cancelled")
         self.assertEqual(terminal["error"]["code"], "user-cancelled")
 
+    def test_enrollment_merge_exposes_exact_cleanup_lineage(self):
+        terminal = load_ndjson(PROPOSED / "enroll-merged.ndjson")[-1]
+        self.assertFalse(terminal["data"]["created"])
+        self.assertEqual(
+            len(terminal["data"]["added_scan_ids"]),
+            terminal["data"]["added_scans"],
+        )
+        self.assertEqual(len(set(terminal["data"]["added_scan_ids"])), 2)
+
 
 class TransactionContractTests(unittest.TestCase):
     def setUp(self):

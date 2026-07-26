@@ -69,6 +69,19 @@ QVariant ProfileModel::data(const QModelIndex &index, int role) const
         return profile.displayName;
     case ScanCountRole:
         return profile.scanCount;
+    case ScansRole:
+    {
+        QVariantList scans;
+        scans.reserve(profile.scans.size());
+        for (const Scan &scan : profile.scans)
+        {
+            scans.push_back(QVariantMap{
+                {QStringLiteral("scanId"), scan.id},
+                {QStringLiteral("displayName"), scan.displayName},
+            });
+        }
+        return scans;
+    }
     default:
         return {};
     }
@@ -80,6 +93,7 @@ QHash<int, QByteArray> ProfileModel::roleNames() const
         {ProfileIdRole, QByteArrayLiteral("profileId")},
         {DisplayNameRole, QByteArrayLiteral("displayName")},
         {ScanCountRole, QByteArrayLiteral("scanCount")},
+        {ScansRole, QByteArrayLiteral("scans")},
     };
 }
 
@@ -144,9 +158,24 @@ int ProfileModel::maxProfiles() const
     return m_maxProfiles;
 }
 
+bool ProfileModel::mergeConfirmationRequired() const
+{
+    return m_mergeConfirmationRequired;
+}
+
+QString ProfileModel::pendingMergeProfileName() const
+{
+    return m_pendingMergeProfileName;
+}
+
+int ProfileModel::pendingMergeScanCount() const
+{
+    return m_pendingMergeScanIds.size();
+}
+
 void ProfileModel::refresh()
 {
-    if (m_busy)
+    if (m_busy || m_mergeConfirmationRequired)
     {
         return;
     }
@@ -157,7 +186,7 @@ void ProfileModel::refresh()
 
 void ProfileModel::enroll()
 {
-    if (!m_contractAvailable || m_busy || m_profiles.size() >= m_maxProfiles)
+    if (!m_contractAvailable || m_busy || m_mergeConfirmationRequired || m_profiles.size() >= m_maxProfiles)
     {
         return;
     }
@@ -168,7 +197,7 @@ void ProfileModel::enroll()
 
 void ProfileModel::testRecognition(const QString &profileId)
 {
-    if (!m_contractAvailable || m_busy || !hasProfile(profileId))
+    if (!m_contractAvailable || m_busy || m_mergeConfirmationRequired || !hasProfile(profileId))
     {
         return;
     }
@@ -180,7 +209,7 @@ void ProfileModel::testRecognition(const QString &profileId)
 
 void ProfileModel::addAppearanceScan(const QString &profileId)
 {
-    if (!m_contractAvailable || m_busy || !hasProfile(profileId))
+    if (!m_contractAvailable || m_busy || m_mergeConfirmationRequired || !hasProfile(profileId))
     {
         return;
     }
@@ -192,13 +221,74 @@ void ProfileModel::addAppearanceScan(const QString &profileId)
 
 void ProfileModel::deleteProfile(const QString &profileId)
 {
-    if (!m_contractAvailable || m_busy || !hasProfile(profileId))
+    if (!m_contractAvailable || m_busy || m_mergeConfirmationRequired || !hasProfile(profileId))
     {
         return;
     }
     resetTransientState();
     m_lastAction = RequestedAction::None;
     start(IrlumeProcess::Operation::DeleteProfile, Workflow::Deleting, profileId);
+}
+
+void ProfileModel::deleteScan(const QString &profileId, const QString &scanId)
+{
+    if (!m_contractAvailable || m_busy || m_mergeConfirmationRequired || !hasScan(profileId, scanId))
+    {
+        return;
+    }
+    const auto profile = std::find_if(m_profiles.cbegin(), m_profiles.cend(),
+                                      [&profileId](const Profile &candidate) { return candidate.id == profileId; });
+    if (profile == m_profiles.cend() || profile->scanCount <= 1)
+    {
+        return;
+    }
+    resetTransientState();
+    m_lastAction = RequestedAction::None;
+    start(IrlumeProcess::Operation::DeleteScan, Workflow::DeletingScan, profileId, scanId);
+}
+
+void ProfileModel::renameProfile(const QString &profileId, const QString &newName)
+{
+    if (!m_contractAvailable || m_busy || m_mergeConfirmationRequired || !hasProfile(profileId) ||
+        !IrlumeProcess::isSafeDisplayName(newName))
+    {
+        return;
+    }
+    resetTransientState();
+    m_lastAction = RequestedAction::None;
+    start(IrlumeProcess::Operation::RenameProfile, Workflow::Renaming, profileId, {}, newName);
+}
+
+void ProfileModel::renameScan(const QString &profileId, const QString &scanId, const QString &newName)
+{
+    if (!m_contractAvailable || m_busy || m_mergeConfirmationRequired || !hasScan(profileId, scanId) ||
+        !IrlumeProcess::isSafeDisplayName(newName))
+    {
+        return;
+    }
+    resetTransientState();
+    m_lastAction = RequestedAction::None;
+    start(IrlumeProcess::Operation::RenameScan, Workflow::Renaming, profileId, scanId, newName);
+}
+
+void ProfileModel::confirmIdentityMerge(bool keepAddedScans)
+{
+    if (!m_mergeConfirmationRequired || m_busy || m_pendingMergedProfileId.isEmpty() || m_pendingMergeScanIds.isEmpty())
+    {
+        return;
+    }
+
+    m_mergeConfirmationRequired = false;
+    m_pendingMergeProfileName.clear();
+    if (keepAddedScans)
+    {
+        start(IrlumeProcess::Operation::AuthTest, Workflow::VerifyingEnrollment);
+        return;
+    }
+
+    m_cleanupReason = QStringLiteral("identity-merge-declined");
+    m_cleanupScanIds = m_pendingMergeScanIds;
+    startNextCleanup();
 }
 
 void ProfileModel::cancel()
@@ -222,7 +312,7 @@ void ProfileModel::cancel()
 
 void ProfileModel::retry()
 {
-    if (m_busy || !m_canRetry)
+    if (m_busy || m_mergeConfirmationRequired || !m_canRetry)
     {
         return;
     }
@@ -276,7 +366,8 @@ void ProfileModel::handleEvent(const IrlumeProcess::Event &event)
                                  ? (event.type == QLatin1String("cancelled") ? QStringLiteral("user-cancelled")
                                                                              : QStringLiteral("operation-failed"))
                                  : event.errorCode;
-        if (event.operation == IrlumeProcess::Operation::AuthTest && !m_pendingNewProfileId.isEmpty())
+        if (event.operation == IrlumeProcess::Operation::AuthTest &&
+            (!m_pendingNewProfileId.isEmpty() || !m_pendingMergedProfileId.isEmpty()))
         {
             cleanUpUnverifiedEnrollment(code);
         }
@@ -297,8 +388,10 @@ void ProfileModel::handleEvent(const IrlumeProcess::Event &event)
             return std::any_of(capabilities.cbegin(), capabilities.cend(),
                                [&required](const QJsonValue &entry) { return entry.toString() == required; });
         };
-        if (!hasCapability(QStringLiteral("profiles-json")) || !hasCapability(QStringLiteral("events-jsonl")) ||
-            !hasCapability(QStringLiteral("position-report")) || !hasCapability(QStringLiteral("preview-ir-jpeg")))
+        if (!hasCapability(QStringLiteral("profiles-json")) ||
+            !hasCapability(QStringLiteral("profile-mutations-json")) ||
+            !hasCapability(QStringLiteral("events-jsonl")) || !hasCapability(QStringLiteral("position-report")) ||
+            !hasCapability(QStringLiteral("preview-ir-jpeg")))
         {
             finishError(QStringLiteral("structured-contract-unavailable"), false);
             return;
@@ -369,10 +462,7 @@ void ProfileModel::handleEvent(const IrlumeProcess::Event &event)
         }
         if (m_workflow == Workflow::CleaningUp)
         {
-            const QString reason = m_cleanupReason;
-            m_pendingNewProfileId.clear();
-            finishError(reason, reason == QLatin1String("camera-busy"),
-                        translate("Enrollment could not be verified, so the new profile was removed."));
+            completeCleanup();
         }
         else
         {
@@ -381,6 +471,74 @@ void ProfileModel::handleEvent(const IrlumeProcess::Event &event)
             refresh();
         }
         break;
+    case IrlumeProcess::Operation::DeleteScan:
+        if (event.data.value(QStringLiteral("profile_id")).toString() != m_activeProfileId ||
+            event.data.value(QStringLiteral("scan_id")).toString() != m_activeScanId ||
+            !event.data.value(QStringLiteral("deleted")).toBool(false) ||
+            event.data.value(QStringLiteral("mutated_other_profiles")).toBool(true))
+        {
+            m_contractAvailable = false;
+            finishError(QStringLiteral("cleanup-unconfirmed"), false);
+            return;
+        }
+        if (m_workflow == Workflow::DeletingScan)
+        {
+            const int remaining = event.data.value(QStringLiteral("total_scans")).toInt(-1);
+            if (remaining < 1 || remaining >= m_maxScansPerProfile)
+            {
+                m_contractAvailable = false;
+                finishError(QStringLiteral("unsafe-profile-mutation-result"), false);
+                return;
+            }
+            m_statusAfterRefresh = translate("Appearance scan deleted.");
+            finishSuccess(m_statusAfterRefresh);
+            refresh();
+            break;
+        }
+        if (m_workflow != Workflow::CleaningUp)
+        {
+            m_contractAvailable = false;
+            finishError(QStringLiteral("unsafe-profile-mutation-result"), false);
+            return;
+        }
+        if (m_cleanupScanIds.isEmpty() || m_cleanupScanIds.constFirst() != m_activeScanId)
+        {
+            m_contractAvailable = false;
+            finishError(QStringLiteral("cleanup-unconfirmed"), false);
+            return;
+        }
+        m_cleanupScanIds.removeFirst();
+        startNextCleanup();
+        break;
+    case IrlumeProcess::Operation::RenameProfile:
+    case IrlumeProcess::Operation::RenameScan:
+    {
+        const bool scanRename = event.operation == IrlumeProcess::Operation::RenameScan;
+        const QJsonObject before = event.data.value(QStringLiteral("before")).toObject();
+        const QJsonObject after = event.data.value(QStringLiteral("after")).toObject();
+        const QString expectedOperation = scanRename ? QStringLiteral("rename-scan") : QStringLiteral("rename-profile");
+        if (m_workflow != Workflow::Renaming ||
+            event.data.value(QStringLiteral("operation")).toString() != expectedOperation ||
+            event.data.value(QStringLiteral("profile_id")).toString() != m_activeProfileId ||
+            event.data.value(QStringLiteral("mutated_other_profiles")).toBool(true) || before.isEmpty() ||
+            after.isEmpty() || before.value(QStringLiteral("profile_id")).toString() != m_activeProfileId ||
+            after.value(QStringLiteral("profile_id")).toString() != m_activeProfileId ||
+            (scanRename && (event.data.value(QStringLiteral("scan_id")).toString() != m_activeScanId ||
+                            before.value(QStringLiteral("scan_id")).toString() != m_activeScanId ||
+                            after.value(QStringLiteral("scan_id")).toString() != m_activeScanId ||
+                            after.value(QStringLiteral("scan_name")).toString() != m_activeNewName)) ||
+            (!scanRename && (!event.data.value(QStringLiteral("scan_id")).isNull() ||
+                             after.value(QStringLiteral("profile_name")).toString() != m_activeNewName)))
+        {
+            m_contractAvailable = false;
+            finishError(QStringLiteral("unsafe-profile-mutation-result"), false);
+            return;
+        }
+        m_statusAfterRefresh = scanRename ? translate("Appearance scan renamed.") : translate("Face profile renamed.");
+        finishSuccess(m_statusAfterRefresh);
+        refresh();
+        break;
+    }
     }
 }
 
@@ -390,7 +548,8 @@ void ProfileModel::handleOperationError(IrlumeProcess::Operation operation, cons
     {
         return;
     }
-    if (operation == IrlumeProcess::Operation::AuthTest && !m_pendingNewProfileId.isEmpty())
+    if (operation == IrlumeProcess::Operation::AuthTest &&
+        (!m_pendingNewProfileId.isEmpty() || !m_pendingMergedProfileId.isEmpty()))
     {
         cleanUpUnverifiedEnrollment(code);
         return;
@@ -402,25 +561,31 @@ void ProfileModel::handleOperationError(IrlumeProcess::Operation operation, cons
                     translate("Enrollment ended without a confirmed terminal event. Refresh before trying again."));
         return;
     }
+    const bool cleanupOperation =
+        (operation == IrlumeProcess::Operation::DeleteProfile || operation == IrlumeProcess::Operation::DeleteScan) &&
+        m_workflow == Workflow::CleaningUp;
     if (operation == IrlumeProcess::Operation::Capabilities || operation == IrlumeProcess::Operation::ListProfiles ||
-        (operation == IrlumeProcess::Operation::DeleteProfile && m_workflow == Workflow::CleaningUp))
+        cleanupOperation)
     {
         m_contractAvailable = false;
     }
-    finishError(code, retryable);
+    finishError(cleanupOperation ? QStringLiteral("cleanup-unconfirmed") : code, cleanupOperation ? false : retryable);
 }
 
-bool ProfileModel::start(IrlumeProcess::Operation operation, Workflow workflow, const QString &profileId)
+bool ProfileModel::start(IrlumeProcess::Operation operation, Workflow workflow, const QString &profileId,
+                         const QString &scanId, const QString &newName)
 {
     m_busy = true;
     m_activeProfileId = profileId;
+    m_activeScanId = scanId;
+    m_activeNewName = newName;
     setWorkflow(workflow, {});
     const bool previewOperation = operation == IrlumeProcess::Operation::Enroll ||
                                   operation == IrlumeProcess::Operation::AuthTest ||
                                   operation == IrlumeProcess::Operation::AddScan;
     const bool started = previewOperation && m_enrollmentSession
                              ? m_enrollmentSession->startOperation(operation, profileId)
-                             : m_process->startOperation(operation, profileId);
+                             : m_process->startOperation(operation, profileId, scanId, newName);
     if (started)
     {
         return true;
@@ -475,11 +640,26 @@ bool ProfileModel::loadProfiles(const QJsonObject &data)
         const QString displayName = object.value(QStringLiteral("display_name")).toString();
         const QJsonValue scansValue = object.value(QStringLiteral("scans"));
         if (!value.isObject() || !IrlumeProcess::isSafeOpaqueId(id) || !isSafeDisplayName(displayName) ||
-            !scansValue.isArray() || scansValue.toArray().size() > 20)
+            !scansValue.isArray() || scansValue.toArray().size() > m_maxScansPerProfile ||
+            std::any_of(profiles.cbegin(), profiles.cend(), [&id](const Profile &profile) { return profile.id == id; }))
         {
             return false;
         }
-        profiles.push_back({id, displayName, static_cast<int>(scansValue.toArray().size())});
+        QVector<Scan> scans;
+        for (const QJsonValue &scanValue : scansValue.toArray())
+        {
+            const QJsonObject scan = scanValue.toObject();
+            const QString scanId = scan.value(QStringLiteral("scan_id")).toString();
+            const QString scanName = scan.value(QStringLiteral("display_name")).toString();
+            if (!scanValue.isObject() || !IrlumeProcess::isSafeOpaqueId(scanId) || !isSafeDisplayName(scanName) ||
+                std::any_of(scans.cbegin(), scans.cend(),
+                            [&scanId](const Scan &candidate) { return candidate.id == scanId; }))
+            {
+                return false;
+            }
+            scans.push_back({scanId, scanName});
+        }
+        profiles.push_back({id, displayName, static_cast<int>(scans.size()), scans});
     }
 
     beginResetModel();
@@ -495,18 +675,69 @@ bool ProfileModel::hasProfile(const QString &profileId) const
                        [&profileId](const Profile &profile) { return profile.id == profileId; });
 }
 
+bool ProfileModel::hasScan(const QString &profileId, const QString &scanId) const
+{
+    const auto profile = std::find_if(m_profiles.cbegin(), m_profiles.cend(),
+                                      [&profileId](const Profile &candidate) { return candidate.id == profileId; });
+    return profile != m_profiles.cend() && std::any_of(profile->scans.cbegin(), profile->scans.cend(),
+                                                       [&scanId](const Scan &scan) { return scan.id == scanId; });
+}
+
 void ProfileModel::beginEnrollmentVerification(const QJsonObject &data)
 {
     const QString profileId = data.value(QStringLiteral("profile_id")).toString();
-    const bool created = data.value(QStringLiteral("created")).toBool(false);
-    if (!created || !IrlumeProcess::isSafeOpaqueId(profileId))
+    const QJsonValue createdValue = data.value(QStringLiteral("created"));
+    const QJsonValue addedIdsValue = data.value(QStringLiteral("added_scan_ids"));
+    const int addedScans = data.value(QStringLiteral("added_scans")).toInt(-1);
+    const int totalScans = data.value(QStringLiteral("total_scans")).toInt(-1);
+    if (!IrlumeProcess::isSafeOpaqueId(profileId) || !createdValue.isBool() || !addedIdsValue.isArray() ||
+        addedScans < 1 || addedScans > m_maxScansPerProfile || totalScans < addedScans ||
+        totalScans > m_maxScansPerProfile || addedIdsValue.toArray().size() != addedScans)
     {
         finishError(QStringLiteral("invalid-enrollment-result"), false);
         return;
     }
 
-    m_pendingNewProfileId = profileId;
-    start(IrlumeProcess::Operation::AuthTest, Workflow::VerifyingEnrollment);
+    QStringList addedScanIds;
+    for (const QJsonValue &value : addedIdsValue.toArray())
+    {
+        const QString scanId = value.toString();
+        if (!IrlumeProcess::isSafeOpaqueId(scanId) || addedScanIds.contains(scanId))
+        {
+            finishError(QStringLiteral("invalid-enrollment-result"), false);
+            return;
+        }
+        addedScanIds.push_back(scanId);
+    }
+
+    if (createdValue.toBool())
+    {
+        m_pendingNewProfileId = profileId;
+        start(IrlumeProcess::Operation::AuthTest, Workflow::VerifyingEnrollment);
+        return;
+    }
+
+    const auto existing = std::find_if(m_profiles.cbegin(), m_profiles.cend(),
+                                       [&profileId](const Profile &profile) { return profile.id == profileId; });
+    if (existing == m_profiles.cend() ||
+        std::any_of(addedScanIds.cbegin(), addedScanIds.cend(),
+                    [&existing](const QString &scanId)
+                    {
+                        return std::any_of(existing->scans.cbegin(), existing->scans.cend(),
+                                           [&scanId](const Scan &scan) { return scan.id == scanId; });
+                    }))
+    {
+        finishError(QStringLiteral("invalid-identity-merge-result"), false);
+        return;
+    }
+
+    m_pendingMergedProfileId = profileId;
+    m_pendingMergeProfileName = existing->displayName;
+    m_pendingMergeScanIds = addedScanIds;
+    m_mergeConfirmationRequired = true;
+    m_busy = false;
+    setWorkflow(Workflow::AwaitingMergeConfirmation,
+                translate("irlume matched an existing identity. Confirm whether to keep the added scans."));
 }
 
 void ProfileModel::completeAuthenticationTest(const QJsonObject &data)
@@ -515,7 +746,7 @@ void ProfileModel::completeAuthenticationTest(const QJsonObject &data)
         data.value(QStringLiteral("credential_released")).toBool(true) ||
         !data.value(QStringLiteral("matched")).isBool())
     {
-        if (!m_pendingNewProfileId.isEmpty())
+        if (!m_pendingNewProfileId.isEmpty() || !m_pendingMergedProfileId.isEmpty())
         {
             cleanUpUnverifiedEnrollment(QStringLiteral("unsafe-auth-test-result"));
         }
@@ -528,7 +759,7 @@ void ProfileModel::completeAuthenticationTest(const QJsonObject &data)
 
     if (!data.value(QStringLiteral("matched")).toBool())
     {
-        if (!m_pendingNewProfileId.isEmpty())
+        if (!m_pendingNewProfileId.isEmpty() || !m_pendingMergedProfileId.isEmpty())
         {
             cleanUpUnverifiedEnrollment(QStringLiteral("recognition-not-matched"));
         }
@@ -539,10 +770,15 @@ void ProfileModel::completeAuthenticationTest(const QJsonObject &data)
         return;
     }
 
-    const bool verifiedEnrollment = !m_pendingNewProfileId.isEmpty();
+    const bool verifiedEnrollment = !m_pendingNewProfileId.isEmpty() || !m_pendingMergedProfileId.isEmpty();
+    const bool verifiedMerge = !m_pendingMergedProfileId.isEmpty();
     m_pendingNewProfileId.clear();
-    const QString message = verifiedEnrollment ? translate("Enrollment completed and recognition was verified.")
-                                               : translate("Recognition test passed.");
+    m_pendingMergedProfileId.clear();
+    m_pendingMergeScanIds.clear();
+    const QString message = verifiedMerge
+                                ? translate("The added scans were kept and recognition was verified.")
+                                : (verifiedEnrollment ? translate("Enrollment completed and recognition was verified.")
+                                                      : translate("Recognition test passed."));
     if (verifiedEnrollment)
     {
         m_statusAfterRefresh = message;
@@ -556,13 +792,45 @@ void ProfileModel::completeAuthenticationTest(const QJsonObject &data)
 
 void ProfileModel::cleanUpUnverifiedEnrollment(const QString &reasonCode)
 {
-    if (m_pendingNewProfileId.isEmpty())
+    if (m_pendingNewProfileId.isEmpty() && m_pendingMergedProfileId.isEmpty())
     {
         finishError(reasonCode, false);
         return;
     }
     m_cleanupReason = reasonCode;
-    start(IrlumeProcess::Operation::DeleteProfile, Workflow::CleaningUp, m_pendingNewProfileId);
+    if (!m_pendingNewProfileId.isEmpty())
+    {
+        start(IrlumeProcess::Operation::DeleteProfile, Workflow::CleaningUp, m_pendingNewProfileId);
+        return;
+    }
+    m_cleanupScanIds = m_pendingMergeScanIds;
+    startNextCleanup();
+}
+
+void ProfileModel::startNextCleanup()
+{
+    if (m_pendingMergedProfileId.isEmpty() || m_cleanupScanIds.isEmpty())
+    {
+        completeCleanup();
+        return;
+    }
+    start(IrlumeProcess::Operation::DeleteScan, Workflow::CleaningUp, m_pendingMergedProfileId,
+          m_cleanupScanIds.constFirst());
+}
+
+void ProfileModel::completeCleanup()
+{
+    const QString reason = m_cleanupReason;
+    const bool mergeCleanup = !m_pendingMergedProfileId.isEmpty();
+    m_pendingNewProfileId.clear();
+    m_pendingMergedProfileId.clear();
+    m_pendingMergeScanIds.clear();
+    m_cleanupScanIds.clear();
+    m_mergeConfirmationRequired = false;
+    m_pendingMergeProfileName.clear();
+    finishError(reason, reason == QLatin1String("camera-busy"),
+                mergeCleanup ? translate("The added scans were removed; the existing profile was left unchanged.")
+                             : translate("Enrollment could not be verified, so the new profile was removed."));
 }
 
 void ProfileModel::finishSuccess(const QString &message)
@@ -632,8 +900,17 @@ void ProfileModel::setWorkflow(Workflow workflow, const QString &status)
     case Workflow::Deleting:
         m_statusText = translate("Deleting the selected face profile…");
         break;
+    case Workflow::DeletingScan:
+        m_statusText = translate("Deleting the selected appearance scan…");
+        break;
+    case Workflow::Renaming:
+        m_statusText = translate("Renaming the selected profile record…");
+        break;
+    case Workflow::AwaitingMergeConfirmation:
+        m_statusText = status;
+        break;
     case Workflow::CleaningUp:
-        m_statusText = translate("Removing an unverified partial profile…");
+        m_statusText = translate("Restoring the profile state from before enrollment…");
         break;
     }
     Q_EMIT stateChanged();
@@ -647,6 +924,8 @@ void ProfileModel::resetTransientState()
     m_capturedScans = 0;
     m_totalScans = 0;
     m_cleanupReason.clear();
+    m_activeScanId.clear();
+    m_activeNewName.clear();
 }
 
 QString ProfileModel::labelForStage(const QString &stage) const
