@@ -2,7 +2,7 @@
 
 All notable changes to plasma-irlume are documented in this file.
 
-## 2.0.0-dev - unreleased
+## 2.0.0 - 2026-07-26
 
 - Replace five technical tabs with Setup & Status, Face Profiles, Access, and
   Support.

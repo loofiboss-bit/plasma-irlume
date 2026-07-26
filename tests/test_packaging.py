@@ -24,9 +24,9 @@ class PackagingContractTests(unittest.TestCase):
         )
 
         self.assertRegex(cmake, r"project\(plasma-irlume VERSION 2\.0\.0 ")
-        self.assertIn('"Version": "2.0.0-dev"', metadata)
+        self.assertIn('"Version": "2.0.0"', metadata)
         self.assertRegex(spec, r"(?m)^Version:\s+2\.0\.0$")
-        self.assertRegex(spec, r"(?m)^Release:\s+0\.1\.dev")
+        self.assertRegex(spec, r"(?m)^Release:\s+1")
 
     def test_spec_keeps_engine_separate_and_version_gated(self) -> None:
         spec = (ROOT / "packaging/fedora/plasma-irlume.spec").read_text(
