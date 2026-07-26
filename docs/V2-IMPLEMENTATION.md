@@ -67,7 +67,13 @@ The following evidence was refreshed on 2026-07-26:
 - official irlume `0.6.1` and upstream `main` at
   `82165049f95440b281b78f3152dcd8901e4effbf` do not publish the required
   machine contract; upstream tracking is
-  [archledger/irlume#108](https://github.com/archledger/irlume/issues/108);
+  [archledger/irlume#108](https://github.com/archledger/irlume/issues/108).
+  The first implementation slice is under upstream review in
+  [archledger/irlume#109](https://github.com/archledger/irlume/pull/109): it
+  adds a versioned JSON envelope, capability negotiation, read-only profile
+  output, stable error codes, compatibility/privacy documentation, and tests.
+  It deliberately does not advertise enrollment streams, mutation, preview, or
+  login transactions, so it does not yet satisfy the stable V2 gate;
 - COPR build
   [`10774932`](https://copr.fedorainfracloud.org/coprs/build/10774932) reports
   terminal `succeeded` for the V1 package after the earlier Pulp outage.
