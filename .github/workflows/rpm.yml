@@ -2,13 +2,16 @@ name: Fedora 44 RPM
 
 on:
   push:
+    branches: [ "main" ]
     tags:
       - "v*"
   pull_request:
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   rpm:
@@ -66,9 +69,22 @@ jobs:
           cp "$HOME"/rpmbuild/SRPMS/plasma-irlume-*.src.rpm artifacts/
           (cd artifacts && sha256sum ./*.rpm >SHA256SUMS)
 
-      - name: Upload RPM artifacts
+      - name: Upload RPM artifacts to Workflow
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: plasma-irlume-fedora-44
           path: artifacts/
           if-no-files-found: error
+
+      - name: Attach artifacts to GitHub Release
+        if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/v')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="${{ github.event.release.tag_name }}"
+          if [ -z "$TAG_NAME" ]; then
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+          fi
+          if [ -n "$TAG_NAME" ] && gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release upload "$TAG_NAME" artifacts/* --clobber
+          fi
