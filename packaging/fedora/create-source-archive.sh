@@ -40,6 +40,7 @@ tar \
     .
 
 mv -- "${temporary_archive}" "${output}"
+chmod 0644 "${output}"
 trap - EXIT
 
 echo "${output}"

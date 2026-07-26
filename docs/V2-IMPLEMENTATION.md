@@ -84,6 +84,27 @@ The following evidence was refreshed on 2026-07-26:
   exact merge-lineage, login-transaction, and bounded camera configuration
   contract required by this consumer. It remains prerelease evidence until it
   is merged, documented, and published in an official irlume release;
+- PR #115 commit `e5938798c544ae0bc83f716f95b136c09c2302e2`
+  passed Packit builds for Fedora 43 and Fedora 44. The Fedora 44 PR RPM was
+  installed on Secure IR hardware and independently confirmed:
+  `camera-config-json` capability discovery, one bounded active secure pair,
+  ordinary-user camera listing and emitter probing, authorized selection with
+  exact readback, bounded capture tuning, daemon restart reconnection, and an
+  unchanged PAM digest set. The emitter setup operation returned the expected
+  typed `hardware-unavailable` result on hardware whose IR emitter has no
+  software-controllable extension unit; the separate non-mutating probe still
+  reported four available controls;
+- the same live RPM qualification exposed and fixed a packaging regression in
+  PR #115: an empty package-created group had made the daemon socket
+  unreachable to desktop and greeter clients. The corrected package recreates
+  `/run/irlume.sock` as `0666 root:root`, requires no per-user ACL or group
+  membership, and retains per-request root-or-self authorization through
+  `SO_PEERCRED`. Ordinary-user version and camera probes passed after a clean
+  daemon restart;
+- the locally built `plasma-irlume-2.0.0-0.1.dev.fc44` RPM was reinstalled on
+  Fedora 44, passed `rpm -V`, exposed every fixed camera KAuth policy action,
+  opened through `kcmshell6` without QML/runtime errors, and passed the
+  isolated install/uninstall lifecycle smoke test;
 - COPR build
   [`10774932`](https://copr.fedorainfracloud.org/coprs/build/10774932) reports
   terminal `succeeded` for the V1 package after the earlier Pulp outage.

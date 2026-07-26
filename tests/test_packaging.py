@@ -9,6 +9,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class PackagingContractTests(unittest.TestCase):
+    def test_source_archive_is_published_with_readable_permissions(self) -> None:
+        script = (
+            ROOT / "packaging/fedora/create-source-archive.sh"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn('chmod 0644 "${output}"', script)
+
     def test_release_version_is_consistent(self) -> None:
         cmake = (ROOT / "CMakeLists.txt").read_text(encoding="utf-8")
         metadata = (ROOT / "src/kcm/kcm_irlume.json").read_text(encoding="utf-8")
