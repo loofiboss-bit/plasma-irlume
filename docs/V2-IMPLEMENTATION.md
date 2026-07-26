@@ -70,14 +70,15 @@ The following evidence was refreshed on 2026-07-26:
   [archledger/irlume#108](https://github.com/archledger/irlume/issues/108);
 - COPR build
   [`10774932`](https://copr.fedorainfracloud.org/coprs/build/10774932) reports
-  terminal `succeeded` for the V1 package after the earlier Pulp outage, but
-  its result URL returns 404 and the public repository metadata remains empty;
-  clean installation therefore still fails. The repository-publication defect
-  is tracked in
+  terminal `succeeded` for the V1 package after the earlier Pulp outage.
+  Regenerated repository metadata publishes `1.0.0-1.fc44`, and a clean
+  Fedora 44 container installed and verified `plasma-irlume`, `irlume`, and
+  `irlume-selinux` from the two public COPR repositories. The recovery evidence
+  is recorded in
   [fedora-copr/copr#4401](https://github.com/fedora-copr/copr/issues/4401#issuecomment-5084418359).
 
-Neither terminal COPR API state without package availability nor synthetic
-contract fixtures satisfy the stable V2 release gate.
+The COPR publication blocker is resolved for V1. Synthetic contract fixtures
+still do not satisfy the stable V2 release gate.
 
 ## Upstream handoff
 
