@@ -4,9 +4,10 @@
 packaged [`irlume`](https://github.com/archledger/irlume) face-authentication
 engine on Fedora KDE.
 
-Version 2.1 is a transitional, read-only integration. It negotiates irlume
-Machine API Contract 1 and presents typed readiness, profile summaries, and
-authentication-wiring status. It does not implement a biometric engine.
+Version 2.2 is a hardened, read-only integration. It negotiates irlume Machine
+API Contract 1 asynchronously and presents typed readiness, profile summaries,
+camera capability, and authentication-wiring status. It does not implement a
+biometric engine.
 
 ## Engine compatibility
 
@@ -32,6 +33,9 @@ Profile enrollment and maintenance, camera configuration, authentication
 tests, and login/PAM changes are disabled because Contract 1 exposes no
 reviewed mutation capability. Attempts fail locally with
 `capability-unavailable` and never start an undocumented engine command.
+Only one engine process may run per backend instance. Refreshes are
+generation-tagged, latest-request-wins, time-limited, and independently bound
+stdout and stderr to 256 KiB.
 
 See [Backend abstraction](docs/BACKEND-ABSTRACTION.md),
 [Engine contract](docs/ENGINE-CONTRACT.md), and
@@ -53,7 +57,8 @@ kcmshell6 kcm_irlume
 
 Installing, upgrading, or removing the KCM does not activate, deactivate, or
 rewrite authentication. The package does not bundle irlume, models, profiles,
-PAM modules, a daemon, or camera drivers.
+PAM modules, a daemon, camera code, a privileged helper, a system D-Bus
+service, or a Polkit action.
 
 ## Build and test
 
@@ -65,6 +70,12 @@ python3 -m unittest discover -s tests -p 'test_*.py'
 /usr/lib64/qt6/bin/qmllint src/kcm/ui/*.qml src/kcm/ui/components/*.qml
 ```
 
+Optionally qualify an already installed engine without network access:
+
+```bash
+scripts/check-installed-irlume-contract.py
+```
+
 Build Fedora packages locally:
 
 ```bash
@@ -74,8 +85,9 @@ rpmbuild -ba packaging/fedora/plasma-irlume.spec \
 ```
 
 Sanitized fixtures under `tests/fixtures/irlume/contract-v1/` represent the
-released public Contract 1. Proposed mutation fixtures are isolated design
-artifacts and are never consumed by production code.
+released public Contract 1. They are validated offline against the exact
+vendored irlume 0.7.0 Draft 2020-12 schema. Proposed mutation fixtures are
+historical design artifacts and are never consumed by production code.
 
 ## License
 

@@ -1,37 +1,34 @@
 # Architecture
 
-The implemented dependency direction is:
+plasma-irlume 2.2.0 is a read-only Plasma KCM:
 
 ```text
 QML
-  -> IrlumeKcm and typed presentation models
-    -> FaceAuthBackend
-      -> IrlumeBackend
-        -> fixed irlume Contract 1 read-only commands
+  -> typed presentation models
+  -> RefreshCoordinator
+  -> FaceAuthBackend
+  -> fixed production factory
+  -> IrlumeBackend
+  -> /usr/bin/irlume Contract 1
 ```
 
-`FaceAuthBackend` owns backend-neutral result types: capabilities, availability,
-status, doctor checks, profile summaries, login wiring, and stable errors.
-`IrlumeBackend` centralizes process execution and JSON envelope validation.
-`IrlumeKcm::refresh()` obtains one immutable `EngineSnapshot` and distributes it
-to `SystemProbe`, `ProfileModel`, `CameraConfiguration`, and
-`AuthConfiguration`. QML never sees raw JSON, subprocesses, contract command
-names, paths, or usernames.
+`RefreshCoordinator` assigns monotonic generations and accepts only current
+signals. A newer request cancels the active process and replaces any pending
+request, so one backend instance never owns more than one irlume process.
 
-`SystemProbe` combines the typed backend snapshot with local Fedora, display
-manager, Secure Boot, and TPM observations. Missing backend data stays
-`Unknown`. Password fallback is never claimed as preserved because Contract 1
-does not verify it.
+`IrlumeBackend` is a signal-driven `QProcess` state machine. It handshakes
+first, then runs advertised read commands in fixed order. It uses no shell,
+wait API, camera, or mutation command. Every command has a three-second
+timeout and independent 256 KiB stdout and stderr limits.
 
-Profile, camera, enrollment-preview, and authentication configuration objects
-are retained as stable presentation APIs. Their mutation entry points are
-disabled and fail locally. `AuthHelper` preserves only its fixed KAuth action
-surface and does not execute an irlume mutation.
+Local OS, display-manager, EFI, and TPM facts are read with strict bounds on a
+worker thread. `SystemProbe::evaluate()` remains a pure deterministic mapping.
+Presentation models consume only their corresponding operation result.
 
-`SupportReport` consumes typed state only. It excludes raw engine output,
-camera data, biometric material, profile names, usernames, device/PAM paths,
-credentials, passwords, and TPM secrets.
+On teardown, receivers are disconnected and generations become stale. A live
+process is killed and reparented to the application for asynchronous reaping.
+The GUI thread never waits for process shutdown.
 
-The GUI runs unprivileged, never edits PAM, and never supplies an executable,
-shell string, arbitrary argument, or environment value. Package lifecycle
-scripts perform no authentication changes.
+There is no privileged helper, system D-Bus service, Polkit action, PAM
+integration, daemon, camera implementation, or biometric processing in this
+repository.

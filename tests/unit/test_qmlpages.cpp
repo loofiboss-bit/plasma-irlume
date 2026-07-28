@@ -107,6 +107,8 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
                            {QStringLiteral("systemState"), stateValue},
                            {QStringLiteral("authConfiguration"), QVariant::fromValue(&authConfiguration)},
                            {QStringLiteral("supportReport"), QVariant::fromValue(&supportReport)},
+                           {QStringLiteral("refreshActive"), false},
+                           {QStringLiteral("partialDiagnostics"), false},
                        });
         QVERIFY2(diagnostics, qPrintable(QStringLiteral("Diagnostics failed for scenario %1").arg(index)));
 
@@ -117,6 +119,8 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
                            {QStringLiteral("profileModel"), QVariant::fromValue(&profileModel)},
                            {QStringLiteral("authConfiguration"), QVariant::fromValue(&authConfiguration)},
                            {QStringLiteral("cameraConfiguration"), QVariant::fromValue(&cameraConfiguration)},
+                           {QStringLiteral("refreshActive"), false},
+                           {QStringLiteral("partialDiagnostics"), false},
                        });
         QVERIFY2(setupStatus, qPrintable(QStringLiteral("Setup & Status failed for scenario %1").arg(index)));
 

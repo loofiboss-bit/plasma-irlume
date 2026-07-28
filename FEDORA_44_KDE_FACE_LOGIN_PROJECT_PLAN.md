@@ -1,4 +1,10 @@
-# plasma-irlume — Fedora 44 KDE Face Login Project Plan
+# Historical plasma-irlume — Fedora 44 KDE Face Login Project Plan
+
+> Dated pre-v2.2 design record. It has no active 0.6 or 2.0 blockers. All
+> KAuth, Polkit, helper, camera, preview, enrollment, biometric, daemon, PAM,
+> and authentication mutation material below describes earlier architecture,
+> not the current product. Current authority is `docs/ARCHITECTURE.md` and
+> `docs/NATIVE-ENGINE-ROADMAP.md`.
 
 ## Outcome
 

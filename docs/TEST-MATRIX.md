@@ -1,33 +1,23 @@
 # Test matrix
 
-Automated release checks cover:
+The v2.2.0 acceptance suite covers:
 
-- Contract 1 handshake ranges, future engine-version acceptance, capabilities,
-  envelope failures, output bounds, and structured errors;
-- typed status, doctor, profile, and login parsing;
-- unknown-versus-zero semantics;
-- fail-closed profile, camera, enrollment, authentication, and KAuth entry
-  points with no mutation subprocess;
-- QML loading, localization, formatting, desktop metadata, source archives,
-  RPM build, and non-mutating RPM removal.
+- Contract 1 command construction, capability gating, future engine versions,
+  unknown properties and capabilities, malformed documents, duplicate fields,
+  contradictory values, structured errors, start failure, timeout, and output
+  limits.
+- Immediate KCM construction, responsive event delivery, latest-generation
+  wins, stale signals, cancellation, teardown during refresh, partial results,
+  and not-advertised versus failed sections.
+- Section-specific profile, camera, authentication, readiness, and support
+  presentation, including old-data retention only while updating.
+- QML creation, accessibility contracts, 320/480/960 px layouts, fixed busy
+  indicator space, Swedish localization, formatting, and desktop metadata.
+- Exact offline validation of all released Contract 1 fixtures against the
+  vendored irlume v0.7.0 schema.
+- Source archive, SRPM, RPM, rpmlint, payload/dependency inspection, and an
+  isolated install/remove lifecycle that hashes PAM sentinels and preserves
+  engine and user data.
 
-Run:
-
-```bash
-rm -rf build
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
-cmake --build build
-ctest --test-dir build --output-on-failure
-python3 -m unittest discover -s tests -p 'test_*.py'
-/usr/lib64/qt6/bin/qmllint src/kcm/ui/*.qml src/kcm/ui/components/*.qml
-find src tests/unit -type f \( -name '*.cpp' -o -name '*.h' \) -print0 \
-  | xargs -0 clang-format --dry-run --Werror
-desktop-file-validate data/kcm_irlume.desktop
-packaging/fedora/create-source-archive.sh
-rpmbuild -ba packaging/fedora/plasma-irlume.spec \
-  --define "_sourcedir $PWD"
-```
-
-These checks do not validate biometric accuracy, liveness, spoof resistance,
-real camera compatibility, or live PAM/login behavior. No such hardware claim
-is made by version 2.1.
+The final static gate rejects blocking process waits in `src` and rejects any
+privileged helper, system D-Bus service/policy, or Polkit action in the RPM.

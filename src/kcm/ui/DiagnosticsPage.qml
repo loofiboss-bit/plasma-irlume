@@ -14,6 +14,8 @@ ColumnLayout {
     required property var systemState
     required property var authConfiguration
     required property var supportReport
+    required property bool refreshActive
+    required property bool partialDiagnostics
     property var refresh: () => {}
 
     spacing: Kirigami.Units.largeSpacing
@@ -30,6 +32,13 @@ ColumnLayout {
         visible: true
         type: Kirigami.MessageType.Information
         text: i18n("Diagnostics are read-only. Refreshing runs fixed local probes and never modifies authentication.")
+    }
+
+    Kirigami.InlineMessage {
+        Layout.fillWidth: true
+        visible: root.partialDiagnostics
+        type: Kirigami.MessageType.Warning
+        text: i18n("Partial read-only diagnostics are available. One or more sections could not be refreshed.")
     }
 
     Kirigami.InlineMessage {
@@ -145,11 +154,21 @@ ColumnLayout {
                 wrapMode: Text.Wrap
             }
 
-            QQC2.Button {
-                text: i18n("Refresh diagnostics")
-                icon.name: "view-refresh"
-                Accessible.name: text
-                onClicked: root.refresh()
+            RowLayout {
+                QQC2.BusyIndicator {
+                    Layout.preferredWidth: Kirigami.Units.gridUnit
+                    Layout.preferredHeight: Kirigami.Units.gridUnit
+                    running: root.refreshActive
+                    opacity: running ? 1 : 0
+                }
+
+                QQC2.Button {
+                    text: root.refreshActive ? i18n("Updating…") : i18n("Refresh diagnostics")
+                    icon.name: "view-refresh"
+                    enabled: !root.refreshActive
+                    Accessible.name: text
+                    onClicked: root.refresh()
+                }
             }
         }
     }
@@ -171,7 +190,9 @@ ColumnLayout {
                 Layout.fillWidth: true
                 label: i18n("Security tier")
                 value: systemState.securityTierLabel
-                tone: systemState.securityTier === 0 ? 1 : (systemState.securityTier === 1 ? 2 : 3)
+                tone: systemState.securityTier === 0 ? 1
+                    : (systemState.securityTier === 1 ? 2
+                    : (systemState.securityTier === 3 ? 0 : 3))
             }
 
             Kirigami.Separator {

@@ -13,15 +13,16 @@ class ProfileModelTest final : public QObject
     void exposesContractOneProfilesReadOnly();
     void mutationAttemptsFailClosed();
     void refreshRequestsOneBackendRefresh();
+    void keepsOldRowsOnlyWhileUpdating();
 };
 
 EngineSnapshot profileSnapshot()
 {
     EngineSnapshot snapshot;
     snapshot.executablePresent = true;
-    snapshot.contractAvailable = true;
-    snapshot.contractVersion = 1;
-    snapshot.capabilities.profilesRead = true;
+    snapshot.handshake.state = ResultState::Available;
+    snapshot.handshake.data = EngineHandshakeSnapshot{1, QStringLiteral("0.7.0")};
+    snapshot.capabilities.features = EngineFeature::ProfilesRead;
     snapshot.capabilities.maxProfiles = 3;
     EngineProfile profile;
     profile.displayName = QStringLiteral("Primary");
@@ -65,6 +66,29 @@ void ProfileModelTest::refreshRequestsOneBackendRefresh()
     QSignalSpy spy(&model, &ProfileModel::refreshRequested);
     model.refresh();
     QCOMPARE(spy.count(), 1);
+}
+
+void ProfileModelTest::keepsOldRowsOnlyWhileUpdating()
+{
+    ProfileModel model;
+    model.applySnapshot(profileSnapshot());
+    QCOMPARE(model.rowCount(), 1);
+
+    EngineSnapshot updating = profileSnapshot();
+    updating.profiles.state = ResultState::Loading;
+    updating.profiles.data.reset();
+    model.applySnapshot(updating);
+    QCOMPARE(model.rowCount(), 1);
+    QVERIFY(model.busy());
+
+    EngineSnapshot failed = profileSnapshot();
+    failed.profiles.state = ResultState::Failed;
+    failed.profiles.data.reset();
+    failed.profiles.error = EngineError{EngineOperation::Profiles, QStringLiteral("profiles-unavailable"), true};
+    model.applySnapshot(failed);
+    QCOMPARE(model.rowCount(), 0);
+    QVERIFY(!model.readOnlyAvailable());
+    QVERIFY(model.canRetry());
 }
 
 QTEST_MAIN(ProfileModelTest)

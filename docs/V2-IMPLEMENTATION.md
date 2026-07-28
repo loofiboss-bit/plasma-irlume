@@ -1,9 +1,10 @@
-# V2 Implementation Status
+# Historical V2 implementation record
 
-> Historical V2 design and qualification record. Version 2.1 supersedes its
-> runtime assumptions with released, read-only irlume Machine API Contract 1.
-> Proposed preview, camera, profile, and login mutations described below are
-> test/design artifacts and are not reachable from production.
+> Dated 2026-07-26. Version 2.2 supersedes this document, and none of its former
+> 0.6/2.0 blockers remain active planning gates. Proposed preview, camera,
+> profile, login, KAuth, and helper work below describes earlier architecture
+> only and is not reachable from production. Current authority is
+> `ARCHITECTURE.md`, `ENGINE-CONTRACT.md`, and `NATIVE-ENGINE-ROADMAP.md`.
 
 ## Product goal
 

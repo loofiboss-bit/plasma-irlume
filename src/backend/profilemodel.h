@@ -12,10 +12,11 @@ class ProfileModel final : public QAbstractListModel
 {
     Q_OBJECT
 
-    Q_PROPERTY(bool contractAvailable READ mutationSupported NOTIFY stateChanged)
+    Q_PROPERTY(bool contractAvailable READ contractAvailable NOTIFY stateChanged)
     Q_PROPERTY(bool readOnlyAvailable READ readOnlyAvailable NOTIFY stateChanged)
     Q_PROPERTY(bool mutationSupported READ mutationSupported NOTIFY stateChanged)
     Q_PROPERTY(bool busy READ busy NOTIFY stateChanged)
+    Q_PROPERTY(ResultState availabilityState READ availabilityState NOTIFY stateChanged)
     Q_PROPERTY(int profileCount READ profileCount NOTIFY profilesChanged)
     Q_PROPERTY(Workflow workflow READ workflow NOTIFY stateChanged)
     Q_PROPERTY(QString statusText READ statusText NOTIFY stateChanged)
@@ -63,9 +64,11 @@ class ProfileModel final : public QAbstractListModel
     [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
 
     void applySnapshot(const EngineSnapshot &snapshot);
+    [[nodiscard]] bool contractAvailable() const;
     [[nodiscard]] bool readOnlyAvailable() const;
     [[nodiscard]] bool mutationSupported() const;
     [[nodiscard]] bool busy() const;
+    [[nodiscard]] ResultState availabilityState() const;
     [[nodiscard]] int profileCount() const;
     [[nodiscard]] Workflow workflow() const;
     [[nodiscard]] QString statusText() const;
@@ -108,8 +111,11 @@ class ProfileModel final : public QAbstractListModel
     void failCapability();
 
     QVector<Profile> m_profiles;
+    bool m_contractAvailable = false;
     bool m_readOnlyAvailable = false;
     bool m_mutationSupported = false;
+    bool m_retryable = false;
+    ResultState m_resultState = ResultState::NotAdvertised;
     int m_maxProfiles = 0;
     QString m_statusText;
     QString m_errorCode;

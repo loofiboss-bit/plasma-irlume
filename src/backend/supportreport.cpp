@@ -32,6 +32,8 @@ QString securityTierToken(SystemState::SecurityTier tier)
         return QStringLiteral("convenience");
     case SystemState::SecurityTier::Unsupported:
         return QStringLiteral("unsupported");
+    case SystemState::SecurityTier::Unknown:
+        return QStringLiteral("unknown");
     }
     return QStringLiteral("unknown");
 }

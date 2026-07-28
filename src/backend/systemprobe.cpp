@@ -6,15 +6,14 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
-#include <QProcess>
-#include <QProcessEnvironment>
+#include <QFutureWatcher>
 #include <QRegularExpression>
+#include <QtConcurrentRun>
 
 #include <algorithm>
 
 namespace
 {
-constexpr int ProcessTimeoutMs = 3000;
 constexpr qsizetype MaximumProbeOutput = 256 * 1024;
 
 using CameraType = SystemStateSnapshot::CameraType;
@@ -26,13 +25,6 @@ using ProfileStatus = SystemStateSnapshot::ProfileStatus;
 using SecurityTier = SystemStateSnapshot::SecurityTier;
 using SecureBootStatus = SystemStateSnapshot::SecureBootStatus;
 
-struct CommandResult
-{
-    bool finished = false;
-    int exitCode = -1;
-    QString standardOutput;
-};
-
 QString translate(const char *text)
 {
     return QCoreApplication::translate("SystemProbe", text);
@@ -42,48 +34,6 @@ QByteArray readBoundedFile(const QString &path, qsizetype maximumBytes = Maximum
 {
     QFile file(path);
     return file.open(QIODevice::ReadOnly) ? file.read(maximumBytes) : QByteArray();
-}
-
-CommandResult runLocalCommand(const QString &program, const QStringList &arguments)
-{
-    QProcess process;
-    QProcessEnvironment environment;
-    environment.insert(QStringLiteral("LC_ALL"), QStringLiteral("C"));
-    environment.insert(QStringLiteral("LANG"), QStringLiteral("C"));
-    process.setProcessEnvironment(environment);
-    process.setProgram(program);
-    process.setArguments(arguments);
-    process.setProcessChannelMode(QProcess::SeparateChannels);
-    process.start(QIODevice::ReadOnly);
-    if (!process.waitForStarted(ProcessTimeoutMs))
-        return {};
-    CommandResult result;
-    result.finished = process.waitForFinished(ProcessTimeoutMs);
-    if (!result.finished)
-    {
-        process.kill();
-        process.waitForFinished(1000);
-        return result;
-    }
-    result.exitCode = process.exitCode();
-    const QByteArray output = process.readAllStandardOutput();
-    if (output.size() <= MaximumProbeOutput)
-        result.standardOutput = QString::fromUtf8(output);
-    return result;
-}
-
-QString packageVersion(const QString &package)
-{
-    const QString rpm = QStringLiteral("/usr/bin/rpm");
-    if (!QFileInfo(rpm).isExecutable())
-        return {};
-    const CommandResult result =
-        runLocalCommand(rpm, {QStringLiteral("-q"), QStringLiteral("--qf"), QStringLiteral("%{VERSION}"), package});
-    if (!result.finished || result.exitCode != 0)
-        return {};
-    const QString version = result.standardOutput.trimmed();
-    static const QRegularExpression safeVersion(QStringLiteral(R"(\A[A-Za-z0-9._+~:-]{1,64}\z)"));
-    return safeVersion.match(version).hasMatch() ? version : QString();
 }
 
 QString displayManagerLabel(const QString &target)
@@ -105,11 +55,11 @@ SecureBootStatus secureBootStatus(const SystemProbeInputs &inputs)
 
 CapabilityStatus doctorCapability(const EngineSnapshot &engine, const QString &id)
 {
-    if (!engine.doctorChecks)
+    if (!engine.doctor.data)
         return CapabilityStatus::Unknown;
-    const auto match = std::find_if(engine.doctorChecks->cbegin(), engine.doctorChecks->cend(),
+    const auto match = std::find_if(engine.doctor.data->cbegin(), engine.doctor.data->cend(),
                                     [&id](const EngineDoctorCheck &check) { return check.id == id; });
-    if (match == engine.doctorChecks->cend() || match->state == EngineDoctorCheck::State::Unknown ||
+    if (match == engine.doctor.data->cend() || match->state == EngineDoctorCheck::State::Unknown ||
         match->state == EngineDoctorCheck::State::Info)
         return CapabilityStatus::Unknown;
     return match->state == EngineDoctorCheck::State::Pass ? CapabilityStatus::Available : CapabilityStatus::Unavailable;
@@ -182,11 +132,29 @@ QString makeSupportReport(const SystemStateSnapshot &state)
 }
 } // namespace
 
+SystemProbe::SystemProbe(QObject *parent) : QObject(parent) {}
+
+void SystemProbe::requestProbe(quint64 generation, const EngineSnapshot &engine)
+{
+    m_latestGeneration = generation;
+    auto *watcher = new QFutureWatcher<SystemStateSnapshot>(this);
+    connect(watcher, &QFutureWatcher<SystemStateSnapshot>::finished, this,
+            [this, watcher, generation]()
+            {
+                if (generation == m_latestGeneration)
+                    Q_EMIT probeCompleted(generation, watcher->result());
+                watcher->deleteLater();
+            });
+    watcher->setFuture(QtConcurrent::run([engine]() { return SystemProbe().probe(engine); }));
+}
+
 SystemStateSnapshot SystemProbe::probe(const EngineSnapshot &engine) const
 {
     SystemProbeInputs inputs;
     inputs.osRelease = readBoundedFile(QStringLiteral("/etc/os-release"));
-    inputs.plasmaVersion = packageVersion(QStringLiteral("plasma-workspace"));
+    // Avoid package-manager subprocesses on the GUI thread. Plasma version remains
+    // unknown until a future non-blocking platform information provider supplies it.
+    inputs.plasmaVersion.clear();
     const QFileInfo displayManager(QStringLiteral("/etc/systemd/system/display-manager.service"));
     inputs.displayManagerTarget =
         displayManager.isSymLink() ? displayManager.symLinkTarget() : displayManager.canonicalFilePath();
@@ -217,7 +185,7 @@ SystemStateSnapshot SystemProbe::evaluate(const SystemProbeInputs &inputs)
     state.activeDisplayManager = displayManagerLabel(inputs.displayManagerTarget);
     state.secureBootStatus = secureBootStatus(inputs);
     state.tpmStatus = inputs.tpmPresent ? CapabilityStatus::Available : CapabilityStatus::Unavailable;
-    state.engineVersion = inputs.engine.engineVersion;
+    state.engineVersion = inputs.engine.engineVersion();
     state.passwordFallbackStatus = SystemStateSnapshot::PasswordFallbackStatus::Unknown;
 
     if (!inputs.engine.executablePresent)
@@ -230,12 +198,12 @@ SystemStateSnapshot SystemProbe::evaluate(const SystemProbeInputs &inputs)
         state.supportReport = makeSupportReport(state);
         return state;
     }
-    if (!inputs.engine.contractAvailable)
+    if (!inputs.engine.contractAvailable())
     {
         state.headline = translate("The machine contract is unavailable");
         state.summary = translate("The installed backend did not complete a valid Contract 1 handshake.");
-        state.issueCode = inputs.engine.errors.isEmpty() ? QStringLiteral("machine-contract-unavailable")
-                                                         : inputs.engine.errors.constFirst().code;
+        state.issueCode = inputs.engine.handshake.error ? inputs.engine.handshake.error->code
+                                                        : QStringLiteral("machine-contract-unavailable");
         state.engineStatus = state.issueCode == QLatin1String("unsupported-contract")
                                  ? EngineStatus::UnsupportedContract
                                  : EngineStatus::Unavailable;
@@ -243,10 +211,21 @@ SystemStateSnapshot SystemProbe::evaluate(const SystemProbeInputs &inputs)
         return state;
     }
 
-    state.engineStatus = EngineStatus::Ready;
-    if (inputs.engine.status)
+    if (inputs.engine.capabilities.recognizedReadCount() == 0)
     {
-        const EngineStatusSnapshot &status = *inputs.engine.status;
+        state.headline = translate("No compatible read capabilities are available");
+        state.summary =
+            translate("The backend completed Contract 1 negotiation but advertised no supported diagnostics.");
+        state.issueCode = QStringLiteral("no-compatible-read-capabilities");
+        state.engineStatus = EngineStatus::NoCompatibleCapabilities;
+        state.supportReport = makeSupportReport(state);
+        return state;
+    }
+
+    state.engineStatus = inputs.engine.partialDiagnostics() ? EngineStatus::PartialDiagnostics : EngineStatus::Ready;
+    if (inputs.engine.status.data)
+    {
+        const EngineStatusSnapshot &status = *inputs.engine.status.data;
         if (status.daemon == EngineStatusSnapshot::Daemon::Running)
             state.daemonStatus = DaemonStatus::Running;
         else
@@ -261,17 +240,14 @@ SystemStateSnapshot SystemProbe::evaluate(const SystemProbeInputs &inputs)
         if (status.irCamera)
         {
             state.cameraType = CameraType::Infrared;
-            state.securityTier = SecurityTier::Unsupported;
         }
         else if (status.rgbCamera)
         {
             state.cameraType = CameraType::Rgb;
-            state.securityTier = SecurityTier::Convenience;
         }
         else
         {
             state.cameraType = CameraType::None;
-            state.securityTier = SecurityTier::Unsupported;
         }
     }
 
@@ -282,16 +258,20 @@ SystemStateSnapshot SystemProbe::evaluate(const SystemProbeInputs &inputs)
     state.emitterStatus = CapabilityStatus::Unknown;
 
     bool migration = false;
-    if (inputs.engine.login)
-        state.pamStatus = pamStatus(*inputs.engine.login, state.activeDisplayManager, &migration);
+    if (inputs.engine.loginStatus.data)
+        state.pamStatus = pamStatus(*inputs.engine.loginStatus.data, state.activeDisplayManager, &migration);
     if (migration)
     {
         state.issueCode = QStringLiteral("display-manager-migration");
         state.securityTier = SecurityTier::Unsupported;
     }
-    else if (!inputs.engine.errors.isEmpty())
+    else if (inputs.engine.status.error)
     {
-        state.issueCode = inputs.engine.errors.constFirst().code;
+        state.issueCode = inputs.engine.status.error->code;
+    }
+    else if (inputs.engine.doctor.error)
+    {
+        state.issueCode = inputs.engine.doctor.error->code;
     }
     else if (state.daemonStatus == DaemonStatus::Broken)
     {
@@ -305,7 +285,7 @@ SystemStateSnapshot SystemProbe::evaluate(const SystemProbeInputs &inputs)
         state.securityTier = SecurityTier::Unsupported;
     }
 
-    if (state.issueCode.isEmpty())
+    if (state.issueCode.isEmpty() && state.engineStatus == EngineStatus::Ready)
     {
         state.headline = translate("Read-only face-authentication status is available");
         state.summary =

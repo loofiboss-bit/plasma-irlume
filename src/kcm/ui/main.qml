@@ -65,6 +65,8 @@ KCMUtils.SimpleKCM {
             profileModel: kcm.profileModel
             authConfiguration: kcm.authConfiguration
             cameraConfiguration: kcm.cameraConfiguration
+            refreshActive: kcm.refreshing
+            partialDiagnostics: kcm.partialDiagnostics
             openProfiles: () => tabs.currentIndex = 1
             openAccess: () => tabs.currentIndex = 2
             refresh: () => {
@@ -102,6 +104,8 @@ KCMUtils.SimpleKCM {
             systemState: kcm.systemState
             authConfiguration: kcm.authConfiguration
             supportReport: kcm.supportReport
+            refreshActive: kcm.refreshing
+            partialDiagnostics: kcm.partialDiagnostics
             refresh: () => kcm.refresh()
         }
     }

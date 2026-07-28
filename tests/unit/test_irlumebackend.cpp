@@ -13,6 +13,7 @@ class IrlumeBackendTest final : public QObject
   private Q_SLOTS:
     void buildsOnlyContractOneCommands();
     void acceptsFutureEngineVersions();
+    void ignoresUnknownAllowedProperties();
     void gatesCommandsOnCapabilities();
     void rejectsInvalidHandshake();
     void preservesStructuredErrors();
@@ -61,7 +62,7 @@ EngineSnapshot refreshWith(IrlumeBackend::Command command, const QJsonObject &da
                 return {};
             return response(envelope(IrlumeBackend::commandName(command), data));
         });
-    return backend.refresh();
+    return backend.refreshForTest();
 }
 
 QJsonObject statusData(const QString &daemon = QStringLiteral("running"),
@@ -126,11 +127,29 @@ void IrlumeBackendTest::acceptsFutureEngineVersions()
                     return {};
                 return response(envelope(QStringLiteral("version"), versionData(QJsonArray{}), version));
             });
-        const EngineSnapshot snapshot = backend.refresh();
-        QVERIFY(snapshot.contractAvailable);
-        QCOMPARE(snapshot.engineVersion, version);
+        const EngineSnapshot snapshot = backend.refreshForTest();
+        QVERIFY(snapshot.contractAvailable());
+        QCOMPARE(snapshot.engineVersion(), version);
         QCOMPARE(calls, 1);
     }
+}
+
+void IrlumeBackendTest::ignoresUnknownAllowedProperties()
+{
+    QJsonObject data = versionData(QJsonArray{});
+    data.insert(QStringLiteral("future_property"), QJsonObject{{QStringLiteral("opaque"), true}});
+    QJsonObject document = envelope(QStringLiteral("version"), data);
+    document.insert(QStringLiteral("future_envelope_property"), QStringLiteral("ignored"));
+    IrlumeBackend backend([document](IrlumeBackend::Command) { return response(document); });
+
+    const EngineSnapshot snapshot = backend.refreshForTest();
+
+    QVERIFY(snapshot.contractAvailable());
+    QCOMPARE(snapshot.capabilities.recognizedReadCount(), 0);
+    QCOMPARE(snapshot.status.state, ResultState::NotAdvertised);
+    QCOMPARE(snapshot.doctor.state, ResultState::NotAdvertised);
+    QCOMPARE(snapshot.profiles.state, ResultState::NotAdvertised);
+    QCOMPARE(snapshot.loginStatus.state, ResultState::NotAdvertised);
 }
 
 void IrlumeBackendTest::gatesCommandsOnCapabilities()
@@ -162,11 +181,13 @@ void IrlumeBackendTest::gatesCommandsOnCapabilities()
                                          {QStringLiteral("fingerprint"), true},
                                      }));
         });
-    const EngineSnapshot snapshot = backend.refresh();
+    const EngineSnapshot snapshot = backend.refreshForTest();
     QCOMPARE(calls.size(), 2);
     QVERIFY(snapshot.status.has_value());
     QVERIFY(!snapshot.profiles.has_value());
-    QVERIFY(!snapshot.capabilities.mutationSupported);
+    QCOMPARE(snapshot.status.state, ResultState::Available);
+    QCOMPARE(snapshot.profiles.state, ResultState::NotAdvertised);
+    QVERIFY(!snapshot.capabilities.supports(EngineFeature::ProfileMutation));
     QVERIFY(!snapshot.status->enrollmentKnown);
 }
 
@@ -188,9 +209,9 @@ void IrlumeBackendTest::rejectsInvalidHandshake()
     {
         IrlumeBackend backend([data](IrlumeBackend::Command)
                               { return response(envelope(QStringLiteral("version"), data)); });
-        const EngineSnapshot snapshot = backend.refresh();
-        QVERIFY(!snapshot.contractAvailable);
-        QVERIFY(!snapshot.errors.isEmpty());
+        const EngineSnapshot snapshot = backend.refreshForTest();
+        QVERIFY(!snapshot.contractAvailable());
+        QVERIFY(snapshot.handshake.error.has_value());
     }
 }
 
@@ -216,10 +237,12 @@ void IrlumeBackendTest::preservesStructuredErrors()
                 },
                 1);
         });
-    const EngineSnapshot snapshot = backend.refresh();
-    QCOMPARE(snapshot.errors.size(), 1);
-    QCOMPARE(snapshot.errors.constFirst().code, QStringLiteral("daemon-unavailable"));
-    QVERIFY(snapshot.errors.constFirst().retryable);
+    const EngineSnapshot snapshot = backend.refreshForTest();
+    QVERIFY(snapshot.status.error.has_value());
+    QCOMPARE(snapshot.status.state, ResultState::Failed);
+    QCOMPARE(snapshot.status.error->operation, EngineOperation::Status);
+    QCOMPARE(snapshot.status.error->code, QStringLiteral("daemon-unavailable"));
+    QVERIFY(snapshot.status.error->retryable);
 }
 
 void IrlumeBackendTest::rejectsInvalidEnvelopesAndProcessFailures()
@@ -236,16 +259,14 @@ void IrlumeBackendTest::rejectsInvalidEnvelopesAndProcessFailures()
                              {QStringLiteral("command"), QStringLiteral("version")},
                              {QStringLiteral("ok"), true},
                              {QStringLiteral("data"), versionData(QJsonArray{})}}),
-        response(
-            envelope(QStringLiteral("version"), QJsonObject{{QStringLiteral("password"), QStringLiteral("rejected")}})),
     };
 
     for (const auto &failure : failures)
     {
         IrlumeBackend backend([failure](IrlumeBackend::Command) { return failure; });
-        const EngineSnapshot snapshot = backend.refresh();
-        QVERIFY(!snapshot.contractAvailable);
-        QCOMPARE(snapshot.errors.size(), 1);
+        const EngineSnapshot snapshot = backend.refreshForTest();
+        QVERIFY(!snapshot.contractAvailable());
+        QVERIFY(snapshot.handshake.error.has_value());
     }
 }
 
@@ -257,7 +278,7 @@ void IrlumeBackendTest::parsesStatusSemantics()
     {
         const EngineSnapshot snapshot = refreshWith(IrlumeBackend::Command::Status, statusData(daemon));
         QVERIFY(snapshot.status.has_value());
-        QVERIFY(snapshot.errors.isEmpty());
+        QVERIFY(!snapshot.status.error.has_value());
     }
 
     for (const QString &templates :
@@ -284,7 +305,7 @@ void IrlumeBackendTest::parsesStatusSemantics()
     contradictory.insert(QStringLiteral("enrollment"), enrollment);
     const EngineSnapshot rejected = refreshWith(IrlumeBackend::Command::Status, contradictory);
     QVERIFY(!rejected.status.has_value());
-    QCOMPARE(rejected.errors.constFirst().code, QStringLiteral("invalid-status-data"));
+    QCOMPARE(rejected.status.error->code, QStringLiteral("invalid-status-data"));
 }
 
 void IrlumeBackendTest::parsesDoctorStatesWithoutReadingDetails()
@@ -303,9 +324,9 @@ void IrlumeBackendTest::parsesDoctorStatesWithoutReadingDetails()
     const EngineSnapshot snapshot =
         refreshWith(IrlumeBackend::Command::Doctor,
                     QJsonObject{{QStringLiteral("checks"), checks}, {QStringLiteral("future-property"), true}});
-    QVERIFY(snapshot.doctorChecks.has_value());
-    QCOMPARE(snapshot.doctorChecks->size(), states.size());
-    QVERIFY(snapshot.errors.isEmpty());
+    QVERIFY(snapshot.doctor.has_value());
+    QCOMPARE(snapshot.doctor->size(), states.size());
+    QVERIFY(!snapshot.doctor.error.has_value());
 }
 
 void IrlumeBackendTest::parsesLoginStatusConservatively()
@@ -331,11 +352,11 @@ void IrlumeBackendTest::parsesLoginStatusConservatively()
         {QStringLiteral("selinux_module"), QStringLiteral("unknown")},
     };
     const EngineSnapshot snapshot = refreshWith(IrlumeBackend::Command::LoginStatus, data);
-    QVERIFY(snapshot.login.has_value());
-    QVERIFY(snapshot.login->loginManagerKnown);
-    QVERIFY(snapshot.login->loginManagerRecognized);
-    QCOMPARE(snapshot.login->surfaces.size(), 2);
-    QCOMPARE(snapshot.login->selinuxModule, EngineLoginSnapshot::SelinuxModule::Unknown);
+    QVERIFY(snapshot.loginStatus.has_value());
+    QVERIFY(snapshot.loginStatus->loginManagerKnown);
+    QVERIFY(snapshot.loginStatus->loginManagerRecognized);
+    QCOMPARE(snapshot.loginStatus->surfaces.size(), 2);
+    QCOMPARE(snapshot.loginStatus->selinuxModule, EngineLoginSnapshot::SelinuxModule::Unknown);
 
     QJsonObject contradictory = data;
     QJsonArray surfaces = contradictory.value(QStringLiteral("surfaces")).toArray();
@@ -345,7 +366,7 @@ void IrlumeBackendTest::parsesLoginStatusConservatively()
     surfaces[1] = absent;
     contradictory.insert(QStringLiteral("surfaces"), surfaces);
     const EngineSnapshot rejected = refreshWith(IrlumeBackend::Command::LoginStatus, contradictory);
-    QVERIFY(!rejected.login.has_value());
+    QVERIFY(!rejected.loginStatus.has_value());
 }
 
 QTEST_MAIN(IrlumeBackendTest)

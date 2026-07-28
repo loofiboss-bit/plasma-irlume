@@ -87,6 +87,7 @@ class AuthConfiguration final : public QObject
     SystemState *m_systemState = nullptr;
     AuthActionRunner *m_runner = nullptr;
     bool m_busy = false;
+    ResultState m_resultState = ResultState::NotAdvertised;
     bool m_contractAvailable = false;
     bool m_mutationSupported = false;
     bool m_lockScreenEnabled = false;

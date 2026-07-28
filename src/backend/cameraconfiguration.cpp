@@ -16,18 +16,34 @@ CameraConfiguration::CameraConfiguration(QObject *parent) : QObject(parent) {}
 
 void CameraConfiguration::applySnapshot(const EngineSnapshot &snapshot)
 {
-    m_readOnlyAvailable = snapshot.status.has_value();
-    m_mutationSupported = snapshot.capabilities.mutationSupported;
+    m_contractAvailable = snapshot.contractAvailable();
+    m_resultState = snapshot.status.state;
+    m_readOnlyAvailable = snapshot.status.state == ResultState::Available && snapshot.status.data.has_value();
+    m_mutationSupported = snapshot.capabilities.supports(EngineFeature::CameraMutation);
     m_errorCode.clear();
-    m_statusText = m_readOnlyAvailable
-                       ? translate("Camera capability is available read-only. Pair selection and tuning are disabled.")
-                       : translate("Camera capability is unknown because read-only status is unavailable.");
+    if (m_resultState == ResultState::Loading || m_resultState == ResultState::Pending)
+        m_statusText = translate("Updating read-only camera capability…");
+    else if (m_resultState == ResultState::Failed)
+    {
+        m_errorCode = snapshot.status.error ? snapshot.status.error->code : QStringLiteral("status-unavailable");
+        m_statusText = translate("Camera capability is unknown because read-only status failed.");
+    }
+    else
+        m_statusText =
+            m_readOnlyAvailable
+                ? translate("Camera capability is available read-only. Pair selection and tuning are disabled.")
+                : translate("Camera capability is unknown because read-only status is unavailable.");
     Q_EMIT stateChanged();
+}
+
+bool CameraConfiguration::contractAvailable() const
+{
+    return m_contractAvailable;
 }
 
 bool CameraConfiguration::busy() const
 {
-    return false;
+    return m_resultState == ResultState::Loading || m_resultState == ResultState::Pending;
 }
 
 bool CameraConfiguration::readOnlyAvailable() const

@@ -1,8 +1,9 @@
 # Upstream request: stable machine interface for desktop integrations
 
-> Historical design request. Irlume 0.7 now supplies the read-only Machine API
-> Contract 1 used by plasma-irlume 2.1. Mutation and streaming proposals below
-> remain future design material and are not production commands.
+> Historical design request, not a current blocker. Irlume 0.7 supplies the
+> read-only Machine API Contract 1 used by plasma-irlume 2.2. Mutation and
+> streaming proposals below are earlier design material, not production
+> commands.
 
 ## Suggested title
 

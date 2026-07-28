@@ -48,7 +48,9 @@ ColumnLayout {
             Components.StatusPill {
                 Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                 text: systemState.securityTierLabel
-                tone: systemState.securityTier === 0 ? 1 : (systemState.securityTier === 1 ? 2 : 3)
+                tone: systemState.securityTier === 0 ? 1
+                    : (systemState.securityTier === 1 ? 2
+                    : (systemState.securityTier === 3 ? 0 : 3))
             }
         }
     }

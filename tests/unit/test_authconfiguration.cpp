@@ -4,6 +4,7 @@
 #include "fakeadapter.h"
 #include "systemstate.h"
 
+#include <QSignalSpy>
 #include <QTest>
 
 class FakeAuthActionRunner final : public AuthActionRunner
@@ -33,13 +34,14 @@ class AuthConfigurationTest final : public QObject
     void contractOneIsReadOnly();
     void allMutationEntrypointsFailClosed();
     void loginSnapshotIsPresentedReadOnly();
+    void defaultRunnerFailsLocally();
 };
 
 EngineSnapshot contractOneSnapshot()
 {
     EngineSnapshot snapshot;
-    snapshot.contractAvailable = true;
-    snapshot.capabilities.mutationSupported = false;
+    snapshot.handshake.state = ResultState::Available;
+    snapshot.handshake.data = EngineHandshakeSnapshot{1, QStringLiteral("0.7.0")};
     return snapshot;
 }
 
@@ -53,7 +55,7 @@ void AuthConfigurationTest::contractOneIsReadOnly()
 
     configuration.applySnapshot(contractOneSnapshot());
 
-    QVERIFY(configuration.contractAvailable() == false);
+    QVERIFY(configuration.contractAvailable());
     QVERIFY(configuration.mutationSupported() == false);
     QVERIFY(configuration.canEnableLockScreen() == false);
     QVERIFY(configuration.canEnableLoginScreen() == false);
@@ -104,7 +106,7 @@ void AuthConfigurationTest::loginSnapshotIsPresentedReadOnly()
         {QStringLiteral("kde"), QStringLiteral("lock-screen"), true, true, QStringLiteral("required")},
         {QStringLiteral("plasmalogin"), QStringLiteral("login-screen"), true, true, QStringLiteral("required")},
     };
-    snapshot.login = login;
+    snapshot.loginStatus = login;
 
     configuration.applySnapshot(snapshot);
 
@@ -112,6 +114,18 @@ void AuthConfigurationTest::loginSnapshotIsPresentedReadOnly()
     QVERIFY(configuration.loginScreenEnabled());
     QVERIFY(configuration.statusText().contains(QStringLiteral("read-only"), Qt::CaseInsensitive));
     QVERIFY(runner.calls.isEmpty());
+}
+
+void AuthConfigurationTest::defaultRunnerFailsLocally()
+{
+    UnavailableAuthActionRunner runner;
+    QSignalSpy completed(&runner, &AuthActionRunner::completed);
+
+    QVERIFY(runner.start(AuthAction::Disable));
+
+    QCOMPARE(completed.size(), 1);
+    QCOMPARE(completed.constFirst().at(1).toBool(), false);
+    QCOMPARE(completed.constFirst().at(3).toString(), QStringLiteral("capability-unavailable"));
 }
 
 QTEST_GUILESS_MAIN(AuthConfigurationTest)

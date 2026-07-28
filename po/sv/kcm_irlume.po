@@ -1705,3 +1705,45 @@ msgstr "Maskinkontraktet stöds inte"
 
 msgid "The simulated backend does not advertise Machine API Contract 1. The engine version is informational."
 msgstr "Den simulerade bakänden annonserar inte Machine API Contract 1. Motorversionen är endast informativ."
+
+msgid "Updating read-only authentication wiring…"
+msgstr "Uppdaterar skrivskyddad autentiseringsinkoppling…"
+
+msgid "The read-only authentication wiring status is unavailable."
+msgstr "Status för den skrivskyddade autentiseringsinkopplingen är inte tillgänglig."
+
+msgid "The backend does not advertise read-only authentication wiring."
+msgstr "Bakänden annonserar inte skrivskyddad autentiseringsinkoppling."
+
+msgid "Updating read-only camera capability…"
+msgstr "Uppdaterar skrivskyddad kameraförmåga…"
+
+msgid "Camera capability is unknown because read-only status failed."
+msgstr "Kameraförmågan är okänd eftersom den skrivskyddade statuskontrollen misslyckades."
+
+msgid "Updating the read-only profile list…"
+msgstr "Uppdaterar den skrivskyddade profillistan…"
+
+msgid "No compatible read capabilities are available"
+msgstr "Inga kompatibla läsförmågor är tillgängliga"
+
+msgid "The backend completed Contract 1 negotiation but advertised no supported diagnostics."
+msgstr "Bakänden slutförde Contract 1-förhandlingen men annonserade ingen diagnostik som stöds."
+
+msgid "Partial read-only diagnostics are available. One or more sections could not be refreshed."
+msgstr "Delvis skrivskyddad diagnostik är tillgänglig. En eller flera sektioner kunde inte uppdateras."
+
+msgid "Updating…"
+msgstr "Uppdaterar…"
+
+msgid "Read-only diagnostics are available"
+msgstr "Skrivskyddad diagnostik är tillgänglig"
+
+msgid "Infrared camera capability and simulated Contract 1 diagnostics are available. No authentication security level is inferred."
+msgstr "Infraröd kameraförmåga och simulerad Contract 1-diagnostik är tillgängliga. Ingen säkerhetsnivå för autentisering härleds."
+
+msgid "RGB camera capability is available"
+msgstr "RGB-kameraförmåga är tillgänglig"
+
+msgid "Camera type alone does not establish liveness or an authentication security level."
+msgstr "Enbart kameratyp fastställer inte livskontroll eller säkerhetsnivå för autentisering."

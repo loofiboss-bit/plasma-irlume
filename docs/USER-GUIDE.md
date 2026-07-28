@@ -1,21 +1,26 @@
 # User guide
 
-The KCM refreshes one typed snapshot from irlume Machine API Contract 1.
+The v2.2.0 KCM is a read-only status viewer. Refresh starts a bounded
+asynchronous check and disables refresh buttons until the current request
+finishes. Existing section data may remain visible with an **Updating…**
+status. If a new section result fails, that section is cleared and shows its
+own error and retry state.
 
-- **Setup & Status** shows Fedora, display manager, daemon, camera, TPM, and
-  template-protection observations. Unavailable data is shown as unknown.
-- **Face Profiles** shows sanitized profile and scan display summaries when
-  the engine advertises `profiles-list-json`.
-- **Access** shows current login and lock-screen wiring when
-  `login-status-json` is advertised.
-- **Support** provides recovery guidance and a redacted support report derived
-  only from typed state.
+The summary distinguishes:
 
-All controls that would enroll, test authentication, edit profiles or scans,
-select/tune a camera, or alter login wiring are intentionally disabled. Contract
-1 is read-only. The UI does not fall back to human-readable output, private
-daemon calls, or direct PAM edits.
+- missing backend;
+- unavailable or incompatible Contract 1 handshake;
+- no compatible read capabilities;
+- partial read-only diagnostics;
+- complete read-only status.
 
-Password fallback is shown as unknown unless a future reviewed backend can
-verify it. Version 2.1 does not claim biometric accuracy, liveness, or hardware
-qualification.
+Profiles come only from `profiles list`, camera type only from the status
+camera section, authentication wiring only from `login status`, and readiness
+only from status plus relevant doctor checks.
+
+Infrared and RGB describe camera capability only. The KCM reports security
+tier, liveness, password fallback, and authentication safety as unknown unless
+an explicit supported result establishes them.
+
+No button in this version captures a frame, enrolls a face, changes a profile,
+opens an authorization prompt, edits PAM, or starts a helper.

@@ -15,7 +15,7 @@ QString translate(const char *text)
 } // namespace
 
 AuthConfiguration::AuthConfiguration(SystemState *systemState, QObject *parent)
-    : AuthConfiguration(systemState, new KAuthActionRunner, parent)
+    : AuthConfiguration(systemState, new UnavailableAuthActionRunner, parent)
 {
     m_runner->setParent(this);
 }
@@ -39,12 +39,12 @@ AuthConfiguration::AuthConfiguration(SystemState *systemState, AuthActionRunner 
 
 bool AuthConfiguration::busy() const
 {
-    return m_busy;
+    return m_busy || m_resultState == ResultState::Loading || m_resultState == ResultState::Pending;
 }
 
 bool AuthConfiguration::contractAvailable() const
 {
-    return m_mutationSupported;
+    return m_contractAvailable;
 }
 
 bool AuthConfiguration::mutationSupported() const
@@ -54,17 +54,26 @@ bool AuthConfiguration::mutationSupported() const
 
 void AuthConfiguration::applySnapshot(const EngineSnapshot &snapshot)
 {
-    m_mutationSupported = snapshot.capabilities.mutationSupported;
-    m_contractAvailable = m_mutationSupported;
+    m_contractAvailable = snapshot.contractAvailable();
+    m_mutationSupported = snapshot.capabilities.supports(EngineFeature::AuthenticationMutation);
+    m_resultState = snapshot.loginStatus.state;
+    if (m_resultState == ResultState::Loading || m_resultState == ResultState::Pending)
+    {
+        m_statusText = translate("Updating read-only authentication wiring…");
+        m_errorCode.clear();
+        Q_EMIT stateChanged();
+        return;
+    }
+
     m_lockScreenEnabled = false;
     m_loginScreenEnabled = false;
-    if (snapshot.login)
+    if (snapshot.loginStatus.data)
     {
-        for (const EngineLoginSurface &surface : snapshot.login->surfaces)
+        for (const EngineLoginSurface &surface : snapshot.loginStatus.data->surfaces)
         {
             if (surface.id == QLatin1String("kde") && surface.role == QLatin1String("lock-screen"))
                 m_lockScreenEnabled = surface.present && surface.wired;
-            if (snapshot.login->loginManagerServices.contains(surface.id) &&
+            if (snapshot.loginStatus.data->loginManagerServices.contains(surface.id) &&
                 surface.role == QLatin1String("login-screen"))
                 m_loginScreenEnabled = surface.present && surface.wired;
         }
@@ -72,8 +81,17 @@ void AuthConfiguration::applySnapshot(const EngineSnapshot &snapshot)
     m_previewAvailable = false;
     m_previewScope.clear();
     m_errorCode.clear();
-    m_statusText =
-        translate("Authentication wiring is shown read-only. Contract 1 does not support configuration changes.");
+    if (m_resultState == ResultState::Failed)
+    {
+        m_errorCode =
+            snapshot.loginStatus.error ? snapshot.loginStatus.error->code : QStringLiteral("login-status-unavailable");
+        m_statusText = translate("The read-only authentication wiring status is unavailable.");
+    }
+    else if (m_resultState == ResultState::NotAdvertised && m_contractAvailable)
+        m_statusText = translate("The backend does not advertise read-only authentication wiring.");
+    else
+        m_statusText =
+            translate("Authentication wiring is shown read-only. Contract 1 does not support configuration changes.");
     Q_EMIT stateChanged();
 }
 

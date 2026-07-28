@@ -5,13 +5,16 @@
 #include "authconfiguration.h"
 #include "cameraconfiguration.h"
 #include "enrollmentsession.h"
-#include "irlumebackend.h"
+#include "faceauthbackend.h"
 #include "profilemodel.h"
+#include "refreshcoordinator.h"
 #include "supportreport.h"
 #include "systemprobe.h"
 #include "systemstate.h"
 
 #include <KQuickConfigModule>
+
+#include <memory>
 
 class IrlumeKcm final : public KQuickConfigModule
 {
@@ -23,9 +26,14 @@ class IrlumeKcm final : public KQuickConfigModule
     Q_PROPERTY(AuthConfiguration *authConfiguration READ authConfiguration CONSTANT)
     Q_PROPERTY(CameraConfiguration *cameraConfiguration READ cameraConfiguration CONSTANT)
     Q_PROPERTY(SupportReport *supportReport READ supportReport CONSTANT)
+    Q_PROPERTY(bool refreshing READ refreshing NOTIFY refreshStateChanged)
+    Q_PROPERTY(bool partialDiagnostics READ partialDiagnostics NOTIFY refreshStateChanged)
+    Q_PROPERTY(bool retryAvailable READ retryAvailable NOTIFY refreshStateChanged)
 
   public:
     IrlumeKcm(QObject *parent, const KPluginMetaData &data);
+    IrlumeKcm(QObject *parent, const KPluginMetaData &data, std::unique_ptr<FaceAuthBackend> backend);
+    ~IrlumeKcm() override;
 
     [[nodiscard]] SystemState *systemState();
     [[nodiscard]] ProfileModel *profileModel();
@@ -33,10 +41,15 @@ class IrlumeKcm final : public KQuickConfigModule
     [[nodiscard]] AuthConfiguration *authConfiguration();
     [[nodiscard]] CameraConfiguration *cameraConfiguration();
     [[nodiscard]] SupportReport *supportReport();
+    [[nodiscard]] bool refreshing() const;
+    [[nodiscard]] bool partialDiagnostics() const;
+    [[nodiscard]] bool retryAvailable() const;
     Q_INVOKABLE void refresh();
 
+  Q_SIGNALS:
+    void refreshStateChanged();
+
   private:
-    IrlumeBackend m_backend;
     SystemProbe m_probe;
     SystemState m_systemState;
     EnrollmentSession m_enrollmentSession;
@@ -44,4 +57,6 @@ class IrlumeKcm final : public KQuickConfigModule
     AuthConfiguration m_authConfiguration;
     CameraConfiguration m_cameraConfiguration;
     SupportReport m_supportReport;
+    RefreshCoordinator m_refreshCoordinator;
+    quint64 m_probeGeneration = 0;
 };

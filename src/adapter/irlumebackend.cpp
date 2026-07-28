@@ -2,7 +2,7 @@
 
 #include "irlumebackend.h"
 
-#include <QElapsedTimer>
+#include <QCoreApplication>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -15,22 +15,12 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <algorithm>
 #include <utility>
 
 namespace
 {
 constexpr qsizetype MaximumOutputBytes = 256 * 1024;
 constexpr int ProcessTimeoutMs = 3000;
-constexpr int ProcessStartTimeoutMs = 1000;
-
-const QSet<QString> SensitiveFields = {
-    QStringLiteral("credential"), QStringLiteral("credentials"), QStringLiteral("device_path"),
-    QStringLiteral("embedding"),  QStringLiteral("embeddings"),  QStringLiteral("frame"),
-    QStringLiteral("frames"),     QStringLiteral("image"),       QStringLiteral("images"),
-    QStringLiteral("password"),   QStringLiteral("path"),        QStringLiteral("user"),
-    QStringLiteral("username"),
-};
 
 bool exactInteger(const QJsonValue &value, int minimum, int *result)
 {
@@ -58,24 +48,48 @@ bool knownObject(const QJsonValue &value, QJsonObject *object)
     return object->value(QStringLiteral("known")).isBool();
 }
 
-void drainProcess(QProcess *process, QByteArray *standardOutput, QByteArray *standardError, bool *tooLarge)
-{
-    const QByteArray outputChunk = process->readAllStandardOutput();
-    const QByteArray errorChunk = process->readAllStandardError();
-    if (outputChunk.size() > MaximumOutputBytes - standardOutput->size() ||
-        errorChunk.size() > MaximumOutputBytes - standardError->size())
-    {
-        *tooLarge = true;
-        return;
-    }
-    standardOutput->append(outputChunk);
-    standardError->append(errorChunk);
-}
 } // namespace
 
-IrlumeBackend::IrlumeBackend(QString executable) : m_executable(std::move(executable)) {}
+IrlumeBackend::IrlumeBackend(QObject *parent) : IrlumeBackend(QStringLiteral("/usr/bin/irlume"), parent) {}
 
-IrlumeBackend::IrlumeBackend(Executor executor) : m_executor(std::move(executor)) {}
+IrlumeBackend::IrlumeBackend(QString executable, QObject *parent)
+    : FaceAuthBackend(parent), m_executable(std::move(executable))
+{
+    m_timeout.setSingleShot(true);
+    connect(&m_timeout, &QTimer::timeout, this,
+            [this]()
+            {
+                if (!m_process || m_processHandled)
+                    return;
+                m_timedOut = true;
+                m_process->kill();
+            });
+}
+
+IrlumeBackend::IrlumeBackend(Executor testExecutor, QObject *parent)
+    : FaceAuthBackend(parent), m_testExecutor(std::move(testExecutor))
+{
+}
+
+IrlumeBackend::~IrlumeBackend()
+{
+    m_timeout.stop();
+    if (!m_process)
+        return;
+    disconnect(m_process, nullptr, this, nullptr);
+    if (m_process->state() != QProcess::NotRunning)
+    {
+        QObject *reaper = QCoreApplication::instance();
+        m_process->setParent(reaper);
+        connect(m_process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), m_process, &QObject::deleteLater);
+        m_process->kill();
+    }
+    else
+    {
+        delete m_process;
+    }
+    m_process = nullptr;
+}
 
 QString IrlumeBackend::commandName(Command command)
 {
@@ -133,116 +147,44 @@ QStringList IrlumeBackend::arguments(Command command)
     return {};
 }
 
-IrlumeBackend::ProcessResult IrlumeBackend::execute(Command command) const
+EngineOperation IrlumeBackend::operationFor(Command command)
 {
-    if (m_executor)
+    switch (command)
     {
-        return m_executor(command);
+    case Command::Version:
+        return EngineOperation::Handshake;
+    case Command::Status:
+        return EngineOperation::Status;
+    case Command::Doctor:
+        return EngineOperation::Doctor;
+    case Command::ProfilesList:
+        return EngineOperation::Profiles;
+    case Command::LoginStatus:
+        return EngineOperation::LoginStatus;
     }
-
-    QProcess process;
-    QProcessEnvironment environment;
-    environment.insert(QStringLiteral("LC_ALL"), QStringLiteral("C"));
-    environment.insert(QStringLiteral("LANG"), QStringLiteral("C"));
-
-    const uid_t uid = geteuid();
-    if (const passwd *account = getpwuid(uid))
-    {
-        const QString user = QString::fromLocal8Bit(account->pw_name);
-        const QString home = QString::fromLocal8Bit(account->pw_dir);
-        environment.insert(QStringLiteral("USER"), user);
-        environment.insert(QStringLiteral("LOGNAME"), user);
-        environment.insert(QStringLiteral("HOME"), home);
-    }
-    const QString runtimeDirectory = QStringLiteral("/run/user/%1").arg(uid);
-    environment.insert(QStringLiteral("XDG_RUNTIME_DIR"), runtimeDirectory);
-    if (QFileInfo(runtimeDirectory + QStringLiteral("/bus")).exists())
-    {
-        environment.insert(QStringLiteral("DBUS_SESSION_BUS_ADDRESS"),
-                           QStringLiteral("unix:path=%1/bus").arg(runtimeDirectory));
-    }
-
-    process.setProcessEnvironment(environment);
-    process.setProgram(m_executable);
-    process.setArguments(arguments(command));
-    process.setProcessChannelMode(QProcess::SeparateChannels);
-    process.start(QIODevice::ReadOnly);
-
-    ProcessResult result;
-    result.started = process.waitForStarted(ProcessStartTimeoutMs);
-    if (!result.started)
-    {
-        return result;
-    }
-
-    QElapsedTimer timer;
-    timer.start();
-    while (process.state() != QProcess::NotRunning && timer.elapsed() < ProcessTimeoutMs)
-    {
-        process.waitForReadyRead(std::min(50, ProcessTimeoutMs - static_cast<int>(timer.elapsed())));
-        drainProcess(&process, &result.standardOutput, &result.standardError, &result.outputTooLarge);
-        if (result.outputTooLarge)
-        {
-            process.kill();
-            process.waitForFinished(1000);
-            return result;
-        }
-    }
-    if (process.state() != QProcess::NotRunning)
-    {
-        result.timedOut = true;
-        process.kill();
-        process.waitForFinished(1000);
-        return result;
-    }
-
-    drainProcess(&process, &result.standardOutput, &result.standardError, &result.outputTooLarge);
-    result.finished = !result.outputTooLarge;
-    result.exitCode = process.exitCode();
-    return result;
+    return EngineOperation::Handshake;
 }
 
-EngineError IrlumeBackend::processError(const ProcessResult &result)
+IrlumeBackend::ProcessResult IrlumeBackend::executeForTest(Command command) const
+{
+    return m_testExecutor ? m_testExecutor(command) : ProcessResult{};
+}
+
+EngineError IrlumeBackend::processError(const ProcessResult &result, EngineOperation operation)
 {
     if (!result.started)
     {
-        return {QStringLiteral("engine-not-installed"), false};
+        return {operation, QStringLiteral("engine-not-installed"), false};
     }
     if (result.outputTooLarge)
     {
-        return {QStringLiteral("engine-output-too-large"), false};
+        return {operation, QStringLiteral("engine-output-too-large"), false};
     }
     if (result.timedOut || !result.finished)
     {
-        return {QStringLiteral("engine-timeout"), true};
+        return {operation, QStringLiteral("engine-timeout"), true};
     }
-    return {QStringLiteral("engine-process-failed"), false};
-}
-
-bool IrlumeBackend::containsUnexpectedSensitiveField(const QJsonObject &object)
-{
-    for (auto it = object.constBegin(); it != object.constEnd(); ++it)
-    {
-        if (SensitiveFields.contains(it.key().toLower()))
-        {
-            return true;
-        }
-        if (it.value().isObject() && containsUnexpectedSensitiveField(it.value().toObject()))
-        {
-            return true;
-        }
-        if (it.value().isArray())
-        {
-            for (const QJsonValue &entry : it.value().toArray())
-            {
-                if (entry.isObject() && containsUnexpectedSensitiveField(entry.toObject()))
-                {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
+    return {operation, QStringLiteral("engine-process-failed"), false};
 }
 
 std::optional<IrlumeBackend::Envelope> IrlumeBackend::parseEnvelope(const ProcessResult &result, Command command,
@@ -250,7 +192,7 @@ std::optional<IrlumeBackend::Envelope> IrlumeBackend::parseEnvelope(const Proces
 {
     if (!result.started || !result.finished || result.outputTooLarge || result.timedOut)
     {
-        *parseError = processError(result);
+        *parseError = processError(result, operationFor(command));
         return std::nullopt;
     }
 
@@ -258,17 +200,17 @@ std::optional<IrlumeBackend::Envelope> IrlumeBackend::parseEnvelope(const Proces
     const QJsonDocument document = QJsonDocument::fromJson(result.standardOutput, &jsonError);
     if (jsonError.error != QJsonParseError::NoError || !document.isObject())
     {
-        *parseError = {QStringLiteral("invalid-json-document"), false};
+        *parseError = {operationFor(command), QStringLiteral("invalid-json-document"), false};
         return std::nullopt;
     }
     const QJsonObject object = document.object();
-    if (containsUnexpectedSensitiveField(object) || object.value(QStringLiteral("contract_version")).toInt(-1) != 1 ||
+    if (object.value(QStringLiteral("contract_version")).toInt(-1) != 1 ||
         !object.value(QStringLiteral("engine_version")).isString() ||
         object.value(QStringLiteral("engine_version")).toString().isEmpty() ||
         object.value(QStringLiteral("command")).toString() != commandName(command) ||
         !object.value(QStringLiteral("ok")).isBool())
     {
-        *parseError = {QStringLiteral("invalid-document-contract"), false};
+        *parseError = {operationFor(command), QStringLiteral("invalid-document-contract"), false};
         return std::nullopt;
     }
 
@@ -281,7 +223,7 @@ std::optional<IrlumeBackend::Envelope> IrlumeBackend::parseEnvelope(const Proces
     {
         if (result.exitCode != 0 || !hasData || hasError || !object.value(QStringLiteral("data")).isObject())
         {
-            *parseError = {QStringLiteral("engine-exit-mismatch"), false};
+            *parseError = {operationFor(command), QStringLiteral("engine-exit-mismatch"), false};
             return std::nullopt;
         }
         envelope.data = object.value(QStringLiteral("data")).toObject();
@@ -290,7 +232,7 @@ std::optional<IrlumeBackend::Envelope> IrlumeBackend::parseEnvelope(const Proces
     {
         if (result.exitCode == 0 || hasData || !hasError || !object.value(QStringLiteral("error")).isObject())
         {
-            *parseError = {QStringLiteral("engine-exit-mismatch"), false};
+            *parseError = {operationFor(command), QStringLiteral("engine-exit-mismatch"), false};
             return std::nullopt;
         }
         const QJsonObject error = object.value(QStringLiteral("error")).toObject();
@@ -298,10 +240,10 @@ std::optional<IrlumeBackend::Envelope> IrlumeBackend::parseEnvelope(const Proces
             error.value(QStringLiteral("code")).toString().isEmpty() ||
             !error.value(QStringLiteral("retryable")).isBool())
         {
-            *parseError = {QStringLiteral("invalid-structured-error"), false};
+            *parseError = {operationFor(command), QStringLiteral("invalid-structured-error"), false};
             return std::nullopt;
         }
-        envelope.error = {error.value(QStringLiteral("code")).toString(),
+        envelope.error = {operationFor(command), error.value(QStringLiteral("code")).toString(),
                           error.value(QStringLiteral("retryable")).toBool()};
     }
     return envelope;
@@ -346,13 +288,15 @@ bool IrlumeBackend::parseVersion(const QJsonObject &data, EngineSnapshot *snapsh
         return false;
     }
 
-    snapshot->contractAvailable = true;
-    snapshot->contractVersion = 1;
-    snapshot->capabilities.statusRead = capabilities.contains(QStringLiteral("status-json"));
-    snapshot->capabilities.doctorRead = capabilities.contains(QStringLiteral("doctor-json"));
-    snapshot->capabilities.profilesRead = capabilities.contains(QStringLiteral("profiles-list-json"));
-    snapshot->capabilities.loginStatusRead = capabilities.contains(QStringLiteral("login-status-json"));
-    snapshot->capabilities.mutationSupported = false;
+    snapshot->capabilities.features = EngineFeature::None;
+    if (capabilities.contains(QStringLiteral("status-json")))
+        snapshot->capabilities.features |= EngineFeature::StatusRead;
+    if (capabilities.contains(QStringLiteral("doctor-json")))
+        snapshot->capabilities.features |= EngineFeature::DoctorRead;
+    if (capabilities.contains(QStringLiteral("profiles-list-json")))
+        snapshot->capabilities.features |= EngineFeature::ProfilesRead;
+    if (capabilities.contains(QStringLiteral("login-status-json")))
+        snapshot->capabilities.features |= EngineFeature::LoginStatusRead;
     snapshot->capabilities.maxProfiles = maxProfiles;
     snapshot->capabilities.advertised = QStringList(capabilities.cbegin(), capabilities.cend());
     snapshot->capabilities.advertised.sort();
@@ -576,70 +520,417 @@ std::optional<EngineLoginSnapshot> IrlumeBackend::parseLogin(const QJsonObject &
     return snapshot;
 }
 
-EngineSnapshot IrlumeBackend::refresh()
+void IrlumeBackend::requestRefresh(quint64 generation)
+{
+    if (m_process || m_cancelling)
+    {
+        m_pendingGeneration = generation;
+        cancelRefresh();
+        return;
+    }
+    beginRefresh(generation);
+}
+
+void IrlumeBackend::cancelRefresh()
+{
+    if (!m_process)
+    {
+        if (m_generation != 0)
+            Q_EMIT refreshCancelled(m_generation);
+        startPendingRefresh();
+        return;
+    }
+    m_cancelling = true;
+    m_timeout.stop();
+    m_process->kill();
+}
+
+void IrlumeBackend::beginRefresh(quint64 generation)
+{
+    m_generation = generation;
+    m_snapshot = {};
+    m_snapshot.executablePresent = m_testExecutor || QFileInfo(m_executable).isExecutable();
+    m_snapshot.handshake.state = ResultState::Loading;
+    m_snapshot.status.state = ResultState::Pending;
+    m_snapshot.doctor.state = ResultState::Pending;
+    m_snapshot.profiles.state = ResultState::Pending;
+    m_snapshot.loginStatus.state = ResultState::Pending;
+    m_pendingCommands.clear();
+    m_cancelling = false;
+    emitProgress();
+
+    if (!m_snapshot.executablePresent)
+    {
+        failHandshake({EngineOperation::Handshake, QStringLiteral("engine-not-installed"), false});
+        return;
+    }
+
+    if (m_testExecutor)
+    {
+        QTimer::singleShot(0, this,
+                           [this, generation]()
+                           {
+                               if (generation != m_generation || m_cancelling)
+                                   return;
+                               m_snapshot = refreshForTest();
+                               Q_EMIT refreshProgress(generation, m_snapshot);
+                               Q_EMIT refreshCompleted(generation, m_snapshot);
+                           });
+        return;
+    }
+    startCommand(Command::Version);
+}
+
+void IrlumeBackend::startCommand(Command command)
+{
+    cleanupProcess();
+    m_currentCommand = command;
+    m_standardOutput.clear();
+    m_standardError.clear();
+    m_outputTooLarge = false;
+    m_timedOut = false;
+    m_processHandled = false;
+    setOperationState(command, ResultState::Loading);
+    emitProgress();
+
+    m_process = new QProcess(this);
+    QProcessEnvironment environment;
+    environment.insert(QStringLiteral("LC_ALL"), QStringLiteral("C"));
+    environment.insert(QStringLiteral("LANG"), QStringLiteral("C"));
+    const uid_t uid = geteuid();
+    if (const passwd *account = getpwuid(uid))
+    {
+        environment.insert(QStringLiteral("USER"), QString::fromLocal8Bit(account->pw_name));
+        environment.insert(QStringLiteral("LOGNAME"), QString::fromLocal8Bit(account->pw_name));
+        environment.insert(QStringLiteral("HOME"), QString::fromLocal8Bit(account->pw_dir));
+    }
+    const QString runtimeDirectory = QStringLiteral("/run/user/%1").arg(uid);
+    environment.insert(QStringLiteral("XDG_RUNTIME_DIR"), runtimeDirectory);
+    if (QFileInfo(runtimeDirectory + QStringLiteral("/bus")).exists())
+        environment.insert(QStringLiteral("DBUS_SESSION_BUS_ADDRESS"),
+                           QStringLiteral("unix:path=%1/bus").arg(runtimeDirectory));
+
+    m_process->setProcessEnvironment(environment);
+    m_process->setProgram(m_executable);
+    m_process->setArguments(arguments(command));
+    m_process->setProcessChannelMode(QProcess::SeparateChannels);
+    connect(m_process, &QProcess::readyReadStandardOutput, this, &IrlumeBackend::drainProcess);
+    connect(m_process, &QProcess::readyReadStandardError, this, &IrlumeBackend::drainProcess);
+    connect(m_process, &QProcess::errorOccurred, this,
+            [this](QProcess::ProcessError error)
+            {
+                if (error != QProcess::FailedToStart || m_processHandled)
+                    return;
+                m_processHandled = true;
+                m_timeout.stop();
+                ProcessResult result;
+                finishProcess(result);
+            });
+    connect(m_process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
+            [this](int exitCode, QProcess::ExitStatus)
+            {
+                if (m_processHandled)
+                    return;
+                m_processHandled = true;
+                m_timeout.stop();
+                drainProcess();
+                ProcessResult result;
+                result.started = true;
+                result.finished = !m_outputTooLarge && !m_timedOut;
+                result.outputTooLarge = m_outputTooLarge;
+                result.timedOut = m_timedOut;
+                result.exitCode = exitCode;
+                result.standardOutput = m_standardOutput;
+                result.standardError = m_standardError;
+                finishProcess(result);
+            });
+    m_process->start(QIODevice::ReadOnly);
+    m_timeout.start(ProcessTimeoutMs);
+}
+
+void IrlumeBackend::drainProcess()
+{
+    if (!m_process || m_outputTooLarge)
+        return;
+    const QByteArray outputChunk = m_process->readAllStandardOutput();
+    const QByteArray errorChunk = m_process->readAllStandardError();
+    if (outputChunk.size() > MaximumOutputBytes - m_standardOutput.size() ||
+        errorChunk.size() > MaximumOutputBytes - m_standardError.size())
+    {
+        m_outputTooLarge = true;
+        m_process->kill();
+        return;
+    }
+    m_standardOutput.append(outputChunk);
+    m_standardError.append(errorChunk);
+}
+
+void IrlumeBackend::finishProcess(const ProcessResult &result)
+{
+    const Command command = m_currentCommand;
+    cleanupProcess();
+    if (m_cancelling)
+    {
+        const quint64 cancelledGeneration = m_generation;
+        m_cancelling = false;
+        Q_EMIT refreshCancelled(cancelledGeneration);
+        startPendingRefresh();
+        return;
+    }
+    finishCommand(command, result);
+}
+
+void IrlumeBackend::finishCommand(Command command, const ProcessResult &result)
+{
+    EngineError error;
+    const auto envelope = parseEnvelope(result, command, &error);
+    if (!envelope)
+    {
+        if (command == Command::Version)
+            failHandshake(error);
+        else
+        {
+            setOperationError(command, error);
+            emitProgress();
+            startNextCommand();
+        }
+        return;
+    }
+    if (!envelope->ok)
+    {
+        if (command == Command::Version)
+            failHandshake(envelope->error);
+        else
+        {
+            setOperationError(command, envelope->error);
+            emitProgress();
+            startNextCommand();
+        }
+        return;
+    }
+
+    if (command == Command::Version)
+    {
+        if (!parseVersion(envelope->data, &m_snapshot, &error))
+        {
+            failHandshake(error);
+            return;
+        }
+        m_snapshot.handshake.state = ResultState::Available;
+        m_snapshot.handshake.data = EngineHandshakeSnapshot{1, envelope->engineVersion};
+        m_snapshot.handshake.error.reset();
+        const auto queueIfSupported = [this](EngineFeature feature, Command readCommand)
+        {
+            if (m_snapshot.capabilities.supports(feature))
+            {
+                setOperationState(readCommand, ResultState::Pending);
+                m_pendingCommands.push_back(readCommand);
+            }
+            else
+            {
+                setOperationState(readCommand, ResultState::NotAdvertised);
+            }
+        };
+        queueIfSupported(EngineFeature::StatusRead, Command::Status);
+        queueIfSupported(EngineFeature::DoctorRead, Command::Doctor);
+        queueIfSupported(EngineFeature::ProfilesRead, Command::ProfilesList);
+        queueIfSupported(EngineFeature::LoginStatusRead, Command::LoginStatus);
+        emitProgress();
+        startNextCommand();
+        return;
+    }
+
+    bool parsed = false;
+    if (command == Command::Status)
+    {
+        auto data = parseStatus(envelope->data);
+        parsed = data.has_value();
+        if (data)
+            m_snapshot.status.data = std::move(data);
+    }
+    else if (command == Command::Doctor)
+    {
+        auto data = parseDoctor(envelope->data);
+        parsed = data.has_value();
+        if (data)
+            m_snapshot.doctor.data = std::move(data);
+    }
+    else if (command == Command::ProfilesList)
+    {
+        auto data = parseProfiles(envelope->data, m_snapshot.capabilities.maxProfiles);
+        parsed = data.has_value();
+        if (data)
+            m_snapshot.profiles.data = std::move(data);
+    }
+    else if (command == Command::LoginStatus)
+    {
+        auto data = parseLogin(envelope->data);
+        parsed = data.has_value();
+        if (data)
+            m_snapshot.loginStatus.data = std::move(data);
+    }
+
+    if (!parsed)
+    {
+        setOperationError(command,
+                          {operationFor(command),
+                           QStringLiteral("invalid-") + commandName(command) + QStringLiteral("-data"), false});
+    }
+    else
+    {
+        setOperationState(command, ResultState::Available);
+    }
+    emitProgress();
+    startNextCommand();
+}
+
+void IrlumeBackend::startNextCommand()
+{
+    if (m_pendingCommands.isEmpty())
+    {
+        completeRefresh();
+        return;
+    }
+    const Command next = m_pendingCommands.takeFirst();
+    startCommand(next);
+}
+
+void IrlumeBackend::completeRefresh()
+{
+    Q_EMIT refreshCompleted(m_generation, m_snapshot);
+    startPendingRefresh();
+}
+
+void IrlumeBackend::failHandshake(const EngineError &error)
+{
+    m_snapshot.handshake.state = ResultState::Failed;
+    m_snapshot.handshake.data.reset();
+    m_snapshot.handshake.error = error;
+    m_snapshot.status.state = ResultState::NotAdvertised;
+    m_snapshot.doctor.state = ResultState::NotAdvertised;
+    m_snapshot.profiles.state = ResultState::NotAdvertised;
+    m_snapshot.loginStatus.state = ResultState::NotAdvertised;
+    emitProgress();
+    completeRefresh();
+}
+
+void IrlumeBackend::setOperationState(Command command, ResultState state)
+{
+    if (command == Command::Version)
+        m_snapshot.handshake.state = state;
+    else if (command == Command::Status)
+        m_snapshot.status.state = state;
+    else if (command == Command::Doctor)
+        m_snapshot.doctor.state = state;
+    else if (command == Command::ProfilesList)
+        m_snapshot.profiles.state = state;
+    else if (command == Command::LoginStatus)
+        m_snapshot.loginStatus.state = state;
+}
+
+void IrlumeBackend::setOperationError(Command command, const EngineError &error)
+{
+    setOperationState(command, ResultState::Failed);
+    if (command == Command::Status)
+    {
+        m_snapshot.status.data.reset();
+        m_snapshot.status.error = error;
+    }
+    else if (command == Command::Doctor)
+    {
+        m_snapshot.doctor.data.reset();
+        m_snapshot.doctor.error = error;
+    }
+    else if (command == Command::ProfilesList)
+    {
+        m_snapshot.profiles.data.reset();
+        m_snapshot.profiles.error = error;
+    }
+    else if (command == Command::LoginStatus)
+    {
+        m_snapshot.loginStatus.data.reset();
+        m_snapshot.loginStatus.error = error;
+    }
+}
+
+void IrlumeBackend::emitProgress()
+{
+    Q_EMIT refreshProgress(m_generation, m_snapshot);
+}
+
+void IrlumeBackend::cleanupProcess()
+{
+    if (!m_process)
+        return;
+    m_process->deleteLater();
+    m_process = nullptr;
+}
+
+void IrlumeBackend::startPendingRefresh()
+{
+    if (!m_pendingGeneration)
+        return;
+    const quint64 next = *m_pendingGeneration;
+    m_pendingGeneration.reset();
+    beginRefresh(next);
+}
+
+EngineSnapshot IrlumeBackend::refreshForTest()
 {
     EngineSnapshot snapshot;
-    snapshot.executablePresent = m_executor || QFileInfo(m_executable).isExecutable();
+    snapshot.executablePresent = static_cast<bool>(m_testExecutor);
+    snapshot.handshake.state = ResultState::Loading;
     if (!snapshot.executablePresent)
     {
-        snapshot.errors.push_back({QStringLiteral("engine-not-installed"), false});
+        snapshot.handshake.state = ResultState::Failed;
+        snapshot.handshake.error =
+            EngineError{EngineOperation::Handshake, QStringLiteral("engine-not-installed"), false};
         return snapshot;
     }
 
     EngineError error;
-    const auto version = parseEnvelope(execute(Command::Version), Command::Version, &error);
-    if (!version)
+    const auto version = parseEnvelope(executeForTest(Command::Version), Command::Version, &error);
+    if (!version || !version->ok || !parseVersion(version ? version->data : QJsonObject{}, &snapshot, &error))
     {
-        snapshot.errors.push_back(error);
+        snapshot.handshake.state = ResultState::Failed;
+        snapshot.handshake.error = version && !version->ok ? version->error : error;
         return snapshot;
     }
-    snapshot.engineVersion = version->engineVersion;
-    if (!version->ok)
-    {
-        snapshot.errors.push_back(version->error);
-        return snapshot;
-    }
-    if (!parseVersion(version->data, &snapshot, &error))
-    {
-        snapshot.errors.push_back(error);
-        return snapshot;
-    }
+    snapshot.handshake.state = ResultState::Available;
+    snapshot.handshake.data = EngineHandshakeSnapshot{1, version->engineVersion};
 
     const auto runReadCommand = [this, &snapshot](Command command, auto parser, auto *destination)
     {
         EngineError commandError;
-        const auto envelope = parseEnvelope(execute(command), command, &commandError);
-        if (!envelope)
+        const auto envelope = parseEnvelope(executeForTest(command), command, &commandError);
+        if (!envelope || !envelope->ok)
         {
-            snapshot.errors.push_back(commandError);
-            return;
-        }
-        if (!envelope->ok)
-        {
-            snapshot.errors.push_back(envelope->error);
+            destination->state = ResultState::Failed;
+            destination->error = envelope ? envelope->error : commandError;
             return;
         }
         auto parsed = parser(envelope->data);
         if (!parsed)
         {
-            snapshot.errors.push_back(
-                {QStringLiteral("invalid-") + commandName(command) + QStringLiteral("-data"), false});
+            destination->state = ResultState::Failed;
+            destination->error =
+                EngineError{operationFor(command),
+                            QStringLiteral("invalid-") + commandName(command) + QStringLiteral("-data"), false};
             return;
         }
-        *destination = std::move(parsed);
+        destination->state = ResultState::Available;
+        destination->data = std::move(parsed);
     };
 
-    if (snapshot.capabilities.statusRead)
+    if (snapshot.capabilities.supports(EngineFeature::StatusRead))
         runReadCommand(Command::Status, parseStatus, &snapshot.status);
-    if (snapshot.capabilities.doctorRead)
-        runReadCommand(Command::Doctor, parseDoctor, &snapshot.doctorChecks);
-    if (snapshot.capabilities.profilesRead)
-    {
+    if (snapshot.capabilities.supports(EngineFeature::DoctorRead))
+        runReadCommand(Command::Doctor, parseDoctor, &snapshot.doctor);
+    if (snapshot.capabilities.supports(EngineFeature::ProfilesRead))
         runReadCommand(
             Command::ProfilesList, [&snapshot](const QJsonObject &data)
             { return parseProfiles(data, snapshot.capabilities.maxProfiles); }, &snapshot.profiles);
-    }
-    if (snapshot.capabilities.loginStatusRead)
-        runReadCommand(Command::LoginStatus, parseLogin, &snapshot.login);
+    if (snapshot.capabilities.supports(EngineFeature::LoginStatusRead))
+        runReadCommand(Command::LoginStatus, parseLogin, &snapshot.loginStatus);
     return snapshot;
 }

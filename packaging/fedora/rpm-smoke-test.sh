@@ -45,24 +45,40 @@ trap 'rm -rf -- "${smoke_root}"' EXIT
 mkdir -p \
     "${smoke_root}/usr/lib/sysimage/rpm" \
     "${smoke_root}/var/lib/irlume/profiles" \
-    "${smoke_root}/home/test/.config"
+    "${smoke_root}/home/test/.config" \
+    "${smoke_root}/etc/pam.d"
 printf 'profile-state\n' >"${smoke_root}/var/lib/irlume/profiles/preserve-me"
 printf 'user-setting\n' >"${smoke_root}/home/test/.config/plasma-irlume-preserve-me"
+printf 'auth required pam_unix.so\n' >"${smoke_root}/etc/pam.d/plasma-irlume-sentinel"
+
+pam_hash_before="$(sha256sum "${smoke_root}/etc/pam.d/plasma-irlume-sentinel")"
 
 rpm --root "${smoke_root}" --initdb
 rpm --root "${smoke_root}" --nodeps --install "${rpm_path}"
 
 required_paths=(
-    "/usr/libexec/kf6/kauth/plasma-irlume-auth-helper"
     "/usr/share/applications/kcm_irlume.desktop"
-    "/usr/share/dbus-1/system-services/io.github.loofibossbit.plasmairlume.helper.service"
-    "/usr/share/dbus-1/system.d/io.github.loofibossbit.plasmairlume.helper.conf"
-    "/usr/share/polkit-1/actions/io.github.loofibossbit.plasmairlume.helper.policy"
 )
 
 for path in "${required_paths[@]}"; do
     if [[ ! -f "${smoke_root}${path}" ]]; then
         echo "Installed payload is missing ${path}" >&2
+        exit 1
+    fi
+done
+
+forbidden_patterns=(
+    '/kauth/'
+    '/dbus-1/system-services/'
+    '/dbus-1/system.d/'
+    '/polkit-1/actions/'
+    'plasma-irlume-auth-helper'
+)
+
+payload="$(rpm -qlp "${rpm_path}")"
+for pattern in "${forbidden_patterns[@]}"; do
+    if grep -Fq "${pattern}" <<<"${payload}"; then
+        echo "Installed payload contains forbidden privileged path: ${pattern}" >&2
         exit 1
     fi
 done
@@ -76,6 +92,13 @@ if [[ -z "${plugin_path}" || ! -f "${smoke_root}${plugin_path}" ]]; then
     exit 1
 fi
 
+if [[ "$(sha256sum "${smoke_root}/etc/pam.d/plasma-irlume-sentinel")" != "${pam_hash_before}" ]]; then
+    echo "PAM sentinel changed during installation" >&2
+    exit 1
+fi
+grep -Fxq 'profile-state' "${smoke_root}/var/lib/irlume/profiles/preserve-me"
+grep -Fxq 'user-setting' "${smoke_root}/home/test/.config/plasma-irlume-preserve-me"
+
 mapfile -t packaged_paths < <(
     rpm --root "${smoke_root}" -ql plasma-irlume \
         | while IFS= read -r path; do
@@ -85,6 +108,11 @@ mapfile -t packaged_paths < <(
 
 rpm --root "${smoke_root}" --erase plasma-irlume
 
+if [[ "$(sha256sum "${smoke_root}/etc/pam.d/plasma-irlume-sentinel")" != "${pam_hash_before}" ]]; then
+    echo "PAM sentinel changed during removal" >&2
+    exit 1
+fi
+
 for path in "${packaged_paths[@]}"; do
     if [[ -e "${smoke_root}${path}" || -L "${smoke_root}${path}" ]]; then
         echo "Package-owned file remains after uninstall: ${path}" >&2
@@ -92,7 +120,7 @@ for path in "${packaged_paths[@]}"; do
     fi
 done
 
-test -f "${smoke_root}/var/lib/irlume/profiles/preserve-me"
-test -f "${smoke_root}/home/test/.config/plasma-irlume-preserve-me"
+grep -Fxq 'profile-state' "${smoke_root}/var/lib/irlume/profiles/preserve-me"
+grep -Fxq 'user-setting' "${smoke_root}/home/test/.config/plasma-irlume-preserve-me"
 
 echo "RPM install/uninstall lifecycle smoke test passed"

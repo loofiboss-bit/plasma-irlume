@@ -2,6 +2,26 @@
 
 All notable changes to plasma-irlume are documented in this file.
 
+## 2.2.0 - 2026-07-28
+
+- Convert `FaceAuthBackend` to a typed asynchronous interface and add a
+  generation-aware refresh coordinator with latest-request-wins cancellation.
+- Convert the irlume adapter to a signal-driven `QProcess` state machine with
+  fixed commands, a sanitized environment, per-command timeout, and separate
+  256 KiB stdout/stderr limits.
+- Run bounded local system probing away from the GUI thread and keep section
+  results and errors operation-scoped.
+- Treat the successful Contract 1 handshake separately from read capabilities
+  and keep camera type separate from unknown security properties.
+- Remove the former privileged helper, KAuth dependency, system D-Bus files,
+  and Polkit policy; the standard package is entirely read-only.
+- Vendor the exact irlume 0.7.0 Contract 1 schema for offline fixture
+  validation and add an optional installed-engine checker.
+- Strengthen asynchronous, generation, presentation, QML, localization, and
+  RPM lifecycle coverage.
+
+## Historical releases
+
 ## 2.1.0 - 2026-07-28
 
 - Add a backend-neutral `FaceAuthBackend` boundary and an irlume adapter.

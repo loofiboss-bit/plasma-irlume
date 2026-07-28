@@ -1,6 +1,6 @@
 # Recovery
 
-plasma-irlume 2.1 cannot mutate authentication. Its package lifecycle and KCM
+plasma-irlume 2.2 cannot mutate authentication. Its package lifecycle and KCM
 do not activate, disable, repair, or rewrite PAM.
 
 If face authentication was configured outside this KCM and must be disabled,

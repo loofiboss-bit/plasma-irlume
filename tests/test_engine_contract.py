@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from pathlib import Path
 import unittest
+
+from jsonschema import Draft202012Validator
 
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests/fixtures/irlume"
 CONTRACT = FIXTURES / "contract-v1"
+SCHEMA_PATH = ROOT / "tests/schemas/irlume-0.7.0/machine-api-v1.schema.json"
 
 
 def load(path: Path) -> object:
@@ -15,6 +19,19 @@ def load(path: Path) -> object:
 
 
 class ContractOneFixtureTests(unittest.TestCase):
+    def test_vendored_schema_is_exact_and_all_fixtures_validate(self) -> None:
+        schema_bytes = SCHEMA_PATH.read_bytes()
+        self.assertEqual(
+            hashlib.sha256(schema_bytes).hexdigest(),
+            "9770fac619b664fa93659cc853f87989d47ba80196abfed7992a79ad3d5322ff",
+        )
+        schema = json.loads(schema_bytes)
+        Draft202012Validator.check_schema(schema)
+        validator = Draft202012Validator(schema)
+        for path in sorted(CONTRACT.glob("*.json")):
+            with self.subTest(path=path.name):
+                validator.validate(load(path))
+
     def test_released_documents_have_valid_common_envelopes(self) -> None:
         expected = {
             "version.json": "version",

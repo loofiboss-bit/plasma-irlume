@@ -142,6 +142,8 @@ QString SystemState::securityTierLabel() const
         return tr("Convenience");
     case SystemStateSnapshot::SecurityTier::Unsupported:
         return tr("Unsupported");
+    case SystemStateSnapshot::SecurityTier::Unknown:
+        return tr("Unknown");
     }
     return tr("Unknown");
 }
@@ -190,6 +192,10 @@ QString SystemState::engineStatusLabel() const
         return tr("Unsupported machine contract");
     case SystemStateSnapshot::EngineStatus::Unavailable:
         return tr("Unavailable");
+    case SystemStateSnapshot::EngineStatus::PartialDiagnostics:
+        return tr("Partial read-only diagnostics");
+    case SystemStateSnapshot::EngineStatus::NoCompatibleCapabilities:
+        return tr("No compatible read capabilities");
     }
     return tr("Unknown");
 }

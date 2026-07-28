@@ -19,24 +19,24 @@ SystemStateSnapshot baseline()
 {
     SystemStateSnapshot state;
     state.scenarioId = QStringLiteral("secure-ir");
-    state.headline = QCoreApplication::translate("FakeSystemStateAdapter", "Secure face login is available");
+    state.headline = QCoreApplication::translate("FakeSystemStateAdapter", "Read-only diagnostics are available");
     state.summary = QCoreApplication::translate(
-        "FakeSystemStateAdapter", "Infrared hardware and the simulated irlume service pass every read-only "
-                                  "readiness check.");
+        "FakeSystemStateAdapter", "Infrared camera capability and simulated Contract 1 diagnostics are available. "
+                                  "No authentication security level is inferred.");
     state.dataSource = QCoreApplication::translate("FakeSystemStateAdapter", "Simulated preview");
     state.fedoraVersion = QStringLiteral("44");
     state.plasmaVersion = QStringLiteral("6.6.0");
     state.engineVersion = QStringLiteral("0.7.0-fixture");
     state.activeDisplayManager = QStringLiteral("Plasma Login Manager");
-    state.securityTier = SecurityTier::Secure;
+    state.securityTier = SecurityTier::Unknown;
     state.cameraType = CameraType::Infrared;
     state.engineStatus = EngineStatus::Ready;
     state.daemonStatus = DaemonStatus::Running;
     state.pamStatus = PamStatus::Clean;
     state.tpmStatus = CapabilityStatus::Available;
     state.templateProtectionStatus = CapabilityStatus::Available;
-    state.emitterStatus = CapabilityStatus::Available;
-    state.livenessStatus = CapabilityStatus::Available;
+    state.emitterStatus = CapabilityStatus::Unknown;
+    state.livenessStatus = CapabilityStatus::Unknown;
     state.profileStatus = ProfileStatus::Enrolled;
     state.secureBootStatus = SecureBootStatus::Enabled;
     state.supportReport = QStringLiteral("# plasma-irlume support report\n\n"
@@ -73,12 +73,11 @@ SystemStateSnapshot FakeSystemStateAdapter::stateForScenario(int index) const
         return state;
     case RgbOnly:
         state.scenarioId = QStringLiteral("rgb-only");
-        state.headline =
-            QCoreApplication::translate("FakeSystemStateAdapter", "Face unlock is limited to convenience use");
-        state.summary =
-            QCoreApplication::translate("FakeSystemStateAdapter", "An RGB camera is available, but it does not "
-                                                                  "meet the secure login-screen tier.");
-        state.securityTier = SecurityTier::Convenience;
+        state.headline = QCoreApplication::translate("FakeSystemStateAdapter", "RGB camera capability is available");
+        state.summary = QCoreApplication::translate(
+            "FakeSystemStateAdapter",
+            "Camera type alone does not establish liveness or an authentication security level.");
+        state.securityTier = SecurityTier::Unknown;
         state.cameraType = CameraType::Rgb;
         state.profileStatus = ProfileStatus::NotEnrolled;
         state.tpmStatus = CapabilityStatus::Unavailable;
@@ -90,7 +89,7 @@ SystemStateSnapshot FakeSystemStateAdapter::stateForScenario(int index) const
         state.summary = QCoreApplication::translate("FakeSystemStateAdapter", "Face login remains unavailable until "
                                                                               "compatible camera hardware is present.");
         state.issueCode = QStringLiteral("camera-unavailable");
-        state.securityTier = SecurityTier::Unsupported;
+        state.securityTier = SecurityTier::Unknown;
         state.cameraType = CameraType::None;
         state.profileStatus = ProfileStatus::NotEnrolled;
         state.tpmStatus = CapabilityStatus::Unavailable;
@@ -106,7 +105,7 @@ SystemStateSnapshot FakeSystemStateAdapter::stateForScenario(int index) const
                                                                   "before readiness can be checked.");
         state.issueCode = QStringLiteral("engine-missing");
         state.engineVersion.clear();
-        state.securityTier = SecurityTier::Unsupported;
+        state.securityTier = SecurityTier::Unknown;
         state.engineStatus = EngineStatus::Missing;
         state.daemonStatus = DaemonStatus::Missing;
         state.pamStatus = PamStatus::NotConfigured;
@@ -124,7 +123,7 @@ SystemStateSnapshot FakeSystemStateAdapter::stateForScenario(int index) const
                                                     "1. The engine version is informational.");
         state.issueCode = QStringLiteral("unsupported-contract");
         state.engineVersion = QStringLiteral("1.0.0");
-        state.securityTier = SecurityTier::Unsupported;
+        state.securityTier = SecurityTier::Unknown;
         state.engineStatus = EngineStatus::UnsupportedContract;
         state.daemonStatus = DaemonStatus::Unknown;
         state.pamStatus = PamStatus::Unknown;
@@ -141,7 +140,7 @@ SystemStateSnapshot FakeSystemStateAdapter::stateForScenario(int index) const
             QCoreApplication::translate("FakeSystemStateAdapter", "The simulated engine is compatible, but its "
                                                                   "background service is not healthy.");
         state.issueCode = QStringLiteral("daemon-unhealthy");
-        state.securityTier = SecurityTier::Unsupported;
+        state.securityTier = SecurityTier::Unknown;
         state.engineStatus = EngineStatus::Ready;
         state.daemonStatus = DaemonStatus::Broken;
         state.pamStatus = PamStatus::Unknown;
@@ -154,7 +153,7 @@ SystemStateSnapshot FakeSystemStateAdapter::stateForScenario(int index) const
             "FakeSystemStateAdapter", "The observed PAM state no longer matches the simulated engine plan. "
                                       "This read-only phase makes no changes.");
         state.issueCode = QStringLiteral("pam-drift");
-        state.securityTier = SecurityTier::Unsupported;
+        state.securityTier = SecurityTier::Unknown;
         state.pamStatus = PamStatus::Drift;
         return state;
     default:
@@ -163,7 +162,7 @@ SystemStateSnapshot FakeSystemStateAdapter::stateForScenario(int index) const
         state.summary = QCoreApplication::translate("FakeSystemStateAdapter",
                                                     "The requested fake-adapter scenario does not exist.");
         state.issueCode = QStringLiteral("invalid-scenario");
-        state.securityTier = SecurityTier::Unsupported;
+        state.securityTier = SecurityTier::Unknown;
         state.cameraType = CameraType::Unknown;
         state.engineStatus = EngineStatus::Unavailable;
         state.daemonStatus = DaemonStatus::Unknown;

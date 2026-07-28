@@ -1,5 +1,5 @@
 Name:           plasma-irlume
-Version:        2.1.0
+Version:        2.2.0
 Release:        1%{?dist}
 Summary:        Experimental KDE integration for the irlume face-authentication engine
 
@@ -13,13 +13,13 @@ BuildRequires:  clang-tools-extra
 BuildRequires:  desktop-file-utils
 BuildRequires:  extra-cmake-modules >= 6.10.0
 BuildRequires:  gcc-c++
-BuildRequires:  kf6-kauth-devel >= 6.10.0
 BuildRequires:  kf6-kcmutils-devel >= 6.10.0
 BuildRequires:  kf6-kcoreaddons-devel >= 6.10.0
 BuildRequires:  kf6-ki18n-devel >= 6.10.0
 BuildRequires:  kf6-kirigami-devel >= 6.10.0
 BuildRequires:  ninja-build
 BuildRequires:  python3
+BuildRequires:  python3-jsonschema
 BuildRequires:  qt6-qtbase-devel >= 6.8.0
 BuildRequires:  qt6-qtdeclarative-devel >= 6.8.0
 
@@ -70,13 +70,13 @@ desktop-file-validate data/kcm_irlume.desktop
 %doc CHANGELOG.md README.md
 %doc docs/*.md
 %{_qt6_plugindir}/plasma/kcms/systemsettings/kcm_irlume.so
-%{_kf6_libexecdir}/kauth/plasma-irlume-auth-helper
 %{_datadir}/applications/kcm_irlume.desktop
-%{_datadir}/dbus-1/system-services/io.github.loofibossbit.plasmairlume.helper.service
-%{_datadir}/dbus-1/system.d/io.github.loofibossbit.plasmairlume.helper.conf
-%{_datadir}/polkit-1/actions/io.github.loofibossbit.plasmairlume.helper.policy
 
 %changelog
+* Tue Jul 28 2026 Loofi <noreply@example.invalid> - 2.2.0-1
+- Harden all diagnostics behind a generation-aware asynchronous backend
+- Remove the unsupported privileged helper and keep the package read-only
+
 * Tue Jul 28 2026 Loofi <noreply@example.invalid> - 2.1.0-1
 - Use irlume 0.7 Machine API Contract 1 through a backend-neutral boundary
 - Keep unsupported mutation operations disabled and fail-closed

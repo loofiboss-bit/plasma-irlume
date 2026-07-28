@@ -1,18 +1,16 @@
 # Native engine roadmap
 
-No native Loofi-owned biometric engine is implemented in version 2.1. The
-future work is deliberately separated into security-reviewable milestones:
+## Current milestone: v2.2.0 read-only hardening
 
-1. Backend-neutral frontend — implemented by the current transitional release.
-2. Unprivileged preview and camera discovery.
-3. Local enrollment and non-authentication test matching.
-4. Secure daemon and template store.
-5. Lock-screen-only PAM integration.
-6. Login-screen integration.
-7. IR liveness and replay resistance.
-8. TPM-backed template protection.
-9. Optional higher-risk authentication surfaces.
+The KCM provides asynchronous Contract 1 diagnostics only. It does not access
+a camera, capture frames, process biometrics, modify profiles, configure PAM,
+or start a privileged component.
 
-Each future milestone requires its own threat model, contracts, deterministic
-tests, failure recovery, and hardware qualification. Later milestones must not
-be inferred from completion of an earlier one.
+## Next milestone
+
+The next milestone is exactly a separate, unprivileged native camera discovery
+and bounded ephemeral preview-process without face detection, embeddings,
+storage, daemon, PAM, or authentication decisions.
+
+That milestone requires a new explicit implementation plan and is not partly
+implemented by v2.2.0.

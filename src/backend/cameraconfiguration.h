@@ -13,7 +13,7 @@ class CameraConfiguration final : public QObject
     Q_OBJECT
 
     Q_PROPERTY(bool busy READ busy NOTIFY stateChanged)
-    Q_PROPERTY(bool contractAvailable READ mutationSupported NOTIFY stateChanged)
+    Q_PROPERTY(bool contractAvailable READ contractAvailable NOTIFY stateChanged)
     Q_PROPERTY(bool readOnlyAvailable READ readOnlyAvailable NOTIFY stateChanged)
     Q_PROPERTY(bool mutationSupported READ mutationSupported NOTIFY stateChanged)
     Q_PROPERTY(bool hasPairs READ hasPairs NOTIFY stateChanged)
@@ -33,6 +33,7 @@ class CameraConfiguration final : public QObject
     explicit CameraConfiguration(QObject *parent = nullptr);
 
     void applySnapshot(const EngineSnapshot &snapshot);
+    [[nodiscard]] bool contractAvailable() const;
     [[nodiscard]] bool busy() const;
     [[nodiscard]] bool readOnlyAvailable() const;
     [[nodiscard]] bool mutationSupported() const;
@@ -64,7 +65,9 @@ class CameraConfiguration final : public QObject
     void failCapability();
 
     bool m_readOnlyAvailable = false;
+    bool m_contractAvailable = false;
     bool m_mutationSupported = false;
+    ResultState m_resultState = ResultState::NotAdvertised;
     QString m_statusText;
     QString m_errorCode;
 };

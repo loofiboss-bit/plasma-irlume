@@ -6,14 +6,18 @@
 
 #include <QByteArray>
 #include <QJsonObject>
+#include <QProcess>
 #include <QString>
 #include <QStringList>
+#include <QTimer>
 
 #include <functional>
 #include <optional>
 
 class IrlumeBackend final : public FaceAuthBackend
 {
+    Q_OBJECT
+
   public:
     enum class Command
     {
@@ -37,10 +41,16 @@ class IrlumeBackend final : public FaceAuthBackend
 
     using Executor = std::function<ProcessResult(Command)>;
 
-    explicit IrlumeBackend(QString executable = QStringLiteral("/usr/bin/irlume"));
-    explicit IrlumeBackend(Executor executor);
+    explicit IrlumeBackend(QObject *parent = nullptr);
+    explicit IrlumeBackend(QString executable, QObject *parent = nullptr);
+    explicit IrlumeBackend(Executor testExecutor, QObject *parent = nullptr);
+    ~IrlumeBackend() override;
 
-    [[nodiscard]] EngineSnapshot refresh() override;
+    void requestRefresh(quint64 generation) override;
+    void cancelRefresh() override;
+
+    // Synchronous by design for parser-only unit tests. Production never calls this.
+    [[nodiscard]] EngineSnapshot refreshForTest();
 
     [[nodiscard]] static QString commandName(Command command);
     [[nodiscard]] static QString capabilityName(Command command);
@@ -55,7 +65,21 @@ class IrlumeBackend final : public FaceAuthBackend
         EngineError error;
     };
 
-    [[nodiscard]] ProcessResult execute(Command command) const;
+    void beginRefresh(quint64 generation);
+    void startCommand(Command command);
+    void drainProcess();
+    void finishProcess(const ProcessResult &result);
+    void finishCommand(Command command, const ProcessResult &result);
+    void startNextCommand();
+    void completeRefresh();
+    void failHandshake(const EngineError &error);
+    void setOperationState(Command command, ResultState state);
+    void setOperationError(Command command, const EngineError &error);
+    void emitProgress();
+    void cleanupProcess();
+    void startPendingRefresh();
+
+    [[nodiscard]] ProcessResult executeForTest(Command command) const;
     [[nodiscard]] static std::optional<Envelope> parseEnvelope(const ProcessResult &result, Command command,
                                                                EngineError *parseError);
     [[nodiscard]] static bool parseVersion(const QJsonObject &data, EngineSnapshot *snapshot, EngineError *error);
@@ -63,9 +87,22 @@ class IrlumeBackend final : public FaceAuthBackend
     [[nodiscard]] static std::optional<QVector<EngineDoctorCheck>> parseDoctor(const QJsonObject &data);
     [[nodiscard]] static std::optional<EngineProfileSnapshot> parseProfiles(const QJsonObject &data, int maxProfiles);
     [[nodiscard]] static std::optional<EngineLoginSnapshot> parseLogin(const QJsonObject &data);
-    [[nodiscard]] static bool containsUnexpectedSensitiveField(const QJsonObject &object);
-    [[nodiscard]] static EngineError processError(const ProcessResult &result);
+    [[nodiscard]] static EngineError processError(const ProcessResult &result, EngineOperation operation);
+    [[nodiscard]] static EngineOperation operationFor(Command command);
 
     QString m_executable;
-    Executor m_executor;
+    Executor m_testExecutor;
+    QProcess *m_process = nullptr;
+    QTimer m_timeout;
+    EngineSnapshot m_snapshot;
+    QList<Command> m_pendingCommands;
+    std::optional<quint64> m_pendingGeneration;
+    quint64 m_generation = 0;
+    Command m_currentCommand = Command::Version;
+    QByteArray m_standardOutput;
+    QByteArray m_standardError;
+    bool m_outputTooLarge = false;
+    bool m_timedOut = false;
+    bool m_cancelling = false;
+    bool m_processHandled = false;
 };

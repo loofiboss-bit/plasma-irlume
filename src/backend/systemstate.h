@@ -12,6 +12,7 @@ struct SystemStateSnapshot
         Secure,
         Convenience,
         Unsupported,
+        Unknown,
     };
 
     enum class CameraType
@@ -28,6 +29,8 @@ struct SystemStateSnapshot
         Missing,
         UnsupportedContract,
         Unavailable,
+        PartialDiagnostics,
+        NoCompatibleCapabilities,
     };
 
     enum class DaemonStatus
@@ -84,7 +87,7 @@ struct SystemStateSnapshot
     QString engineVersion;
     QString activeDisplayManager;
     QString supportReport;
-    SecurityTier securityTier = SecurityTier::Unsupported;
+    SecurityTier securityTier = SecurityTier::Unknown;
     CameraType cameraType = CameraType::Unknown;
     EngineStatus engineStatus = EngineStatus::Unavailable;
     DaemonStatus daemonStatus = DaemonStatus::Unknown;
@@ -146,6 +149,7 @@ class SystemState final : public QObject
         Secure,
         Convenience,
         Unsupported,
+        Unknown,
     };
     Q_ENUM(SecurityTier)
 
@@ -164,6 +168,8 @@ class SystemState final : public QObject
         Missing,
         UnsupportedContract,
         Unavailable,
+        PartialDiagnostics,
+        NoCompatibleCapabilities,
     };
     Q_ENUM(EngineStatus)
 

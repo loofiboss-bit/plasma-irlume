@@ -15,6 +15,8 @@ Kirigami.ScrollablePage {
     required property QtObject profileModel
     required property QtObject authConfiguration
     required property QtObject cameraConfiguration
+    required property bool refreshActive
+    required property bool partialDiagnostics
     property var openProfiles: () => {}
     property var openAccess: () => {}
     property var refresh: () => {}
@@ -87,6 +89,7 @@ Kirigami.ScrollablePage {
                     text: root.currentStep < 2 ? i18n("Check again")
                         : (root.currentStep === 2 ? i18n("Open Face Profiles") : i18n("Open Access"))
                     icon.name: root.currentStep < 2 ? "view-refresh" : "go-next"
+                    enabled: root.currentStep >= 2 || !root.refreshActive
                     onClicked: {
                         if (root.currentStep < 2) {
                             root.refresh();
@@ -105,6 +108,13 @@ Kirigami.ScrollablePage {
             visible: !root.profileModel.mutationSupported && !root.profileModel.busy
             type: Kirigami.MessageType.Warning
             text: i18n("irlume Contract 1 is read-only. Enrollment and authentication changes remain disabled.")
+        }
+
+        Kirigami.InlineMessage {
+            Layout.fillWidth: true
+            visible: root.partialDiagnostics
+            type: Kirigami.MessageType.Warning
+            text: i18n("Partial read-only diagnostics are available. One or more sections could not be refreshed.")
         }
 
         Kirigami.AbstractCard {
@@ -136,8 +146,10 @@ Kirigami.ScrollablePage {
                     }
 
                     QQC2.BusyIndicator {
-                        visible: running
-                        running: root.cameraConfiguration.busy
+                        Layout.preferredWidth: Kirigami.Units.gridUnit
+                        Layout.preferredHeight: Kirigami.Units.gridUnit
+                        running: root.refreshActive
+                        opacity: running ? 1 : 0
                     }
                 }
 
@@ -186,6 +198,7 @@ Kirigami.ScrollablePage {
                         text: i18n("Check again")
                         icon.name: "view-refresh"
                         enabled: !root.cameraConfiguration.busy
+                            && !root.refreshActive
                         onClicked: root.cameraConfiguration.refresh()
                     }
 
@@ -312,7 +325,9 @@ Kirigami.ScrollablePage {
                     Layout.fillWidth: true
                     label: i18n("Security level")
                     value: root.systemState.securityTierLabel
-                    tone: root.systemState.securityTier === 0 ? 1 : (root.systemState.securityTier === 1 ? 2 : 3)
+                    tone: root.systemState.securityTier === 0 ? 1
+                        : (root.systemState.securityTier === 1 ? 2
+                        : (root.systemState.securityTier === 3 ? 0 : 3))
                 }
 
                 Kirigami.Separator {

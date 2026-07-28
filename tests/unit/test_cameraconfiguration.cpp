@@ -18,8 +18,9 @@ void CameraConfigurationTest::exposesCameraStateReadOnly()
 {
     CameraConfiguration configuration;
     EngineSnapshot snapshot;
-    snapshot.contractAvailable = true;
-    snapshot.capabilities.statusRead = true;
+    snapshot.handshake.state = ResultState::Available;
+    snapshot.handshake.data = EngineHandshakeSnapshot{1, QStringLiteral("0.7.0")};
+    snapshot.capabilities.features = EngineFeature::StatusRead;
     snapshot.status = EngineStatusSnapshot{};
     configuration.applySnapshot(snapshot);
 

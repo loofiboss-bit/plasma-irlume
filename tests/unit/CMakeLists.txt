@@ -20,6 +20,16 @@ target_link_libraries(test_irlumebackend
 
 add_test(NAME irlumebackend COMMAND test_irlumebackend)
 
+add_executable(test_refreshcoordinator test_refreshcoordinator.cpp)
+
+target_link_libraries(test_refreshcoordinator
+    irlume_backend
+    Qt6::Core
+    Qt6::Test
+)
+
+add_test(NAME refreshcoordinator COMMAND test_refreshcoordinator)
+
 add_executable(test_enrollmentsession test_enrollmentsession.cpp)
 
 target_link_libraries(test_enrollmentsession
@@ -40,16 +50,6 @@ target_link_libraries(test_profilemodel
 )
 
 add_test(NAME profilemodel COMMAND test_profilemodel)
-
-add_executable(test_authhelper test_authhelper.cpp)
-
-target_link_libraries(test_authhelper
-    irlume_auth_helper
-    Qt6::Core
-    Qt6::Test
-)
-
-add_test(NAME authhelper COMMAND test_authhelper)
 
 add_executable(test_authconfiguration test_authconfiguration.cpp)
 
@@ -109,3 +109,29 @@ target_link_libraries(test_qmlpages
 
 add_test(NAME qmlpages COMMAND test_qmlpages)
 set_tests_properties(qmlpages PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+add_executable(test_irlumekcm
+    test_irlumekcm.cpp
+    ${PROJECT_SOURCE_DIR}/src/kcm/enrollmentpreviewitem.cpp
+    ${PROJECT_SOURCE_DIR}/src/kcm/enrollmentpreviewitem.h
+    ${PROJECT_SOURCE_DIR}/src/kcm/irlumekcm.cpp
+    ${PROJECT_SOURCE_DIR}/src/kcm/irlumekcm.h
+)
+
+target_include_directories(test_irlumekcm PRIVATE
+    ${PROJECT_SOURCE_DIR}/src/kcm
+)
+
+target_link_libraries(test_irlumekcm
+    irlume_backend
+    Qt6::Core
+    Qt6::Qml
+    Qt6::Quick
+    Qt6::Test
+    KF6::CoreAddons
+    KF6::I18n
+    KF6::KCMUtilsQuick
+)
+
+add_test(NAME irlumekcm COMMAND test_irlumekcm)
+set_tests_properties(irlumekcm PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")

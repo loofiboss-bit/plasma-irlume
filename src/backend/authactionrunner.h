@@ -32,16 +32,13 @@ class AuthActionRunner : public QObject
     void completed(AuthAction action, bool success, const QVariantMap &data, const QString &errorCode);
 };
 
-class KAuthActionRunner final : public AuthActionRunner
+class UnavailableAuthActionRunner final : public AuthActionRunner
 {
     Q_OBJECT
 
   public:
-    explicit KAuthActionRunner(QObject *parent = nullptr);
+    explicit UnavailableAuthActionRunner(QObject *parent = nullptr);
     bool start(AuthAction action, const QVariantMap &arguments = {}) override;
-
-  private:
-    bool m_busy = false;
 };
 
 Q_DECLARE_METATYPE(AuthAction)

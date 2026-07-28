@@ -20,10 +20,12 @@ class SystemStateTest final : public QObject
     void liveProbeDetectsSecureFedoraSystem();
     void liveProbeRestrictsRgbHardware();
     void liveProbeRejectsUnsupportedEngine();
+    void liveProbeReportsNoCompatibleCapabilities();
     void liveProbeRejectsUnsupportedPlatform();
     void liveProbeDetectsDisplayManagerMigration();
     void supportReportIsRedacted();
     void hostProbeProducesSafeSnapshot();
+    void hostProbeRunsAsynchronously();
 };
 
 void SystemStateTest::fakeAdapterExposesEveryRequiredScenario()
@@ -52,18 +54,18 @@ void SystemStateTest::scenarioStatesAreTypedAndSafe()
     const FakeSystemStateAdapter adapter;
 
     const auto secure = adapter.stateForScenario(FakeSystemStateAdapter::SecureIr);
-    QCOMPARE(secure.securityTier, SystemStateSnapshot::SecurityTier::Secure);
+    QCOMPARE(secure.securityTier, SystemStateSnapshot::SecurityTier::Unknown);
     QCOMPARE(secure.cameraType, SystemStateSnapshot::CameraType::Infrared);
     QCOMPARE(secure.engineStatus, SystemStateSnapshot::EngineStatus::Ready);
     QCOMPARE(secure.daemonStatus, SystemStateSnapshot::DaemonStatus::Running);
     QCOMPARE(secure.pamStatus, SystemStateSnapshot::PamStatus::Clean);
 
     const auto rgb = adapter.stateForScenario(FakeSystemStateAdapter::RgbOnly);
-    QCOMPARE(rgb.securityTier, SystemStateSnapshot::SecurityTier::Convenience);
+    QCOMPARE(rgb.securityTier, SystemStateSnapshot::SecurityTier::Unknown);
     QCOMPARE(rgb.cameraType, SystemStateSnapshot::CameraType::Rgb);
 
     const auto unsupported = adapter.stateForScenario(FakeSystemStateAdapter::UnsupportedIrlume);
-    QCOMPARE(unsupported.securityTier, SystemStateSnapshot::SecurityTier::Unsupported);
+    QCOMPARE(unsupported.securityTier, SystemStateSnapshot::SecurityTier::Unknown);
     QCOMPARE(unsupported.engineStatus, SystemStateSnapshot::EngineStatus::UnsupportedContract);
     QCOMPARE(unsupported.engineVersion, QStringLiteral("1.0.0"));
 
@@ -83,7 +85,7 @@ void SystemStateTest::applyingStateNotifiesConsumers()
     QCOMPARE(spy.count(), 1);
     QCOMPARE(state.scenarioId(), QStringLiteral("broken-daemon"));
     QCOMPARE(state.daemonStatus(), SystemState::DaemonStatus::Broken);
-    QCOMPARE(state.securityTier(), SystemState::SecurityTier::Unsupported);
+    QCOMPARE(state.securityTier(), SystemState::SecurityTier::Unknown);
     QCOMPARE(state.passwordFallbackPreserved(), false);
     QCOMPARE(state.passwordFallbackStatus(), SystemState::PasswordFallbackStatus::Unknown);
     QVERIFY(!state.daemonStatusLabel().isEmpty());
@@ -95,7 +97,7 @@ void SystemStateTest::invalidScenarioFailsClosed()
     const auto state = adapter.stateForScenario(-1);
 
     QCOMPARE(state.scenarioId, QStringLiteral("invalid-scenario"));
-    QCOMPARE(state.securityTier, SystemStateSnapshot::SecurityTier::Unsupported);
+    QCOMPARE(state.securityTier, SystemStateSnapshot::SecurityTier::Unknown);
     QCOMPARE(state.engineStatus, SystemStateSnapshot::EngineStatus::Unavailable);
     QVERIFY(!state.issueCode.isEmpty());
 }
@@ -112,10 +114,11 @@ SystemProbeInputs secureProbeInputs()
     inputs.secureBootVariable = QByteArray::fromHex("0700000001");
     inputs.tpmPresent = true;
     inputs.engine.executablePresent = true;
-    inputs.engine.contractAvailable = true;
-    inputs.engine.contractVersion = 1;
-    inputs.engine.engineVersion = QStringLiteral("0.7.0");
-    inputs.engine.capabilities = {true, true, true, true, false, 3, {}};
+    inputs.engine.handshake.state = ResultState::Available;
+    inputs.engine.handshake.data = EngineHandshakeSnapshot{1, QStringLiteral("0.7.0")};
+    inputs.engine.capabilities.features = EngineFeature::StatusRead | EngineFeature::DoctorRead |
+                                          EngineFeature::ProfilesRead | EngineFeature::LoginStatusRead;
+    inputs.engine.capabilities.maxProfiles = 3;
     EngineStatusSnapshot status;
     status.daemon = EngineStatusSnapshot::Daemon::Running;
     status.templates = EngineStatusSnapshot::TemplateProtection::Encrypted;
@@ -125,7 +128,8 @@ SystemProbeInputs secureProbeInputs()
     status.rgbCamera = true;
     status.irCamera = true;
     inputs.engine.status = status;
-    inputs.engine.doctorChecks = QVector<EngineDoctorCheck>{{QStringLiteral("tpm"), EngineDoctorCheck::State::Pass}};
+    inputs.engine.doctor = QVector<EngineDoctorCheck>{{QStringLiteral("tpm"), EngineDoctorCheck::State::Pass}};
+    inputs.engine.profiles = EngineProfileSnapshot{};
     EngineLoginSnapshot login;
     login.loginManagerKnown = true;
     login.loginManagerName = QStringLiteral("plasmalogin");
@@ -135,7 +139,7 @@ SystemProbeInputs secureProbeInputs()
         {QStringLiteral("plasmalogin"), QStringLiteral("login-screen"), true, true, QStringLiteral("face-first")},
         {QStringLiteral("kde"), QStringLiteral("lock-screen"), true, true, QStringLiteral("on-demand")},
     };
-    inputs.engine.login = login;
+    inputs.engine.loginStatus = login;
     return inputs;
 }
 } // namespace
@@ -151,7 +155,7 @@ void SystemStateTest::liveProbeDetectsSecureFedoraSystem()
     QCOMPARE(state.engineStatus, SystemStateSnapshot::EngineStatus::Ready);
     QCOMPARE(state.daemonStatus, SystemStateSnapshot::DaemonStatus::Running);
     QCOMPARE(state.cameraType, SystemStateSnapshot::CameraType::Infrared);
-    QCOMPARE(state.securityTier, SystemStateSnapshot::SecurityTier::Unsupported);
+    QCOMPARE(state.securityTier, SystemStateSnapshot::SecurityTier::Unknown);
     QCOMPARE(state.profileStatus, SystemStateSnapshot::ProfileStatus::Enrolled);
     QCOMPARE(state.templateProtectionStatus, SystemStateSnapshot::CapabilityStatus::Available);
     QCOMPARE(state.secureBootStatus, SystemStateSnapshot::SecureBootStatus::Enabled);
@@ -164,16 +168,16 @@ void SystemStateTest::liveProbeRestrictsRgbHardware()
     inputs.engine.status->profileCount = 0;
     inputs.engine.status->scanCount = 0;
     inputs.engine.status->irCamera = false;
-    inputs.engine.login->loginManagerName = QStringLiteral("sddm");
-    inputs.engine.login->loginManagerServices = {QStringLiteral("sddm")};
-    inputs.engine.login->surfaces = {
+    inputs.engine.loginStatus->loginManagerName = QStringLiteral("sddm");
+    inputs.engine.loginStatus->loginManagerServices = {QStringLiteral("sddm")};
+    inputs.engine.loginStatus->surfaces = {
         {QStringLiteral("sddm"), QStringLiteral("login-screen"), true, true, QStringLiteral("face-first")},
         {QStringLiteral("kde"), QStringLiteral("lock-screen"), true, true, QStringLiteral("on-demand")},
     };
 
     const auto state = SystemProbe::evaluate(inputs);
     QCOMPARE(state.activeDisplayManager, QStringLiteral("SDDM"));
-    QCOMPARE(state.securityTier, SystemStateSnapshot::SecurityTier::Convenience);
+    QCOMPARE(state.securityTier, SystemStateSnapshot::SecurityTier::Unknown);
     QCOMPARE(state.cameraType, SystemStateSnapshot::CameraType::Rgb);
     QCOMPARE(state.livenessStatus, SystemStateSnapshot::CapabilityStatus::Unknown);
     QCOMPARE(state.profileStatus, SystemStateSnapshot::ProfileStatus::NotEnrolled);
@@ -182,13 +186,30 @@ void SystemStateTest::liveProbeRestrictsRgbHardware()
 void SystemStateTest::liveProbeRejectsUnsupportedEngine()
 {
     auto inputs = secureProbeInputs();
-    inputs.engine.contractAvailable = false;
-    inputs.engine.errors = {{QStringLiteral("unsupported-contract"), false}};
+    inputs.engine.handshake.state = ResultState::Failed;
+    inputs.engine.handshake.data.reset();
+    inputs.engine.handshake.error =
+        EngineError{EngineOperation::Handshake, QStringLiteral("unsupported-contract"), false};
 
     const auto state = SystemProbe::evaluate(inputs);
-    QCOMPARE(state.securityTier, SystemStateSnapshot::SecurityTier::Unsupported);
+    QCOMPARE(state.securityTier, SystemStateSnapshot::SecurityTier::Unknown);
     QCOMPARE(state.engineStatus, SystemStateSnapshot::EngineStatus::UnsupportedContract);
     QCOMPARE(state.issueCode, QStringLiteral("unsupported-contract"));
+}
+
+void SystemStateTest::liveProbeReportsNoCompatibleCapabilities()
+{
+    auto inputs = secureProbeInputs();
+    inputs.engine.capabilities.features = EngineFeature::None;
+    inputs.engine.status = OperationResult<EngineStatusSnapshot>{};
+    inputs.engine.doctor = OperationResult<QVector<EngineDoctorCheck>>{};
+    inputs.engine.profiles = OperationResult<EngineProfileSnapshot>{};
+    inputs.engine.loginStatus = OperationResult<EngineLoginSnapshot>{};
+
+    const auto state = SystemProbe::evaluate(inputs);
+
+    QCOMPARE(state.engineStatus, SystemStateSnapshot::EngineStatus::NoCompatibleCapabilities);
+    QCOMPARE(state.issueCode, QStringLiteral("no-compatible-read-capabilities"));
 }
 
 void SystemStateTest::liveProbeRejectsUnsupportedPlatform()
@@ -204,7 +225,7 @@ void SystemStateTest::liveProbeRejectsUnsupportedPlatform()
 void SystemStateTest::liveProbeDetectsDisplayManagerMigration()
 {
     auto inputs = secureProbeInputs();
-    inputs.engine.login->surfaces.push_back(
+    inputs.engine.loginStatus->surfaces.push_back(
         {QStringLiteral("sddm"), QStringLiteral("login-screen"), true, true, QStringLiteral("face-first")});
 
     const auto state = SystemProbe::evaluate(inputs);
@@ -218,7 +239,7 @@ void SystemStateTest::supportReportIsRedacted()
 {
     auto inputs = secureProbeInputs();
     inputs.displayManagerTarget = QStringLiteral("/home/private/display-manager.service");
-    inputs.engine.engineVersion = QStringLiteral("0.7.0-private@example.test");
+    inputs.engine.handshake.data->engineVersion = QStringLiteral("0.7.0-private@example.test");
 
     const auto state = SystemProbe::evaluate(inputs);
     QVERIFY(!state.supportReport.contains(QStringLiteral("/home/")));
@@ -230,8 +251,8 @@ void SystemStateTest::supportReportIsRedacted()
 
 void SystemStateTest::hostProbeProducesSafeSnapshot()
 {
-    IrlumeBackend backend;
-    const auto state = SystemProbe().probe(backend.refresh());
+    EngineSnapshot snapshot;
+    const auto state = SystemProbe().probe(snapshot);
 
     QVERIFY(state.liveData);
     QCOMPARE(state.scenarioId, QStringLiteral("live-system"));
@@ -239,6 +260,19 @@ void SystemStateTest::hostProbeProducesSafeSnapshot()
     QVERIFY(!state.supportReport.contains(QStringLiteral("/home/")));
     QVERIFY(!state.supportReport.contains(QStringLiteral("/dev/")));
     QVERIFY(!state.supportReport.contains(QStringLiteral("/etc/")));
+}
+
+void SystemStateTest::hostProbeRunsAsynchronously()
+{
+    SystemProbe probe;
+    QSignalSpy completed(&probe, &SystemProbe::probeCompleted);
+    EngineSnapshot engine;
+
+    probe.requestProbe(42, engine);
+
+    QCOMPARE(completed.size(), 0);
+    QTRY_COMPARE_WITH_TIMEOUT(completed.size(), 1, 3000);
+    QCOMPARE(completed.constFirst().constFirst().toULongLong(), quint64{42});
 }
 
 QTEST_MAIN(SystemStateTest)

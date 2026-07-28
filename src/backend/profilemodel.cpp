@@ -57,34 +57,44 @@ QHash<int, QByteArray> ProfileModel::roleNames() const
 
 void ProfileModel::applySnapshot(const EngineSnapshot &snapshot)
 {
+    m_contractAvailable = snapshot.contractAvailable();
+    m_mutationSupported = snapshot.capabilities.supports(EngineFeature::ProfileMutation);
+    m_maxProfiles = snapshot.capabilities.maxProfiles;
+    m_resultState = snapshot.profiles.state;
+    m_retryable = snapshot.profiles.error && snapshot.profiles.error->retryable;
+
+    if (snapshot.profiles.state == ResultState::Loading || snapshot.profiles.state == ResultState::Pending)
+    {
+        m_statusText = translate("Updating the read-only profile list…");
+        Q_EMIT stateChanged();
+        return;
+    }
+
     beginResetModel();
     m_profiles.clear();
-    m_readOnlyAvailable = snapshot.profiles.has_value();
-    m_mutationSupported = snapshot.capabilities.mutationSupported;
-    m_maxProfiles = snapshot.capabilities.maxProfiles;
-    if (snapshot.profiles)
+    m_readOnlyAvailable = snapshot.profiles.state == ResultState::Available && snapshot.profiles.data.has_value();
+    if (snapshot.profiles.data)
     {
-        for (const EngineProfile &profile : snapshot.profiles->profiles)
+        for (const EngineProfile &profile : snapshot.profiles.data->profiles)
         {
             m_profiles.push_back({profile.stableId.value_or(QString()), profile.displayName, profile.scanDisplayNames});
         }
     }
     endResetModel();
     m_errorCode.clear();
-    if (!snapshot.contractAvailable)
+    if (!snapshot.contractAvailable())
     {
-        m_errorCode = snapshot.errors.isEmpty() ? QStringLiteral("machine-contract-unavailable")
-                                                : snapshot.errors.constFirst().code;
+        m_errorCode =
+            snapshot.handshake.error ? snapshot.handshake.error->code : QStringLiteral("machine-contract-unavailable");
         m_statusText = translate("The backend did not complete a valid read-only handshake.");
     }
-    else if (!snapshot.capabilities.profilesRead)
+    else if (snapshot.profiles.state == ResultState::NotAdvertised)
     {
         m_statusText = translate("The backend does not advertise read-only profile listing.");
     }
-    else if (!snapshot.profiles)
+    else if (snapshot.profiles.state == ResultState::Failed)
     {
-        m_errorCode =
-            snapshot.errors.isEmpty() ? QStringLiteral("profiles-unavailable") : snapshot.errors.constLast().code;
+        m_errorCode = snapshot.profiles.error ? snapshot.profiles.error->code : QStringLiteral("profiles-unavailable");
         m_statusText = translate("The read-only profile list is unavailable.");
     }
     else
@@ -94,6 +104,11 @@ void ProfileModel::applySnapshot(const EngineSnapshot &snapshot)
     }
     Q_EMIT profilesChanged();
     Q_EMIT stateChanged();
+}
+
+bool ProfileModel::contractAvailable() const
+{
+    return m_contractAvailable;
 }
 
 bool ProfileModel::readOnlyAvailable() const
@@ -108,7 +123,12 @@ bool ProfileModel::mutationSupported() const
 
 bool ProfileModel::busy() const
 {
-    return false;
+    return m_resultState == ResultState::Loading || m_resultState == ResultState::Pending;
+}
+
+ResultState ProfileModel::availabilityState() const
+{
+    return m_resultState;
 }
 
 int ProfileModel::profileCount() const
@@ -148,7 +168,7 @@ QString ProfileModel::errorCode() const
 
 bool ProfileModel::canRetry() const
 {
-    return false;
+    return m_retryable && !busy();
 }
 
 bool ProfileModel::cancellable() const
