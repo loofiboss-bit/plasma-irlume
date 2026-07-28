@@ -10,7 +10,8 @@ sudo dnf install \
   qt6-qtmultimedia-devel systemd-devel
 ```
 
-No external face-authentication package is required.
+No external face-authentication package or inference runtime is required while
+the deterministic provider is active.
 
 ## CMake and Qt tests
 
@@ -30,10 +31,15 @@ toolchain is installed.
 ```bash
 cargo fmt --manifest-path engine/Cargo.toml --all -- --check
 cargo clippy --manifest-path engine/Cargo.toml \
-  --workspace --all-targets --locked -- -D warnings
+  --workspace --all-targets --locked --offline -- -D warnings
 cargo test --manifest-path engine/Cargo.toml \
-  --workspace --all-targets --locked
+  --workspace --all-targets --locked --offline
+python3 tools/verify_models.py --root models
 ```
+
+The commands must also pass with network access disabled. Cargo has no
+third-party dependencies, and the model verifier reads only the source tree.
+No configure, build, test, installation, or runtime step downloads a model.
 
 ## Staged installation
 
@@ -42,5 +48,7 @@ DESTDIR="$PWD/stage" cmake --install build
 find stage -type f -o -type l
 ```
 
-The staged payload contains the KCM, desktop metadata, translations, and camera
-preview worker. The Rust skeleton is deliberately not installed in Milestone 1.
+The staged payload contains the KCM, desktop metadata, translations, both
+unprivileged workers, the machine-readable manifest, the selected YuNet weight,
+and its license/provenance records. It contains no service unit, PAM module,
+privileged helper, template store, or runtime downloader.

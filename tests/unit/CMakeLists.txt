@@ -16,6 +16,9 @@ add_test(NAME refreshcoordinator COMMAND test_refreshcoordinator)
 add_executable(fake_preview_worker fake_preview_worker.cpp)
 target_link_libraries(fake_preview_worker preview_protocol Qt6::Core Qt6::Gui)
 
+add_executable(fake_vision_worker fake_vision_worker.cpp)
+target_link_libraries(fake_vision_worker Qt6::Core)
+
 add_executable(test_previewprotocol test_previewprotocol.cpp)
 target_link_libraries(test_previewprotocol preview_protocol Qt6::Core Qt6::Test)
 add_test(NAME previewprotocol COMMAND test_previewprotocol)
@@ -41,6 +44,15 @@ target_link_libraries(test_camerapreviewsession kfaceauth_core Qt6::Core Qt6::Gu
 add_dependencies(test_camerapreviewsession fake_preview_worker)
 add_test(NAME camerapreviewsession COMMAND test_camerapreviewsession)
 
+add_executable(test_visionanalysissession test_visionanalysissession.cpp)
+target_compile_definitions(test_visionanalysissession PRIVATE
+    KFACEAUTH_FAKE_PREVIEW_WORKER_PATH="$<TARGET_FILE:fake_preview_worker>"
+    KFACEAUTH_FAKE_VISION_WORKER_PATH="$<TARGET_FILE:fake_vision_worker>"
+)
+target_link_libraries(test_visionanalysissession kfaceauth_core Qt6::Core Qt6::Gui Qt6::Test)
+add_dependencies(test_visionanalysissession fake_preview_worker fake_vision_worker)
+add_test(NAME visionanalysissession COMMAND test_visionanalysissession)
+
 add_executable(test_supportreport test_supportreport.cpp)
 target_compile_definitions(test_supportreport PRIVATE
     KFACEAUTH_FAKE_PREVIEW_WORKER_PATH="$<TARGET_FILE:fake_preview_worker>"
@@ -59,6 +71,7 @@ target_include_directories(test_qmlpages PRIVATE ${PROJECT_SOURCE_DIR}/src/kcm)
 target_compile_definitions(test_qmlpages PRIVATE
     KFACEAUTH_SOURCE_DIR="${PROJECT_SOURCE_DIR}"
     KFACEAUTH_FAKE_PREVIEW_WORKER_PATH="$<TARGET_FILE:fake_preview_worker>"
+    KFACEAUTH_FAKE_VISION_WORKER_PATH="$<TARGET_FILE:fake_vision_worker>"
 )
 target_link_libraries(test_qmlpages
     kfaceauth_core
@@ -69,7 +82,7 @@ target_link_libraries(test_qmlpages
     Qt6::Test
     KF6::I18nQml
 )
-add_dependencies(test_qmlpages fake_preview_worker)
+add_dependencies(test_qmlpages fake_preview_worker fake_vision_worker)
 add_test(NAME qmlpages COMMAND test_qmlpages)
 set_tests_properties(qmlpages PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 

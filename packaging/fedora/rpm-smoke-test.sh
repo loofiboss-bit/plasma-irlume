@@ -58,7 +58,10 @@ rpm --root "${smoke_root}" --nodeps --upgrade --replacepkgs "${rpm_path}"
 
 required_paths=(
     "/usr/libexec/kfaceauth-camera-preview-worker"
+    "/usr/libexec/kfaceauth-vision-worker"
     "/usr/share/applications/kcm_kfaceauth.desktop"
+    "/usr/share/kfaceauth/models/manifest.kfaceauth"
+    "/usr/share/kfaceauth/models/files/face_detection_yunet_2023mar.onnx"
 )
 
 for path in "${required_paths[@]}"; do
@@ -68,13 +71,18 @@ for path in "${required_paths[@]}"; do
     fi
 done
 
-if find "${smoke_root}/usr/libexec/kfaceauth-camera-preview-worker" -perm /6000 -print -quit | grep -q .; then
-    echo "Camera preview worker must not be setuid or setgid" >&2
+if find \
+    "${smoke_root}/usr/libexec/kfaceauth-camera-preview-worker" \
+    "${smoke_root}/usr/libexec/kfaceauth-vision-worker" \
+    -perm /6000 -print -quit | grep -q .; then
+    echo "KFaceAuth workers must not be setuid or setgid" >&2
     exit 1
 fi
 if command -v getcap >/dev/null 2>&1 &&
-    getcap "${smoke_root}/usr/libexec/kfaceauth-camera-preview-worker" | grep -q .; then
-    echo "Camera preview worker must not have file capabilities" >&2
+    getcap \
+        "${smoke_root}/usr/libexec/kfaceauth-camera-preview-worker" \
+        "${smoke_root}/usr/libexec/kfaceauth-vision-worker" | grep -q .; then
+    echo "KFaceAuth workers must not have file capabilities" >&2
     exit 1
 fi
 
@@ -84,6 +92,7 @@ for pattern in \
     '/dbus-1/system-services/' \
     '/dbus-1/system.d/' \
     '/polkit-1/actions/' \
+    '/systemd/' \
     'kfaceauth-auth-helper' \
     'pam_kfaceauth'; do
     if grep -Fq "${pattern}" <<<"${payload}"; then
@@ -91,6 +100,13 @@ for pattern in \
         exit 1
     fi
 done
+
+installed_model="${smoke_root}/usr/share/kfaceauth/models/files/face_detection_yunet_2023mar.onnx"
+if [[ "$(sha256sum "${installed_model}" | cut -d' ' -f1)" != \
+    "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4" ]]; then
+    echo "Installed YuNet model failed checksum verification" >&2
+    exit 1
+fi
 
 plugin_path="$(
     rpm --root "${smoke_root}" -ql kfaceauth \

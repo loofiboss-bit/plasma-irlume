@@ -1,0 +1,148 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+#include "camerapreviewsession.h"
+#include "visionanalysissession.h"
+
+#include <QProcessEnvironment>
+#include <QTest>
+
+class VisionAnalysisSessionTest final : public QObject
+{
+    Q_OBJECT
+
+  private Q_SLOTS:
+    void successResponses_data();
+    void successResponses();
+    void startupFailure();
+    void workerFailures_data();
+    void workerFailures();
+    void cancellationAndCleanup();
+
+  private:
+    static QProcessEnvironment environmentFor(const QString &mode);
+    static void startPreview(CameraPreviewSession *preview);
+};
+
+QProcessEnvironment VisionAnalysisSessionTest::environmentFor(const QString &mode)
+{
+    QProcessEnvironment environment;
+    environment.insert(QStringLiteral("KFACEAUTH_FAKE_VISION_MODE"), mode);
+    return environment;
+}
+
+void VisionAnalysisSessionTest::startPreview(CameraPreviewSession *preview)
+{
+    preview->refreshDevices();
+    QTRY_COMPARE(preview->state(), CameraPreviewSession::State::Ready);
+    preview->startPreview();
+    QTRY_COMPARE(preview->state(), CameraPreviewSession::State::Streaming);
+    QTRY_VERIFY(preview->frameAvailable());
+}
+
+void VisionAnalysisSessionTest::successResponses_data()
+{
+    QTest::addColumn<QString>("mode");
+    QTest::addColumn<VisionAnalysisSession::FaceFinding>("finding");
+    QTest::newRow("zero") << QStringLiteral("zero") << VisionAnalysisSession::FaceFinding::NoFace;
+    QTest::newRow("one") << QStringLiteral("one") << VisionAnalysisSession::FaceFinding::OneFace;
+    QTest::newRow("multiple") << QStringLiteral("multiple") << VisionAnalysisSession::FaceFinding::MultipleFaces;
+}
+
+void VisionAnalysisSessionTest::successResponses()
+{
+    QFETCH(QString, mode);
+    QFETCH(VisionAnalysisSession::FaceFinding, finding);
+    CameraPreviewSession preview(QStringLiteral(KFACEAUTH_FAKE_PREVIEW_WORKER_PATH), nullptr);
+    startPreview(&preview);
+    VisionAnalysisSession analysis(&preview, QStringLiteral(KFACEAUTH_FAKE_VISION_WORKER_PATH), environmentFor(mode),
+                                   nullptr);
+
+    QVERIFY(analysis.canAnalyze());
+    analysis.analyzeCurrentFrame();
+    QTRY_COMPARE(analysis.state(), VisionAnalysisSession::State::Complete);
+    QCOMPARE(analysis.faceFinding(), finding);
+    QVERIFY(analysis.resultAvailable());
+    QCOMPARE(analysis.brightness(), VisionAnalysisSession::Quality::Suitable);
+    QCOMPARE(analysis.contrast(), VisionAnalysisSession::Quality::Suitable);
+    QCOMPARE(analysis.sharpness(), VisionAnalysisSession::Quality::Suitable);
+    if (finding == VisionAnalysisSession::FaceFinding::OneFace)
+    {
+        QCOMPARE(analysis.position(), VisionAnalysisSession::Position::Centered);
+        QCOMPARE(analysis.distance(), VisionAnalysisSession::Distance::Suitable);
+    }
+
+    const quint64 completedGeneration = analysis.generation();
+    analysis.cancelAnalysis();
+    QCOMPARE(analysis.state(), VisionAnalysisSession::State::Idle);
+    QVERIFY(!analysis.resultAvailable());
+    QCOMPARE(analysis.faceFinding(), VisionAnalysisSession::FaceFinding::Unknown);
+    QVERIFY(analysis.generation() > completedGeneration);
+}
+
+void VisionAnalysisSessionTest::startupFailure()
+{
+    CameraPreviewSession preview(QStringLiteral(KFACEAUTH_FAKE_PREVIEW_WORKER_PATH), nullptr);
+    startPreview(&preview);
+    VisionAnalysisSession analysis(&preview, QStringLiteral("/nonexistent/kfaceauth-vision-worker"), nullptr);
+    analysis.analyzeCurrentFrame();
+    QTRY_COMPARE(analysis.state(), VisionAnalysisSession::State::Failed);
+    QCOMPARE(analysis.errorCode(), QStringLiteral("startup-failed"));
+    QVERIFY(!analysis.resultAvailable());
+}
+
+void VisionAnalysisSessionTest::workerFailures_data()
+{
+    QTest::addColumn<QString>("mode");
+    QTest::addColumn<QString>("errorCode");
+    QTest::addColumn<int>("timeout");
+    QTest::newRow("timeout") << QStringLiteral("timeout") << QStringLiteral("inference-timeout") << 6500;
+    QTest::newRow("crash") << QStringLiteral("crash") << QStringLiteral("worker-crashed") << 2000;
+    QTest::newRow("malformed") << QStringLiteral("malformed") << QStringLiteral("protocol-error") << 2000;
+    QTest::newRow("unknown flags") << QStringLiteral("unknown-flags") << QStringLiteral("protocol-error") << 2000;
+    QTest::newRow("oversized") << QStringLiteral("oversized") << QStringLiteral("protocol-error") << 2000;
+    QTest::newRow("stale") << QStringLiteral("stale") << QStringLiteral("stale-response") << 2000;
+    QTest::newRow("shutdown timeout") << QStringLiteral("shutdown-timeout") << QStringLiteral("shutdown-timeout")
+                                      << 2500;
+}
+
+void VisionAnalysisSessionTest::workerFailures()
+{
+    QFETCH(QString, mode);
+    QFETCH(QString, errorCode);
+    QFETCH(int, timeout);
+    CameraPreviewSession preview(QStringLiteral(KFACEAUTH_FAKE_PREVIEW_WORKER_PATH), nullptr);
+    startPreview(&preview);
+    VisionAnalysisSession analysis(&preview, QStringLiteral(KFACEAUTH_FAKE_VISION_WORKER_PATH), environmentFor(mode),
+                                   nullptr);
+    analysis.analyzeCurrentFrame();
+    QTRY_COMPARE_WITH_TIMEOUT(analysis.state(), VisionAnalysisSession::State::Failed, timeout);
+    QCOMPARE(analysis.errorCode(), errorCode);
+    QVERIFY(!analysis.resultAvailable());
+}
+
+void VisionAnalysisSessionTest::cancellationAndCleanup()
+{
+    CameraPreviewSession preview(QStringLiteral(KFACEAUTH_FAKE_PREVIEW_WORKER_PATH), nullptr);
+    startPreview(&preview);
+    VisionAnalysisSession analysis(&preview, QStringLiteral(KFACEAUTH_FAKE_VISION_WORKER_PATH),
+                                   environmentFor(QStringLiteral("timeout")), nullptr);
+    analysis.analyzeCurrentFrame();
+    QTRY_COMPARE(analysis.state(), VisionAnalysisSession::State::Analyzing);
+    const quint64 activeGeneration = analysis.generation();
+    analysis.cancelAnalysis();
+    QCOMPARE(analysis.state(), VisionAnalysisSession::State::Idle);
+    QVERIFY(analysis.generation() > activeGeneration);
+    QVERIFY(!analysis.resultAvailable());
+    QTRY_VERIFY(analysis.canAnalyze());
+
+    analysis.analyzeCurrentFrame();
+    QTRY_COMPARE(analysis.state(), VisionAnalysisSession::State::Analyzing);
+    preview.stopPreview();
+    QTRY_COMPARE(analysis.state(), VisionAnalysisSession::State::Idle);
+    QVERIFY(!analysis.resultAvailable());
+    QTRY_COMPARE(preview.state(), CameraPreviewSession::State::Ready);
+}
+
+QTEST_GUILESS_MAIN(VisionAnalysisSessionTest)
+
+#include "test_visionanalysissession.moc"

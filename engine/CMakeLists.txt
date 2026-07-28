@@ -1,0 +1,72 @@
+# SPDX-License-Identifier: BSD-2-Clause
+
+find_program(CARGO_EXECUTABLE cargo REQUIRED)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(KFACEAUTH_CARGO_PROFILE "debug")
+    set(KFACEAUTH_CARGO_PROFILE_ARGUMENTS)
+else()
+    set(KFACEAUTH_CARGO_PROFILE "release")
+    set(KFACEAUTH_CARGO_PROFILE_ARGUMENTS --release)
+endif()
+
+set(KFACEAUTH_CARGO_TARGET_DIR "${CMAKE_CURRENT_BINARY_DIR}/target")
+set(KFACEAUTH_VISION_WORKER_BINARY
+    "${KFACEAUTH_CARGO_TARGET_DIR}/${KFACEAUTH_CARGO_PROFILE}/${KFACEAUTH_VISION_WORKER}"
+)
+
+file(GLOB_RECURSE KFACEAUTH_RUST_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.rs"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.toml"
+)
+
+add_custom_command(
+    OUTPUT "${KFACEAUTH_VISION_WORKER_BINARY}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E env
+        "CARGO_TARGET_DIR=${KFACEAUTH_CARGO_TARGET_DIR}"
+        "${CARGO_EXECUTABLE}" build
+        --manifest-path "${CMAKE_CURRENT_SOURCE_DIR}/Cargo.toml"
+        --package kfaceauth-vision
+        --bin "${KFACEAUTH_VISION_WORKER}"
+        --locked
+        --offline
+        ${KFACEAUTH_CARGO_PROFILE_ARGUMENTS}
+    DEPENDS
+        ${KFACEAUTH_RUST_SOURCES}
+        "${CMAKE_CURRENT_SOURCE_DIR}/Cargo.lock"
+        "${PROJECT_SOURCE_DIR}/models/manifest.kfaceauth"
+        "${PROJECT_SOURCE_DIR}/models/files/fake-provider-v1.cfg"
+    VERBATIM
+    COMMENT "Building the offline Rust vision worker"
+)
+
+add_custom_target(kfaceauth_vision_worker ALL
+    DEPENDS "${KFACEAUTH_VISION_WORKER_BINARY}"
+)
+
+add_custom_target(kfaceauth_verify_models ALL
+    COMMAND
+        "${Python3_EXECUTABLE}"
+        "${PROJECT_SOURCE_DIR}/tools/verify_models.py"
+        --root "${PROJECT_SOURCE_DIR}/models"
+    DEPENDS
+        "${PROJECT_SOURCE_DIR}/models/manifest.kfaceauth"
+        "${PROJECT_SOURCE_DIR}/tools/verify_models.py"
+    VERBATIM
+    COMMENT "Verifying the offline model supply chain"
+)
+
+install(PROGRAMS "${KFACEAUTH_VISION_WORKER_BINARY}"
+    DESTINATION libexec
+    RENAME "${KFACEAUTH_VISION_WORKER}"
+)
+
+install(DIRECTORY "${PROJECT_SOURCE_DIR}/models/"
+    DESTINATION "${KDE_INSTALL_DATADIR}/${KFACEAUTH_MODEL_DIRECTORY}"
+    FILES_MATCHING
+        PATTERN "manifest.kfaceauth"
+        PATTERN "files/*"
+        PATTERN "licenses/*"
+        PATTERN "provenance/*"
+)

@@ -12,29 +12,37 @@ Complete in this branch:
 - source-only `vision`, `templates`, `daemon`, and `cli` skeletons;
 - preserved camera preview, system probe, localization, packaging, and CI.
 
-## Blockers before native enrollment
+## Milestone 2: bounded local vision
 
-Enrollment must remain unavailable until all of the following exist and are
-reviewed:
+Implemented in this branch:
 
-1. A bounded camera-to-vision interface that never reuses preview frames as
-   biometric input implicitly.
-2. A selected, redistributable, reproducibly packaged face model with fixed
-   hashes and no runtime download.
-3. Documented image normalization, quality gates, presentation-attack
-   resistance, and measured false-accept/false-reject behavior.
-4. An encrypted template format with versioning, key ownership, deletion,
-   migration, corruption handling, and rollback semantics.
-5. Per-user authorization and a reviewed local IPC transport with peer identity
-   checks, timeouts, rate limits, and cancellation.
-6. Hardware qualification for RGB/infrared pairs, privacy switches, suspend,
-   hotplug, contention, and firmware changes.
-7. A threat model and privacy review covering capture, memory lifetime,
-   diagnostics, and recovery.
+- explicit one-frame analysis separate from manual preview start;
+- short-lived unprivileged Rust worker with versioned bounded pipe protocol;
+- checked 640×480 RGB8/RGBA8/Gray8 frame parsing;
+- typed zero, one, or multiple face-presence and image-quality results;
+- monotonic generations, cancellation, timeouts, stale-result rejection, and
+  transient cleanup;
+- selected YuNet detector artifact with immutable source, explicit weight
+  license, SHA-256 verification, offline packaging, and no runtime download;
+- deterministic fake provider while the real inference runtime remains gated.
 
-Only after enrollment and verification are independently safe may a later
-milestone design PAM integration. That separate gate requires password fallback,
-transactional configuration, recovery, lockout/rate limiting, privileged
-boundary review, SELinux design, and real login-manager testing.
+Milestone 2 still does not authorize enrollment, profile management, persistent
+embeddings, matching, identity thresholds, liveness claims, PAM, services,
+privileged helpers, SELinux policy, TPM work, networking, or telemetry.
 
-Milestone 1 does not authorize any of those implementations.
+## Blockers before encrypted native enrollment
+
+In addition to real, measured detector inference, enrollment remains blocked on:
+
+1. reviewed image normalization and presentation-attack resistance without
+   treating quality guidance as liveness;
+2. measured detector error behavior and CPU latency across the supported
+   RGB/infrared hardware matrix;
+3. an encrypted, versioned template format with per-user key ownership,
+   deletion, migration, corruption, and rollback semantics;
+4. peer-verified local IPC, authorization, rate limits, and recovery;
+5. a separate privacy/threat review for embeddings and enrollment memory;
+6. clean install/upgrade/removal and real-camera release qualification.
+
+PAM remains a later, separately reviewed milestone after enrollment and
+verification are independently safe.

@@ -1,9 +1,10 @@
 # Fedora packaging
 
-`kfaceauth.spec` builds the Milestone 1 KCM and unprivileged camera preview
-worker for Fedora 44. It has no external face-authentication engine dependency
-and installs no Rust binary, service, PAM module, policy, model, or biometric
-storage.
+`kfaceauth.spec` builds the Milestone 2 KCM, camera preview worker, and
+short-lived Rust vision worker for Fedora 44. It installs the verified YuNet
+detector and provenance records without enabling real inference. It has no
+external face-authentication engine dependency and installs no service, PAM
+module, policy, embedding, or biometric storage.
 
 ## Build
 
@@ -26,6 +27,6 @@ packaging/fedora/rpm-smoke-test.sh \
 ```
 
 The smoke test performs isolated install, upgrade, and removal. It checks the
-KCM, desktop file, worker permissions/capabilities, absence of privileged
-payloads and scriptlets, unchanged PAM sentinel, and preserved unrelated user
-data.
+KCM, desktop file, both workers, model checksum, permissions/capabilities,
+absence of privileged payloads and scriptlets, unchanged PAM sentinel, and
+preserved unrelated user data.

@@ -7,3 +7,7 @@ license.workspace = true
 
 [lints]
 workspace = true
+
+[[bin]]
+name = "kfaceauth-vision-worker"
+path = "src/main.rs"

@@ -28,7 +28,9 @@ jobs:
       - name: Install RPM build dependencies
         run: |
           dnf install -y \
+            cargo \
             clang-tools-extra \
+            clippy \
             cmake \
             cmake-rpm-macros \
             desktop-file-utils \
@@ -46,6 +48,8 @@ jobs:
             qt6-qtmultimedia-devel \
             rpm-build \
             rpmlint \
+            rust \
+            rustfmt \
             systemd-devel
 
       - name: Build source archive

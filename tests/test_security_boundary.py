@@ -67,6 +67,29 @@ class SecurityBoundaryTests(unittest.TestCase):
         for forbidden in ("frame()", "device.token", "device.label", "selectedDeviceIndex"):
             self.assertNotIn(forbidden, support)
 
+    def test_vision_bridge_has_no_persistent_or_privileged_surface(self) -> None:
+        vision = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in sorted(
+                (ROOT / "src" / "backend").glob("visionanalysissession.*")
+            )
+        )
+        for forbidden in (
+            "QTemporaryFile",
+            "QSaveFile",
+            "QFile::write",
+            "QSettings",
+            "QNetworkAccessManager",
+            "KAuth",
+            "Polkit",
+            "systemBus",
+        ):
+            self.assertNotIn(forbidden, vision)
+        self.assertIn("QProcess::SeparateChannels", vision)
+        self.assertIn("m_generation", vision)
+        self.assertNotIn("qDebug", vision)
+        self.assertNotIn("qInfo", vision)
+
     def test_milestone_ui_exposes_no_mutation_control(self) -> None:
         qml = "\n".join(
             path.read_text(encoding="utf-8")
@@ -134,7 +157,7 @@ class SecurityBoundaryTests(unittest.TestCase):
 
     def test_rust_skeleton_has_no_network_or_persistence_surface(self) -> None:
         rust = "\n".join(
-            path.read_text(encoding="utf-8")
+            path.read_text(encoding="utf-8").split("#[cfg(test)]", 1)[0]
             for path in sorted((ROOT / "engine").rglob("*.rs"))
         )
         for forbidden in (
@@ -151,6 +174,32 @@ class SecurityBoundaryTests(unittest.TestCase):
             self.assertNotIn(forbidden, rust)
         self.assertIn("MAX_REQUEST_BYTES", rust)
         self.assertIn("MAX_RESPONSE_BYTES", rust)
+
+    def test_vision_worker_has_no_network_auth_or_disk_write_surface(self) -> None:
+        vision_rust = "\n".join(
+            path.read_text(encoding="utf-8").split("#[cfg(test)]", 1)[0]
+            for path in sorted((ROOT / "engine").rglob("*.rs"))
+            if "vision" in path.parts
+        )
+        for forbidden in (
+            "std::net::",
+            "TcpStream",
+            "UdpSocket",
+            "reqwest",
+            "tokio",
+            "File::create",
+            "OpenOptions",
+            "fs::write",
+            "pam_",
+            "authselect",
+            "systemd",
+            "authenticate(",
+            "FaceEmbedding",
+            "PersistentEmbedding",
+        ):
+            self.assertNotIn(forbidden, vision_rust)
+        self.assertIn("MAX_WIDTH", vision_rust)
+        self.assertIn("MAX_HEIGHT", vision_rust)
 
 
 if __name__ == "__main__":

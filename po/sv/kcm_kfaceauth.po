@@ -86,6 +86,62 @@ msgstr "Starta förhandsvisning"
 msgid "Dropped preview frames: %1"
 msgstr "Tappade bildrutor i förhandsvisningen: %1"
 
+#: src/kcm/ui/CameraCheckPage.qml
+msgid ""
+"Real face detection is not enabled. This development build validates only "
+"the bounded one-frame analysis path."
+msgstr ""
+"Verklig ansiktsdetektering är inte aktiverad. Den här utvecklingsversionen "
+"validerar endast den begränsade analysvägen för en bildruta."
+
+#: src/kcm/ui/CameraCheckPage.qml
+msgid "Analyze current frame"
+msgstr "Analysera aktuell bildruta"
+
+#: src/kcm/ui/CameraCheckPage.qml
+msgid "No face was found in this frame."
+msgstr "Inget ansikte hittades i den här bildrutan."
+
+#: src/kcm/ui/CameraCheckPage.qml
+msgid "One face was found in this frame."
+msgstr "Ett ansikte hittades i den här bildrutan."
+
+#: src/kcm/ui/CameraCheckPage.qml
+msgid "Multiple faces were found in this frame."
+msgstr "Flera ansikten hittades i den här bildrutan."
+
+#: src/kcm/ui/CameraCheckPage.qml
+msgid "Center your face in the frame."
+msgstr "Centrera ansiktet i bildrutan."
+
+#: src/kcm/ui/CameraCheckPage.qml
+msgid "Move closer to the camera."
+msgstr "Flytta närmare kameran."
+
+#: src/kcm/ui/CameraCheckPage.qml
+msgid "Move farther from the camera."
+msgstr "Flytta längre bort från kameran."
+
+#: src/kcm/ui/CameraCheckPage.qml
+msgid "Add more even light."
+msgstr "Lägg till mer jämn belysning."
+
+#: src/kcm/ui/CameraCheckPage.qml
+msgid "Reduce bright light on your face."
+msgstr "Minska starkt ljus mot ansiktet."
+
+#: src/kcm/ui/CameraCheckPage.qml
+msgid "Use more even front lighting."
+msgstr "Använd jämnare belysning framifrån."
+
+#: src/kcm/ui/CameraCheckPage.qml
+msgid "Hold still and check that the camera lens is clear."
+msgstr "Håll stilla och kontrollera att kameralinsen är ren."
+
+#: src/kcm/ui/CameraCheckPage.qml
+msgid "Framing and image quality are suitable for this development check."
+msgstr "Inramning och bildkvalitet är lämpliga för den här utvecklingskontrollen."
+
 #: src/kcm/ui/DiagnosticsPage.qml:19 src/kcm/ui/main.qml:37
 msgid "Diagnostics"
 msgstr "Diagnostik"
@@ -271,6 +327,66 @@ msgstr "Kameraprocessen stoppades oväntat."
 #: src/backend/camerapreviewsession.cpp:536
 msgid "The local camera is unavailable."
 msgstr "Den lokala kameran är inte tillgänglig."
+
+#: src/backend/visionanalysissession.cpp
+msgid "Analyze one current preview frame when you choose."
+msgstr "Analysera en aktuell förhandsvisningsruta när du själv väljer."
+
+#: src/backend/visionanalysissession.cpp
+msgid "Analysis was cancelled and its in-memory data was cleared."
+msgstr "Analysen avbröts och dess data i minnet rensades."
+
+#: src/backend/visionanalysissession.cpp
+msgid "Analyzing one in-memory frame…"
+msgstr "Analyserar en bildruta i minnet…"
+
+#: src/backend/visionanalysissession.cpp
+msgid "Starting local vision analysis…"
+msgstr "Startar lokal bildanalys…"
+
+#: src/backend/visionanalysissession.cpp
+msgid "Finishing local analysis and clearing process data…"
+msgstr "Slutför lokal analys och rensar processdata…"
+
+#: src/backend/visionanalysissession.cpp
+msgid "One-frame analysis is complete. No image was saved."
+msgstr "Analysen av en bildruta är klar. Ingen bild sparades."
+
+#: src/backend/visionanalysissession.cpp
+msgid "Local vision analysis could not be started."
+msgstr "Den lokala bildanalysen kunde inte startas."
+
+#: src/backend/visionanalysissession.cpp
+msgid "Local vision analysis did not start in time."
+msgstr "Den lokala bildanalysen startade inte i tid."
+
+#: src/backend/visionanalysissession.cpp
+msgid "The one-frame analysis timed out."
+msgstr "Tidsgränsen för analysen av en bildruta överskreds."
+
+#: src/backend/visionanalysissession.cpp
+msgid "Local vision analysis did not stop cleanly."
+msgstr "Den lokala bildanalysen stoppades inte korrekt."
+
+#: src/backend/visionanalysissession.cpp
+msgid "Local vision analysis stopped unexpectedly."
+msgstr "Den lokala bildanalysen stoppades oväntat."
+
+#: src/backend/visionanalysissession.cpp
+msgid "An outdated analysis response was rejected."
+msgstr "Ett inaktuellt analyssvar avvisades."
+
+#: src/backend/visionanalysissession.cpp
+msgid "The current preview frame could not be analyzed."
+msgstr "Den aktuella förhandsvisningsrutan kunde inte analyseras."
+
+#: src/backend/visionanalysissession.cpp
+msgid "Local vision analysis could not process this frame."
+msgstr "Den lokala bildanalysen kunde inte bearbeta den här bildrutan."
+
+#: src/backend/visionanalysissession.cpp
+msgid "Local vision analysis returned invalid data."
+msgstr "Den lokala bildanalysen returnerade ogiltiga data."
 
 #: src/backend/supportreport.cpp:25
 msgid "SupportReport"

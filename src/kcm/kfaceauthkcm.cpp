@@ -15,11 +15,14 @@ KFaceAuthKcm::KFaceAuthKcm(QObject *parent, const KPluginMetaData &data)
 
 KFaceAuthKcm::KFaceAuthKcm(QObject *parent, const KPluginMetaData &data, std::unique_ptr<FaceAuthBackend> backend)
     : KQuickConfigModule(parent, data), m_probe(this), m_systemState(this), m_cameraPreviewSession(this),
+      m_visionAnalysisSession(&m_cameraPreviewSession, this),
       m_supportReport(&m_systemState, &m_cameraPreviewSession, this), m_refreshCoordinator(std::move(backend), this)
 {
     qmlRegisterType<CameraPreviewItem>(KFACEAUTH_QML_URI, 4, 0, "CameraPreview");
     qmlRegisterUncreatableType<CameraPreviewSession>(KFACEAUTH_QML_URI, 4, 0, "CameraPreviewSession",
                                                      QStringLiteral("CameraPreviewSession is provided by the KCM"));
+    qmlRegisterUncreatableType<VisionAnalysisSession>(KFACEAUTH_QML_URI, 4, 0, "VisionAnalysisSession",
+                                                      QStringLiteral("VisionAnalysisSession is provided by the KCM"));
     setButtons(NoAdditionalButton);
     connect(&m_refreshCoordinator, &RefreshCoordinator::snapshotChanged, this,
             [this](const EngineSnapshot &snapshot)
@@ -49,6 +52,11 @@ SystemState *KFaceAuthKcm::systemState()
 CameraPreviewSession *KFaceAuthKcm::cameraPreviewSession()
 {
     return &m_cameraPreviewSession;
+}
+
+VisionAnalysisSession *KFaceAuthKcm::visionAnalysisSession()
+{
+    return &m_visionAnalysisSession;
 }
 
 SupportReport *KFaceAuthKcm::supportReport()

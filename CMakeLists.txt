@@ -25,6 +25,7 @@ include(KDECompilerSettings NO_POLICY_SCOPE)
 
 find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Concurrent Core Multimedia Qml Quick)
 find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS CoreAddons I18n KCMUtils)
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(UDev REQUIRED IMPORTED_TARGET libudev)
 
@@ -32,6 +33,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/po")
     ki18n_install(po)
 endif()
 
+add_subdirectory(engine)
 add_subdirectory(src)
 add_subdirectory(data)
 

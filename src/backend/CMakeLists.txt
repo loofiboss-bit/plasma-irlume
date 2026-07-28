@@ -14,6 +14,8 @@ add_library(kfaceauth_core STATIC
     systemstate.h
     systemprobe.cpp
     systemprobe.h
+    visionanalysissession.cpp
+    visionanalysissession.h
 )
 
 set_target_properties(kfaceauth_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -28,5 +30,7 @@ target_link_libraries(kfaceauth_core
 target_include_directories(kfaceauth_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_compile_definitions(kfaceauth_core PRIVATE
     KFACEAUTH_PREVIEW_WORKER_PATH="${CMAKE_INSTALL_PREFIX}/libexec/${KFACEAUTH_PREVIEW_WORKER}"
+    KFACEAUTH_VISION_WORKER_PATH="${CMAKE_INSTALL_PREFIX}/libexec/${KFACEAUTH_VISION_WORKER}"
+    KFACEAUTH_MODEL_ROOT="${CMAKE_INSTALL_PREFIX}/share/${KFACEAUTH_MODEL_DIRECTORY}"
     KFACEAUTH_SUPPORT_PREFIX="${KFACEAUTH_SUPPORT_PREFIX}"
 )

@@ -8,6 +8,7 @@
 #include "supportreport.h"
 #include "systemprobe.h"
 #include "systemstate.h"
+#include "visionanalysissession.h"
 
 #include <KQuickConfigModule>
 
@@ -19,6 +20,7 @@ class KFaceAuthKcm final : public KQuickConfigModule
 
     Q_PROPERTY(SystemState *systemState READ systemState CONSTANT)
     Q_PROPERTY(CameraPreviewSession *cameraPreviewSession READ cameraPreviewSession CONSTANT)
+    Q_PROPERTY(VisionAnalysisSession *visionAnalysisSession READ visionAnalysisSession CONSTANT)
     Q_PROPERTY(SupportReport *supportReport READ supportReport CONSTANT)
     Q_PROPERTY(bool refreshing READ refreshing NOTIFY refreshStateChanged)
     Q_PROPERTY(bool partialDiagnostics READ partialDiagnostics NOTIFY refreshStateChanged)
@@ -31,6 +33,7 @@ class KFaceAuthKcm final : public KQuickConfigModule
 
     [[nodiscard]] SystemState *systemState();
     [[nodiscard]] CameraPreviewSession *cameraPreviewSession();
+    [[nodiscard]] VisionAnalysisSession *visionAnalysisSession();
     [[nodiscard]] SupportReport *supportReport();
     [[nodiscard]] bool refreshing() const;
     [[nodiscard]] bool partialDiagnostics() const;
@@ -44,6 +47,7 @@ class KFaceAuthKcm final : public KQuickConfigModule
     SystemProbe m_probe;
     SystemState m_systemState;
     CameraPreviewSession m_cameraPreviewSession;
+    VisionAnalysisSession m_visionAnalysisSession;
     SupportReport m_supportReport;
     RefreshCoordinator m_refreshCoordinator;
     quint64 m_probeGeneration = 0;

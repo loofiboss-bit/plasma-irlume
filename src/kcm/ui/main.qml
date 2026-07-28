@@ -64,6 +64,7 @@ KCMUtils.SimpleKCM {
             visible: tabs.currentIndex === 1
             enabled: visible
             cameraPreviewSession: kcm.cameraPreviewSession
+            visionAnalysisSession: kcm.visionAnalysisSession
         }
 
         DiagnosticsPage {

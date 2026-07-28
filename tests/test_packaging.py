@@ -33,6 +33,9 @@ class PackagingContractTests(unittest.TestCase):
             'set(KFACEAUTH_APP_ID "org.kde.kfaceauth")',
             'set(KFACEAUTH_I18N_DOMAIN "kcm_kfaceauth")',
             'set(KFACEAUTH_PREVIEW_WORKER "kfaceauth-camera-preview-worker")',
+            'set(KFACEAUTH_VISION_WORKER "kfaceauth-vision-worker")',
+            'set(KFACEAUTH_MODEL_DIRECTORY "kfaceauth/models")',
+            'set(KFACEAUTH_MODEL_MANIFEST "manifest.kfaceauth")',
         ):
             self.assertIn(declaration, identity)
 
@@ -56,6 +59,9 @@ class PackagingContractTests(unittest.TestCase):
         self.assertNotRegex(spec, r"(?m)^%(?:pre|post|preun|postun|trigger)(?:\s|$)")
         self.assertNotIn("kf6-kauth", spec)
         self.assertIn("%{_libexecdir}/kfaceauth-camera-preview-worker", spec)
+        self.assertIn("%{_libexecdir}/kfaceauth-vision-worker", spec)
+        self.assertIn("face_detection_yunet_2023mar.onnx", spec)
+        self.assertRegex(spec, r"(?m)^License:\s+GPL-3\.0-or-later AND MIT$")
         self.assertIn("kcm_kfaceauth.so", spec)
 
     def test_source_archive_is_reproducible_in_shape_and_has_no_legacy_identity(
@@ -103,6 +109,8 @@ class PackagingContractTests(unittest.TestCase):
             "cargo fmt",
             "cargo clippy",
             "cargo test",
+            "--offline",
+            "verify_models.py",
             "rpmbuild -ba",
             "rpm-smoke-test.sh",
             "kfaceauth-[0-9]*.rpm",

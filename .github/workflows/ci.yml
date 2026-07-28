@@ -60,8 +60,9 @@ jobs:
       - name: Check native engine skeleton
         run: |
           cargo fmt --manifest-path engine/Cargo.toml --all -- --check
-          cargo clippy --manifest-path engine/Cargo.toml --workspace --all-targets --locked -- -D warnings
-          cargo test --manifest-path engine/Cargo.toml --workspace --all-targets --locked
+          cargo clippy --manifest-path engine/Cargo.toml --workspace --all-targets --locked --offline -- -D warnings
+          cargo test --manifest-path engine/Cargo.toml --workspace --all-targets --locked --offline
+          python3 tools/verify_models.py --root models
 
       - name: Run unit and fixture tests
         env:

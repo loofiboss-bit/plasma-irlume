@@ -1,0 +1,6 @@
+KFACEAUTH_MODEL_MANIFEST	1
+id	path	size	sha256	role	backend	license	provenance
+yunet-2023mar	files/face_detection_yunet_2023mar.onnx	232589	8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4	detector	not-enabled	MIT	opencv-zoo-47534e27
+fake-provider-config-v1	files/fake-provider-v1.cfg	46	3904333a4e996eb34d09b7ddfe7d803567c5664f38e75df5c46c4cf55bbd775f	test-config	fake-deterministic	GPL-3.0-or-later	repo-authored
+yunet-mit-license	licenses/yunet-MIT.txt	1062	b3354fa804c2326e94cb8e3994ebd02a278ece481d1fae48549103c733843613	license	not-applicable	MIT	opencv-zoo-47534e27
+yunet-provenance	provenance/yunet-2023mar.txt	713	d54498523239a2d16810ffb1c87b0ad3d3a2697a9a8ce565a267ca3d9012db60	provenance	not-applicable	GPL-3.0-or-later	repo-authored

@@ -181,6 +181,19 @@ QImage CameraPreviewSession::frame() const
     return m_frame;
 }
 
+bool CameraPreviewSession::copyCurrentFrame(QImage *destination) const
+{
+    if (!destination)
+        return false;
+    *destination = {};
+    if (m_state != State::Streaming || m_frame.isNull() || m_frame.width() <= 0 ||
+        m_frame.width() > PreviewProtocol::MaxWidth || m_frame.height() <= 0 ||
+        m_frame.height() > PreviewProtocol::MaxHeight)
+        return false;
+    *destination = m_frame.copy();
+    return !destination->isNull();
+}
+
 int CameraPreviewSession::deviceCountForSpectrum(const QString &spectrum) const
 {
     return static_cast<int>(std::count_if(m_devices.cbegin(), m_devices.cend(),
