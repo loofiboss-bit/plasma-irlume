@@ -1,5 +1,9 @@
 # Upstream request: stable machine interface for desktop integrations
 
+> Historical design request. Irlume 0.7 now supplies the read-only Machine API
+> Contract 1 used by plasma-irlume 2.1. Mutation and streaming proposals below
+> remain future design material and are not production commands.
+
 ## Suggested title
 
 Add a versioned JSON/NDJSON integration contract for profiles, bounded camera

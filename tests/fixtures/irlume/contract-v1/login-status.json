@@ -1,0 +1,19 @@
+{
+  "contract_version": 1,
+  "engine_version": "0.7.0",
+  "command": "login.status",
+  "ok": true,
+  "data": {
+    "login_manager": {
+      "known": true,
+      "name": "plasmalogin",
+      "recognized": true,
+      "services": ["plasmalogin"]
+    },
+    "selinux_module": "unknown",
+    "surfaces": [
+      {"id": "plasmalogin", "role": "login-screen", "present": true, "wired": false},
+      {"id": "kde", "role": "lock-screen", "present": true, "wired": false}
+    ]
+  }
+}

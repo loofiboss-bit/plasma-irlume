@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fakeadapter.h"
+#include "irlumebackend.h"
 #include "systemprobe.h"
 #include "systemstate.h"
 
@@ -42,7 +43,7 @@ void SystemStateTest::fakeAdapterExposesEveryRequiredScenario()
         QCOMPARE(state.scenarioId, expectedIds.at(index));
         QVERIFY(!state.headline.isEmpty());
         QVERIFY(!state.summary.isEmpty());
-        QVERIFY(state.passwordFallbackPreserved);
+        QCOMPARE(state.passwordFallbackStatus, SystemStateSnapshot::PasswordFallbackStatus::Unknown);
     }
 }
 
@@ -63,8 +64,8 @@ void SystemStateTest::scenarioStatesAreTypedAndSafe()
 
     const auto unsupported = adapter.stateForScenario(FakeSystemStateAdapter::UnsupportedIrlume);
     QCOMPARE(unsupported.securityTier, SystemStateSnapshot::SecurityTier::Unsupported);
-    QCOMPARE(unsupported.engineStatus, SystemStateSnapshot::EngineStatus::UnsupportedVersion);
-    QCOMPARE(unsupported.engineVersion, QStringLiteral("0.7.0"));
+    QCOMPARE(unsupported.engineStatus, SystemStateSnapshot::EngineStatus::UnsupportedContract);
+    QCOMPARE(unsupported.engineVersion, QStringLiteral("1.0.0"));
 
     const auto drift = adapter.stateForScenario(FakeSystemStateAdapter::PamDrift);
     QCOMPARE(drift.pamStatus, SystemStateSnapshot::PamStatus::Drift);
@@ -83,7 +84,8 @@ void SystemStateTest::applyingStateNotifiesConsumers()
     QCOMPARE(state.scenarioId(), QStringLiteral("broken-daemon"));
     QCOMPARE(state.daemonStatus(), SystemState::DaemonStatus::Broken);
     QCOMPARE(state.securityTier(), SystemState::SecurityTier::Unsupported);
-    QCOMPARE(state.passwordFallbackPreserved(), true);
+    QCOMPARE(state.passwordFallbackPreserved(), false);
+    QCOMPARE(state.passwordFallbackStatus(), SystemState::PasswordFallbackStatus::Unknown);
     QVERIFY(!state.daemonStatusLabel().isEmpty());
 }
 
@@ -109,21 +111,31 @@ SystemProbeInputs secureProbeInputs()
     inputs.secureBootVariablePresent = true;
     inputs.secureBootVariable = QByteArray::fromHex("0700000001");
     inputs.tpmPresent = true;
-    inputs.irlumePresent = true;
-    inputs.irlumeVersionOutput = QStringLiteral("irlume 0.6.1\n");
-    inputs.irlumeStatusOutput = QStringLiteral("irlume status for 'current-account'\n"
-                                               "  daemon        : running ✅\n"
-                                               "  enrollment    : 1 profile(s), 2 scan(s) ✅ · passive blink liveness\n"
-                                               "  templates     : encrypted at rest ✅\n"
-                                               "  cameras       : rgb=/dev/video0 ir=/dev/video2\n");
-    inputs.irlumeDoctorOutput = QStringLiteral("[doctor] TPM 2.0: /dev/tpmrm0 ✓\n"
-                                               "[doctor] Secure Boot: enabled ✓\n"
-                                               "[doctor] models:\n"
-                                               "  loaded by the daemon ✓\n");
-    inputs.irlumeLoginStatusOutput = QStringLiteral("[login] wiring status (face auth in PAM):\n"
-                                                    "  active login manager: plasmalogin\n"
-                                                    "  /etc/pam.d/plasmalogin          ● wired (face-first)\n"
-                                                    "  /etc/pam.d/kde                  ● wired\n");
+    inputs.engine.executablePresent = true;
+    inputs.engine.contractAvailable = true;
+    inputs.engine.contractVersion = 1;
+    inputs.engine.engineVersion = QStringLiteral("0.7.0");
+    inputs.engine.capabilities = {true, true, true, true, false, 3, {}};
+    EngineStatusSnapshot status;
+    status.daemon = EngineStatusSnapshot::Daemon::Running;
+    status.templates = EngineStatusSnapshot::TemplateProtection::Encrypted;
+    status.enrollmentKnown = true;
+    status.profileCount = 1;
+    status.scanCount = 2;
+    status.rgbCamera = true;
+    status.irCamera = true;
+    inputs.engine.status = status;
+    inputs.engine.doctorChecks = QVector<EngineDoctorCheck>{{QStringLiteral("tpm"), EngineDoctorCheck::State::Pass}};
+    EngineLoginSnapshot login;
+    login.loginManagerKnown = true;
+    login.loginManagerName = QStringLiteral("plasmalogin");
+    login.loginManagerRecognized = true;
+    login.loginManagerServices = {QStringLiteral("plasmalogin")};
+    login.surfaces = {
+        {QStringLiteral("plasmalogin"), QStringLiteral("login-screen"), true, true, QStringLiteral("face-first")},
+        {QStringLiteral("kde"), QStringLiteral("lock-screen"), true, true, QStringLiteral("on-demand")},
+    };
+    inputs.engine.login = login;
     return inputs;
 }
 } // namespace
@@ -135,11 +147,11 @@ void SystemStateTest::liveProbeDetectsSecureFedoraSystem()
     QCOMPARE(state.fedoraVersion, QStringLiteral("44"));
     QCOMPARE(state.plasmaVersion, QStringLiteral("6.6.2"));
     QCOMPARE(state.activeDisplayManager, QStringLiteral("Plasma Login Manager"));
-    QCOMPARE(state.engineVersion, QStringLiteral("0.6.1"));
+    QCOMPARE(state.engineVersion, QStringLiteral("0.7.0"));
     QCOMPARE(state.engineStatus, SystemStateSnapshot::EngineStatus::Ready);
     QCOMPARE(state.daemonStatus, SystemStateSnapshot::DaemonStatus::Running);
     QCOMPARE(state.cameraType, SystemStateSnapshot::CameraType::Infrared);
-    QCOMPARE(state.securityTier, SystemStateSnapshot::SecurityTier::Secure);
+    QCOMPARE(state.securityTier, SystemStateSnapshot::SecurityTier::Unsupported);
     QCOMPARE(state.profileStatus, SystemStateSnapshot::ProfileStatus::Enrolled);
     QCOMPARE(state.templateProtectionStatus, SystemStateSnapshot::CapabilityStatus::Available);
     QCOMPARE(state.secureBootStatus, SystemStateSnapshot::SecureBootStatus::Enabled);
@@ -149,31 +161,34 @@ void SystemStateTest::liveProbeRestrictsRgbHardware()
 {
     auto inputs = secureProbeInputs();
     inputs.displayManagerTarget = QStringLiteral("/usr/lib/systemd/system/sddm.service");
-    inputs.irlumeStatusOutput = QStringLiteral("  daemon        : running ✅\n"
-                                               "  enrollment    : none ⚠\n"
-                                               "  cameras       : rgb=/dev/video0 ir=none\n");
-    inputs.irlumeLoginStatusOutput = QStringLiteral("[login] wiring status (face auth in PAM):\n"
-                                                    "  active login manager: sddm\n"
-                                                    "  /etc/pam.d/sddm                ● wired (face-first)\n"
-                                                    "  /etc/pam.d/kde                 ● wired\n");
+    inputs.engine.status->profileCount = 0;
+    inputs.engine.status->scanCount = 0;
+    inputs.engine.status->irCamera = false;
+    inputs.engine.login->loginManagerName = QStringLiteral("sddm");
+    inputs.engine.login->loginManagerServices = {QStringLiteral("sddm")};
+    inputs.engine.login->surfaces = {
+        {QStringLiteral("sddm"), QStringLiteral("login-screen"), true, true, QStringLiteral("face-first")},
+        {QStringLiteral("kde"), QStringLiteral("lock-screen"), true, true, QStringLiteral("on-demand")},
+    };
 
     const auto state = SystemProbe::evaluate(inputs);
     QCOMPARE(state.activeDisplayManager, QStringLiteral("SDDM"));
     QCOMPARE(state.securityTier, SystemStateSnapshot::SecurityTier::Convenience);
     QCOMPARE(state.cameraType, SystemStateSnapshot::CameraType::Rgb);
-    QCOMPARE(state.livenessStatus, SystemStateSnapshot::CapabilityStatus::Unavailable);
+    QCOMPARE(state.livenessStatus, SystemStateSnapshot::CapabilityStatus::Unknown);
     QCOMPARE(state.profileStatus, SystemStateSnapshot::ProfileStatus::NotEnrolled);
 }
 
 void SystemStateTest::liveProbeRejectsUnsupportedEngine()
 {
     auto inputs = secureProbeInputs();
-    inputs.irlumeVersionOutput = QStringLiteral("irlume 0.7.0\n");
+    inputs.engine.contractAvailable = false;
+    inputs.engine.errors = {{QStringLiteral("unsupported-contract"), false}};
 
     const auto state = SystemProbe::evaluate(inputs);
     QCOMPARE(state.securityTier, SystemStateSnapshot::SecurityTier::Unsupported);
-    QCOMPARE(state.engineStatus, SystemStateSnapshot::EngineStatus::UnsupportedVersion);
-    QCOMPARE(state.issueCode, QStringLiteral("engine-version-unsupported"));
+    QCOMPARE(state.engineStatus, SystemStateSnapshot::EngineStatus::UnsupportedContract);
+    QCOMPARE(state.issueCode, QStringLiteral("unsupported-contract"));
 }
 
 void SystemStateTest::liveProbeRejectsUnsupportedPlatform()
@@ -189,11 +204,8 @@ void SystemStateTest::liveProbeRejectsUnsupportedPlatform()
 void SystemStateTest::liveProbeDetectsDisplayManagerMigration()
 {
     auto inputs = secureProbeInputs();
-    inputs.irlumeLoginStatusOutput = QStringLiteral("[login] wiring status (face auth in PAM):\n"
-                                                    "  active login manager: plasmalogin\n"
-                                                    "  /etc/pam.d/plasmalogin          ● wired (face-first)\n"
-                                                    "  /etc/pam.d/kde                  ● wired\n"
-                                                    "  /etc/pam.d/sddm                 ● wired (stale)\n");
+    inputs.engine.login->surfaces.push_back(
+        {QStringLiteral("sddm"), QStringLiteral("login-screen"), true, true, QStringLiteral("face-first")});
 
     const auto state = SystemProbe::evaluate(inputs);
 
@@ -206,7 +218,7 @@ void SystemStateTest::supportReportIsRedacted()
 {
     auto inputs = secureProbeInputs();
     inputs.displayManagerTarget = QStringLiteral("/home/private/display-manager.service");
-    inputs.irlumeStatusOutput += QStringLiteral("profile: private@example.test /dev/video9\n");
+    inputs.engine.engineVersion = QStringLiteral("0.7.0-private@example.test");
 
     const auto state = SystemProbe::evaluate(inputs);
     QVERIFY(!state.supportReport.contains(QStringLiteral("/home/")));
@@ -218,7 +230,8 @@ void SystemStateTest::supportReportIsRedacted()
 
 void SystemStateTest::hostProbeProducesSafeSnapshot()
 {
-    const auto state = SystemProbe().probe();
+    IrlumeBackend backend;
+    const auto state = SystemProbe().probe(backend.refresh());
 
     QVERIFY(state.liveData);
     QCOMPARE(state.scenarioId, QStringLiteral("live-system"));

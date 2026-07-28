@@ -69,8 +69,6 @@ KCMUtils.SimpleKCM {
             openAccess: () => tabs.currentIndex = 2
             refresh: () => {
                 kcm.refresh();
-                kcm.profileModel.refresh();
-                kcm.cameraConfiguration.refresh();
             }
         }
 

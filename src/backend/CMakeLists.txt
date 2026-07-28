@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 add_library(irlume_backend STATIC
+    faceauthbackend.h
     authactionrunner.cpp
     authactionrunner.h
     authconfiguration.cpp

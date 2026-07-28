@@ -2,6 +2,17 @@
 
 All notable changes to plasma-irlume are documented in this file.
 
+## 2.1.0 - 2026-07-28
+
+- Add a backend-neutral `FaceAuthBackend` boundary and an irlume adapter.
+- Negotiate released irlume 0.7 Machine API Contract 1 and capability-gate all
+  fixed read-only commands.
+- Replace human-readable output and engine-version parsing with typed JSON.
+- Keep enrollment, profile, camera, and authentication mutations disabled and
+  fail-closed without starting undocumented subprocesses.
+- Require `irlume >= 0.7.0` without an upper version bound.
+- Document the transitional dependency and future native-engine milestones.
+
 ## 2.0.0 - 2026-07-26
 
 - Replace five technical tabs with Setup & Status, Face Profiles, Access, and

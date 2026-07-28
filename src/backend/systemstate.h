@@ -26,7 +26,7 @@ struct SystemStateSnapshot
     {
         Ready,
         Missing,
-        UnsupportedVersion,
+        UnsupportedContract,
         Unavailable,
     };
 
@@ -67,6 +67,13 @@ struct SystemStateSnapshot
         Unknown,
     };
 
+    enum class PasswordFallbackStatus
+    {
+        Verified,
+        Unverified,
+        Unknown,
+    };
+
     QString scenarioId;
     QString headline;
     QString summary;
@@ -88,7 +95,7 @@ struct SystemStateSnapshot
     CapabilityStatus livenessStatus = CapabilityStatus::Unknown;
     ProfileStatus profileStatus = ProfileStatus::Unknown;
     SecureBootStatus secureBootStatus = SecureBootStatus::Unknown;
-    bool passwordFallbackPreserved = true;
+    PasswordFallbackStatus passwordFallbackStatus = PasswordFallbackStatus::Unknown;
     bool liveData = false;
 };
 
@@ -118,6 +125,7 @@ class SystemState final : public QObject
     Q_PROPERTY(ProfileStatus profileStatus READ profileStatus NOTIFY stateChanged)
     Q_PROPERTY(SecureBootStatus secureBootStatus READ secureBootStatus NOTIFY stateChanged)
     Q_PROPERTY(bool passwordFallbackPreserved READ passwordFallbackPreserved NOTIFY stateChanged)
+    Q_PROPERTY(PasswordFallbackStatus passwordFallbackStatus READ passwordFallbackStatus NOTIFY stateChanged)
     Q_PROPERTY(bool liveData READ liveData NOTIFY stateChanged)
     Q_PROPERTY(QString securityTierLabel READ securityTierLabel NOTIFY stateChanged)
     Q_PROPERTY(QString cameraLabel READ cameraLabel NOTIFY stateChanged)
@@ -154,7 +162,7 @@ class SystemState final : public QObject
     {
         Ready,
         Missing,
-        UnsupportedVersion,
+        UnsupportedContract,
         Unavailable,
     };
     Q_ENUM(EngineStatus)
@@ -201,6 +209,14 @@ class SystemState final : public QObject
     };
     Q_ENUM(SecureBootStatus)
 
+    enum class PasswordFallbackStatus
+    {
+        Verified,
+        Unverified,
+        Unknown,
+    };
+    Q_ENUM(PasswordFallbackStatus)
+
     explicit SystemState(QObject *parent = nullptr);
 
     void apply(const SystemStateSnapshot &snapshot);
@@ -227,6 +243,7 @@ class SystemState final : public QObject
     [[nodiscard]] ProfileStatus profileStatus() const;
     [[nodiscard]] SecureBootStatus secureBootStatus() const;
     [[nodiscard]] bool passwordFallbackPreserved() const;
+    [[nodiscard]] PasswordFallbackStatus passwordFallbackStatus() const;
     [[nodiscard]] bool liveData() const;
 
     [[nodiscard]] QString securityTierLabel() const;

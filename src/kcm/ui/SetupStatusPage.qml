@@ -21,7 +21,7 @@ Kirigami.ScrollablePage {
 
     readonly property bool engineReady: systemState.engineStatus === 0
         && systemState.daemonStatus === 0
-        && profileModel.contractAvailable
+        && profileModel.readOnlyAvailable
     readonly property bool cameraReady: cameraConfiguration.ready
         && cameraConfiguration.emitterTested
         && cameraConfiguration.emitterAvailable
@@ -32,7 +32,7 @@ Kirigami.ScrollablePage {
         : (!profileReady ? 2
         : (!recoveryReady ? 4 : 5)))
     readonly property string nextAction: !engineReady
-        ? i18n("Upgrade irlume to unlock guided setup")
+        ? i18n("Install a Contract 1 compatible backend")
         : (!cameraReady
         ? i18n("Connect and test a supported camera")
         : (!profileReady
@@ -102,9 +102,9 @@ Kirigami.ScrollablePage {
 
         Kirigami.InlineMessage {
             Layout.fillWidth: true
-            visible: !root.profileModel.contractAvailable && !root.profileModel.busy
+            visible: !root.profileModel.mutationSupported && !root.profileModel.busy
             type: Kirigami.MessageType.Warning
-            text: i18n("irlume 0.6.x remains available for read-only diagnostics. Guided setup requires the reviewed V2 engine contract.")
+            text: i18n("irlume Contract 1 is read-only. Enrollment and authentication changes remain disabled.")
         }
 
         Kirigami.AbstractCard {
@@ -143,15 +143,15 @@ Kirigami.ScrollablePage {
 
                 Kirigami.InlineMessage {
                     Layout.fillWidth: true
-                    visible: !root.cameraConfiguration.contractAvailable
+                    visible: !root.cameraConfiguration.mutationSupported
                         && !root.cameraConfiguration.busy
                     type: Kirigami.MessageType.Warning
-                    text: i18n("Camera management requires the reviewed irlume camera contract.")
+                    text: i18n("Contract 1 reports camera capability but does not support camera configuration.")
                 }
 
                 RowLayout {
                     Layout.fillWidth: true
-                    visible: root.cameraConfiguration.contractAvailable
+                    visible: true
 
                     QQC2.ComboBox {
                         id: cameraPair
@@ -159,7 +159,8 @@ Kirigami.ScrollablePage {
                         Layout.fillWidth: true
                         model: root.cameraConfiguration.pairLabels
                         currentIndex: root.cameraConfiguration.selectedPairIndex
-                        enabled: !root.cameraConfiguration.busy
+                        enabled: root.cameraConfiguration.mutationSupported
+                            && !root.cameraConfiguration.busy
                             && root.cameraConfiguration.pairLabels.length > 0
                         Accessible.name: i18n("Secure camera pair")
                         onActivated: index => root.cameraConfiguration.selectedPairIndex = index
@@ -168,7 +169,8 @@ Kirigami.ScrollablePage {
                     QQC2.Button {
                         text: i18n("Use pair")
                         icon.name: "dialog-ok-apply"
-                        enabled: !root.cameraConfiguration.busy
+                        enabled: root.cameraConfiguration.mutationSupported
+                            && !root.cameraConfiguration.busy
                             && root.cameraConfiguration.selectedPairIndex >= 0
                             && root.cameraConfiguration.selectedPairIndex
                                 !== root.cameraConfiguration.activePairIndex
@@ -178,7 +180,7 @@ Kirigami.ScrollablePage {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    visible: root.cameraConfiguration.contractAvailable
+                    visible: true
 
                     QQC2.Button {
                         text: i18n("Check again")
@@ -190,14 +192,16 @@ Kirigami.ScrollablePage {
                     QQC2.Button {
                         text: i18n("Set up emitter")
                         icon.name: "preferences-system-power-management"
-                        enabled: !root.cameraConfiguration.busy && root.cameraConfiguration.ready
+                        enabled: root.cameraConfiguration.mutationSupported
+                            && !root.cameraConfiguration.busy && root.cameraConfiguration.ready
                         onClicked: root.cameraConfiguration.setupEmitter()
                     }
 
                     QQC2.Button {
                         text: i18n("Tune capture")
                         icon.name: "configure"
-                        enabled: !root.cameraConfiguration.busy && root.cameraConfiguration.ready
+                        enabled: root.cameraConfiguration.mutationSupported
+                            && !root.cameraConfiguration.busy && root.cameraConfiguration.ready
                         onClicked: root.cameraConfiguration.tuneCamera()
                     }
 
@@ -208,7 +212,7 @@ Kirigami.ScrollablePage {
 
                 Components.DetailRow {
                     Layout.fillWidth: true
-                    visible: root.cameraConfiguration.contractAvailable
+                    visible: true
                     label: i18n("Active pair")
                     value: root.cameraConfiguration.activePairIndex >= 0
                         ? i18n("Verified") : i18n("Not selected")
@@ -217,12 +221,12 @@ Kirigami.ScrollablePage {
 
                 Kirigami.Separator {
                     Layout.fillWidth: true
-                    visible: root.cameraConfiguration.contractAvailable
+                    visible: true
                 }
 
                 Components.DetailRow {
                     Layout.fillWidth: true
-                    visible: root.cameraConfiguration.contractAvailable
+                    visible: true
                     label: i18n("Infrared emitter")
                     value: !root.cameraConfiguration.emitterTested ? i18n("Not tested")
                         : (root.cameraConfiguration.emitterAvailable

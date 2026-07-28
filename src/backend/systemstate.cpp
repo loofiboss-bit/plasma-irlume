@@ -119,7 +119,12 @@ SystemState::SecureBootStatus SystemState::secureBootStatus() const
 
 bool SystemState::passwordFallbackPreserved() const
 {
-    return m_snapshot.passwordFallbackPreserved;
+    return m_snapshot.passwordFallbackStatus == SystemStateSnapshot::PasswordFallbackStatus::Verified;
+}
+
+SystemState::PasswordFallbackStatus SystemState::passwordFallbackStatus() const
+{
+    return static_cast<PasswordFallbackStatus>(m_snapshot.passwordFallbackStatus);
 }
 
 bool SystemState::liveData() const
@@ -181,8 +186,8 @@ QString SystemState::engineStatusLabel() const
         return tr("Ready");
     case SystemStateSnapshot::EngineStatus::Missing:
         return tr("Not installed");
-    case SystemStateSnapshot::EngineStatus::UnsupportedVersion:
-        return tr("Unsupported version");
+    case SystemStateSnapshot::EngineStatus::UnsupportedContract:
+        return tr("Unsupported machine contract");
     case SystemStateSnapshot::EngineStatus::Unavailable:
         return tr("Unavailable");
     }

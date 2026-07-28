@@ -1609,3 +1609,99 @@ msgstr "Använd par"
 
 msgid "Verified"
 msgstr "Verifierat"
+
+msgid "Review Face Login wiring. The installed Contract 1 backend is read-only, so configuration changes are disabled."
+msgstr "Granska inkopplingen för Ansiktsinloggning. Den installerade Contract 1-bakänden är skrivskyddad, så konfigurationsändringar är inaktiverade."
+
+msgid "Authentication changes require a future backend mutation capability. No PAM command will be started."
+msgstr "Autentiseringsändringar kräver en framtida ändringsförmåga i bakänden. Inget PAM-kommando kommer att startas."
+
+msgid "Contract 1 reports current wiring but cannot disable it through the KCM. Use the documented TTY recovery command when a change is required."
+msgstr "Contract 1 rapporterar aktuell inkoppling men kan inte inaktivera den via inställningsmodulen. Använd det dokumenterade TTY-återställningskommandot när en ändring krävs."
+
+msgid "Profiles are read-only because the installed backend does not expose mutation capabilities."
+msgstr "Profiler är skrivskyddade eftersom den installerade bakänden inte erbjuder ändringsförmågor."
+
+msgid "Install a Contract 1 compatible backend"
+msgstr "Installera en bakände som är kompatibel med Contract 1"
+
+msgid "irlume Contract 1 is read-only. Enrollment and authentication changes remain disabled."
+msgstr "irlume Contract 1 är skrivskyddat. Registrering och autentiseringsändringar förblir inaktiverade."
+
+msgid "Contract 1 reports camera capability but does not support camera configuration."
+msgstr "Contract 1 rapporterar kameraförmåga men stöder inte kamerakonfiguration."
+
+msgid "Authentication wiring is shown read-only. Contract 1 does not support configuration changes."
+msgstr "Autentiseringsinkopplingen visas skrivskyddad. Contract 1 stöder inte konfigurationsändringar."
+
+msgid "Contract 1 does not support authentication configuration changes."
+msgstr "Contract 1 stöder inte ändringar av autentiseringskonfigurationen."
+
+msgid "Camera capability is available read-only. Pair selection and tuning are disabled."
+msgstr "Kameraförmågan är tillgänglig skrivskyddad. Parval och justering är inaktiverade."
+
+msgid "Camera capability is unknown because read-only status is unavailable."
+msgstr "Kameraförmågan är okänd eftersom skrivskyddad status inte är tillgänglig."
+
+msgid "The installed backend exposes read-only Contract 1 but not camera mutation capabilities."
+msgstr "Den installerade bakänden erbjuder skrivskyddat Contract 1 men inga förmågor för kameraändringar."
+
+msgid "The backend did not complete a valid read-only handshake."
+msgstr "Bakänden slutförde inte en giltig skrivskyddad handskakning."
+
+msgid "The backend does not advertise read-only profile listing."
+msgstr "Bakänden annonserar inte skrivskyddad profillistning."
+
+msgid "The read-only profile list is unavailable."
+msgstr "Den skrivskyddade profillistan är inte tillgänglig."
+
+msgid "Profiles are shown read-only. Contract 1 does not support enrollment or profile changes."
+msgstr "Profiler visas skrivskyddade. Contract 1 stöder inte registrering eller profiländringar."
+
+msgid "The installed backend exposes read-only Contract 1 but not the required mutation capability."
+msgstr "Den installerade bakänden erbjuder skrivskyddat Contract 1 men inte den ändringsförmåga som krävs."
+
+msgid "The face-authentication backend is not installed"
+msgstr "Bakänden för ansiktsautentisering är inte installerad"
+
+msgid "Install irlume 0.7 or newer to run Contract 1 readiness checks."
+msgstr "Installera irlume 0.7 eller senare för att köra beredskapskontroller för Contract 1."
+
+msgid "The machine contract is unavailable"
+msgstr "Maskinkontraktet är inte tillgängligt"
+
+msgid "The installed backend did not complete a valid Contract 1 handshake."
+msgstr "Den installerade bakänden slutförde inte en giltig handskakning för Contract 1."
+
+msgid "Read-only face-authentication status is available"
+msgstr "Skrivskyddad status för ansiktsautentisering är tillgänglig"
+
+msgid "The backend supports Contract 1 diagnostics. Configuration changes remain disabled."
+msgstr "Bakänden stöder Contract 1-diagnostik. Konfigurationsändringar förblir inaktiverade."
+
+msgid "Some read-only backend state is unavailable or inconsistent."
+msgstr "Viss skrivskyddad status från bakänden är inte tillgänglig eller är inkonsekvent."
+
+msgid "The installed backend does not support Machine API Contract 1"
+msgstr "Den installerade bakänden stöder inte Machine API Contract 1"
+
+msgid "The requested backend capability is unavailable"
+msgstr "Den begärda förmågan i bakänden är inte tillgänglig"
+
+msgid "Install an irlume release that advertises Machine API Contract 1."
+msgstr "Installera en irlume-version som annonserar Machine API Contract 1."
+
+msgid "Keep the unsupported operation disabled. Contract 1 is read-only."
+msgstr "Låt åtgärden som inte stöds vara inaktiverad. Contract 1 är skrivskyddat."
+
+msgid "Use the documented engine recovery procedure outside this read-only KCM, then refresh."
+msgstr "Använd motorns dokumenterade återställningsprocedur utanför den här skrivskyddade inställningsmodulen och uppdatera sedan."
+
+msgid "Use the engine recovery procedure to remove old wiring, then refresh this read-only view."
+msgstr "Använd motorns återställningsprocedur för att ta bort gammal inkoppling och uppdatera sedan den här skrivskyddade vyn."
+
+msgid "The machine contract is not supported"
+msgstr "Maskinkontraktet stöds inte"
+
+msgid "The simulated backend does not advertise Machine API Contract 1. The engine version is informational."
+msgstr "Den simulerade bakänden annonserar inte Machine API Contract 1. Motorversionen är endast informativ."

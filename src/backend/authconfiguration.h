@@ -3,6 +3,7 @@
 #pragma once
 
 #include "authactionrunner.h"
+#include "faceauthbackend.h"
 
 #include <QObject>
 #include <QString>
@@ -16,6 +17,7 @@ class AuthConfiguration final : public QObject
 
     Q_PROPERTY(bool busy READ busy NOTIFY stateChanged)
     Q_PROPERTY(bool contractAvailable READ contractAvailable NOTIFY stateChanged)
+    Q_PROPERTY(bool mutationSupported READ mutationSupported NOTIFY stateChanged)
     Q_PROPERTY(bool canEnableLockScreen READ canEnableLockScreen NOTIFY stateChanged)
     Q_PROPERTY(bool canEnableLoginScreen READ canEnableLoginScreen NOTIFY stateChanged)
     Q_PROPERTY(bool canDisable READ canDisable NOTIFY stateChanged)
@@ -39,6 +41,8 @@ class AuthConfiguration final : public QObject
 
     [[nodiscard]] bool busy() const;
     [[nodiscard]] bool contractAvailable() const;
+    [[nodiscard]] bool mutationSupported() const;
+    void applySnapshot(const EngineSnapshot &snapshot);
     [[nodiscard]] bool canEnableLockScreen() const;
     [[nodiscard]] bool canEnableLoginScreen() const;
     [[nodiscard]] bool canDisable() const;
@@ -84,6 +88,7 @@ class AuthConfiguration final : public QObject
     AuthActionRunner *m_runner = nullptr;
     bool m_busy = false;
     bool m_contractAvailable = false;
+    bool m_mutationSupported = false;
     bool m_lockScreenEnabled = false;
     bool m_loginScreenEnabled = false;
     bool m_recoveryAcknowledged = false;

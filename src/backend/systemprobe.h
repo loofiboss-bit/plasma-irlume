@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "faceauthbackend.h"
 #include "systemstate.h"
 
 #include <QByteArray>
@@ -15,17 +16,13 @@ struct SystemProbeInputs
     QByteArray secureBootVariable;
     bool secureBootVariablePresent = false;
     bool tpmPresent = false;
-    bool irlumePresent = false;
-    QString irlumeVersionOutput;
-    QString irlumeStatusOutput;
-    QString irlumeDoctorOutput;
-    QString irlumeLoginStatusOutput;
+    EngineSnapshot engine;
 };
 
 class SystemProbe final
 {
   public:
-    [[nodiscard]] SystemStateSnapshot probe() const;
+    [[nodiscard]] SystemStateSnapshot probe(const EngineSnapshot &engine) const;
     [[nodiscard]] static SystemStateSnapshot evaluate(const SystemProbeInputs &inputs);
     [[nodiscard]] static QString parseOsReleaseValue(const QByteArray &contents, const QString &key);
 };

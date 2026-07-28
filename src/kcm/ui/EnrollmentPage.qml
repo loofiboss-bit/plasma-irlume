@@ -57,11 +57,11 @@ Kirigami.ScrollablePage {
 
         Kirigami.InlineMessage {
             Layout.fillWidth: true
-            visible: !profileModel.contractAvailable && !profileModel.busy
+            visible: !profileModel.mutationSupported && !profileModel.busy
             type: Kirigami.MessageType.Information
             text: profileModel.statusText.length > 0
                 ? profileModel.statusText
-                : i18n("Profile management requires an irlume release with the structured integration contract.")
+                : i18n("Profiles are read-only because the installed backend does not expose mutation capabilities.")
             actions: [
                 Kirigami.Action {
                     text: i18n("Check again")
@@ -268,7 +268,7 @@ Kirigami.ScrollablePage {
 
         Kirigami.AbstractCard {
             Layout.fillWidth: true
-            visible: profileModel.contractAvailable && profileModel.profileCount < profileModel.maxProfiles
+            visible: profileModel.profileCount < profileModel.maxProfiles
             Accessible.role: Accessible.Grouping
             Accessible.name: i18n("Create a face profile")
 
@@ -292,7 +292,8 @@ Kirigami.ScrollablePage {
                     Layout.alignment: Qt.AlignRight
                     text: i18n("Start enrollment")
                     icon.name: "camera-photo"
-                    enabled: !profileModel.busy
+                    enabled: profileModel.mutationSupported
+                        && !profileModel.busy
                         && systemState.engineStatus === 0
                         && systemState.daemonStatus === 0
                         && systemState.cameraType !== 2
@@ -388,7 +389,8 @@ Kirigami.ScrollablePage {
                                 text: i18n("Rename scan")
                                 icon.name: "edit-rename"
                                 display: QQC2.AbstractButton.IconOnly
-                                enabled: !profileModel.busy && !profileModel.mergeConfirmationRequired
+                                enabled: profileModel.mutationSupported
+                                    && !profileModel.busy && !profileModel.mergeConfirmationRequired
                                 Accessible.name: i18n("Rename scan “%1”", modelData.displayName)
                                 onClicked: {
                                     renameDialog.profileId = profileCard.profileId;
@@ -403,7 +405,8 @@ Kirigami.ScrollablePage {
                                 text: i18n("Delete scan")
                                 icon.name: "edit-delete"
                                 display: QQC2.AbstractButton.IconOnly
-                                enabled: !profileModel.busy
+                                enabled: profileModel.mutationSupported
+                                    && !profileModel.busy
                                     && !profileModel.mergeConfirmationRequired
                                     && profileCard.scanCount > 1
                                 Accessible.name: i18n("Delete scan “%1”", modelData.displayName)
@@ -424,21 +427,24 @@ Kirigami.ScrollablePage {
                         QQC2.Button {
                             text: i18n("Test recognition")
                             icon.name: "security-high"
-                            enabled: !profileModel.busy && !profileModel.mergeConfirmationRequired
+                            enabled: profileModel.mutationSupported
+                                && !profileModel.busy && !profileModel.mergeConfirmationRequired
                             onClicked: profileModel.testRecognition(profileCard.profileId)
                         }
 
                         QQC2.Button {
                             text: i18n("Add appearance scan")
                             icon.name: "list-add"
-                            enabled: !profileModel.busy && !profileModel.mergeConfirmationRequired
+                            enabled: profileModel.mutationSupported
+                                && !profileModel.busy && !profileModel.mergeConfirmationRequired
                             onClicked: profileModel.addAppearanceScan(profileCard.profileId)
                         }
 
                         QQC2.Button {
                             text: i18n("Rename profile")
                             icon.name: "edit-rename"
-                            enabled: !profileModel.busy && !profileModel.mergeConfirmationRequired
+                            enabled: profileModel.mutationSupported
+                                && !profileModel.busy && !profileModel.mergeConfirmationRequired
                             onClicked: {
                                 renameDialog.profileId = profileCard.profileId;
                                 renameDialog.scanId = "";
@@ -451,7 +457,8 @@ Kirigami.ScrollablePage {
                         QQC2.Button {
                             text: i18n("Delete profile")
                             icon.name: "edit-delete"
-                            enabled: !profileModel.busy && !profileModel.mergeConfirmationRequired
+                            enabled: profileModel.mutationSupported
+                                && !profileModel.busy && !profileModel.mergeConfirmationRequired
                             onClicked: {
                                 deleteDialog.profileId = profileCard.profileId;
                                 deleteDialog.profileName = profileCard.displayName;

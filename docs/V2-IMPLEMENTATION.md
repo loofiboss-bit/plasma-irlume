@@ -1,5 +1,10 @@
 # V2 Implementation Status
 
+> Historical V2 design and qualification record. Version 2.1 supersedes its
+> runtime assumptions with released, read-only irlume Machine API Contract 1.
+> Proposed preview, camera, profile, and login mutations described below are
+> test/design artifacts and are not reachable from production.
+
 ## Product goal
 
 V2 turns Face Login into a guided KDE workflow with four task-oriented areas:

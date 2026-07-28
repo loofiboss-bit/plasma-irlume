@@ -28,7 +28,6 @@ using SecureBootStatus = SystemStateSnapshot::SecureBootStatus;
 
 struct CommandResult
 {
-    bool started = false;
     bool finished = false;
     int exitCode = -1;
     QString standardOutput;
@@ -42,17 +41,13 @@ QString translate(const char *text)
 QByteArray readBoundedFile(const QString &path, qsizetype maximumBytes = MaximumProbeOutput)
 {
     QFile file(path);
-    if (!file.open(QIODevice::ReadOnly))
-    {
-        return {};
-    }
-    return file.read(maximumBytes);
+    return file.open(QIODevice::ReadOnly) ? file.read(maximumBytes) : QByteArray();
 }
 
-CommandResult runReadOnlyCommand(const QString &program, const QStringList &arguments)
+CommandResult runLocalCommand(const QString &program, const QStringList &arguments)
 {
     QProcess process;
-    QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
+    QProcessEnvironment environment;
     environment.insert(QStringLiteral("LC_ALL"), QStringLiteral("C"));
     environment.insert(QStringLiteral("LANG"), QStringLiteral("C"));
     process.setProcessEnvironment(environment);
@@ -60,13 +55,9 @@ CommandResult runReadOnlyCommand(const QString &program, const QStringList &argu
     process.setArguments(arguments);
     process.setProcessChannelMode(QProcess::SeparateChannels);
     process.start(QIODevice::ReadOnly);
-
+    if (!process.waitForStarted(ProcessTimeoutMs))
+        return {};
     CommandResult result;
-    result.started = process.waitForStarted(ProcessTimeoutMs);
-    if (!result.started)
-    {
-        return result;
-    }
     result.finished = process.waitForFinished(ProcessTimeoutMs);
     if (!result.finished)
     {
@@ -75,7 +66,9 @@ CommandResult runReadOnlyCommand(const QString &program, const QStringList &argu
         return result;
     }
     result.exitCode = process.exitCode();
-    result.standardOutput = QString::fromUtf8(process.readAllStandardOutput().left(MaximumProbeOutput));
+    const QByteArray output = process.readAllStandardOutput();
+    if (output.size() <= MaximumProbeOutput)
+        result.standardOutput = QString::fromUtf8(output);
     return result;
 }
 
@@ -83,165 +76,86 @@ QString packageVersion(const QString &package)
 {
     const QString rpm = QStringLiteral("/usr/bin/rpm");
     if (!QFileInfo(rpm).isExecutable())
-    {
         return {};
-    }
     const CommandResult result =
-        runReadOnlyCommand(rpm, {QStringLiteral("-q"), QStringLiteral("--qf"), QStringLiteral("%{VERSION}"), package});
+        runLocalCommand(rpm, {QStringLiteral("-q"), QStringLiteral("--qf"), QStringLiteral("%{VERSION}"), package});
     if (!result.finished || result.exitCode != 0)
-    {
         return {};
-    }
-
     const QString version = result.standardOutput.trimmed();
     static const QRegularExpression safeVersion(QStringLiteral(R"(\A[A-Za-z0-9._+~:-]{1,64}\z)"));
     return safeVersion.match(version).hasMatch() ? version : QString();
-}
-
-QString normalizedVersion(const QString &output)
-{
-    static const QRegularExpression versionPattern(
-        QStringLiteral(R"((?:^|\s)(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)(?:\s|$))"));
-    const auto match = versionPattern.match(output.trimmed());
-    return match.hasMatch() ? match.captured(1) : QString();
-}
-
-bool supportedIrlumeVersion(const QString &version)
-{
-    static const QRegularExpression supported(QStringLiteral(R"(\A0\.6\.\d+(?:-[0-9A-Za-z.-]+)?\z)"));
-    return supported.match(version).hasMatch();
 }
 
 QString displayManagerLabel(const QString &target)
 {
     const QString service = QFileInfo(target).fileName().toLower();
     if (service.contains(QStringLiteral("plasmalogin")) || service.contains(QStringLiteral("plasma-login-manager")))
-    {
         return QStringLiteral("Plasma Login Manager");
-    }
     if (service.contains(QStringLiteral("sddm")))
-    {
         return QStringLiteral("SDDM");
-    }
-    if (service.isEmpty())
-    {
-        return QStringLiteral("Unknown");
-    }
-    return QStringLiteral("Unsupported (%1)").arg(service.left(64));
-}
-
-PamStatus pamStatusFromOutput(const QString &output, const QString &displayManager)
-{
-    QStringList serviceNames;
-    if (displayManager == QStringLiteral("Plasma Login Manager"))
-    {
-        serviceNames = {QStringLiteral("plasmalogin"), QStringLiteral("/kde")};
-    }
-    else if (displayManager == QStringLiteral("SDDM"))
-    {
-        serviceNames = {QStringLiteral("/sddm"), QStringLiteral("/kde")};
-    }
-    else
-    {
-        return PamStatus::Unknown;
-    }
-
-    int present = 0;
-    int wired = 0;
-    for (const QString &line : output.split(QLatin1Char('\n')))
-    {
-        if (!line.contains(QStringLiteral("wired"), Qt::CaseInsensitive))
-        {
-            continue;
-        }
-        const bool relevant = std::any_of(serviceNames.cbegin(), serviceNames.cend(),
-                                          [&line](const QString &serviceName) { return line.contains(serviceName); });
-        if (!relevant)
-        {
-            continue;
-        }
-        ++present;
-        if (line.contains(QStringLiteral("● wired")))
-        {
-            ++wired;
-        }
-    }
-
-    if (present == 0)
-    {
-        return PamStatus::Unknown;
-    }
-    if (wired == 0)
-    {
-        return PamStatus::NotConfigured;
-    }
-    return wired == present ? PamStatus::Clean : PamStatus::Drift;
-}
-
-bool displayManagerMigrationDetected(const QString &output, const QString &displayManager)
-{
-    const QString lower = output.toLower();
-    if (displayManager == QLatin1String("Plasma Login Manager"))
-    {
-        return lower.contains(QRegularExpression(QStringLiteral(R"((?:^|\n)[^\n]*sddm[^\n]*wired)")));
-    }
-    if (displayManager == QLatin1String("SDDM"))
-    {
-        return lower.contains(
-            QRegularExpression(QStringLiteral(R"((?:^|\n)[^\n]*(?:plasmalogin|plasma-login-manager)[^\n]*wired)")));
-    }
-    return false;
+    return service.isEmpty() ? QStringLiteral("Unknown") : QStringLiteral("Unsupported (%1)").arg(service.left(64));
 }
 
 SecureBootStatus secureBootStatus(const SystemProbeInputs &inputs)
 {
     if (!inputs.secureBootVariablePresent || inputs.secureBootVariable.size() < 5)
-    {
         return SecureBootStatus::Unknown;
-    }
     return inputs.secureBootVariable.at(4) == '\x01' ? SecureBootStatus::Enabled : SecureBootStatus::Disabled;
 }
 
-QString enumToken(SecurityTier tier)
+CapabilityStatus doctorCapability(const EngineSnapshot &engine, const QString &id)
 {
-    switch (tier)
-    {
-    case SecurityTier::Secure:
-        return QStringLiteral("secure");
-    case SecurityTier::Convenience:
-        return QStringLiteral("convenience");
-    case SecurityTier::Unsupported:
-        return QStringLiteral("unsupported");
-    }
-    return QStringLiteral("unsupported");
+    if (!engine.doctorChecks)
+        return CapabilityStatus::Unknown;
+    const auto match = std::find_if(engine.doctorChecks->cbegin(), engine.doctorChecks->cend(),
+                                    [&id](const EngineDoctorCheck &check) { return check.id == id; });
+    if (match == engine.doctorChecks->cend() || match->state == EngineDoctorCheck::State::Unknown ||
+        match->state == EngineDoctorCheck::State::Info)
+        return CapabilityStatus::Unknown;
+    return match->state == EngineDoctorCheck::State::Pass ? CapabilityStatus::Available : CapabilityStatus::Unavailable;
 }
 
-QString statusToken(CapabilityStatus status)
+PamStatus pamStatus(const EngineLoginSnapshot &login, const QString &localDisplayManager, bool *migration)
 {
-    switch (status)
-    {
-    case CapabilityStatus::Available:
-        return QStringLiteral("available");
-    case CapabilityStatus::Unavailable:
-        return QStringLiteral("unavailable");
-    case CapabilityStatus::Unknown:
-        return QStringLiteral("unknown");
-    }
-    return QStringLiteral("unknown");
-}
+    *migration = false;
+    if (!login.loginManagerKnown || !login.loginManagerRecognized)
+        return PamStatus::Unknown;
 
-QString secureBootToken(SecureBootStatus status)
-{
-    switch (status)
+    const QString expectedName = localDisplayManager == QLatin1String("Plasma Login Manager")
+                                     ? QStringLiteral("plasmalogin")
+                                 : localDisplayManager == QLatin1String("SDDM") ? QStringLiteral("sddm")
+                                                                                : QString();
+    if (expectedName.isEmpty())
+        return PamStatus::Unknown;
+    if (login.loginManagerName != expectedName)
     {
-    case SecureBootStatus::Enabled:
-        return QStringLiteral("enabled");
-    case SecureBootStatus::Disabled:
-        return QStringLiteral("disabled");
-    case SecureBootStatus::Unknown:
-        return QStringLiteral("unknown");
+        *migration = true;
+        return PamStatus::Drift;
     }
-    return QStringLiteral("unknown");
+
+    int relevant = 0;
+    int wired = 0;
+    for (const EngineLoginSurface &surface : login.surfaces)
+    {
+        const bool currentLoginSurface = login.loginManagerServices.contains(surface.id);
+        const bool lockSurface = surface.id == QLatin1String("kde") && surface.role == QLatin1String("lock-screen");
+        if (surface.role == QLatin1String("login-screen") && surface.wired && !currentLoginSurface)
+            *migration = true;
+        if (!currentLoginSurface && !lockSurface)
+            continue;
+        if (!surface.present)
+            continue;
+        ++relevant;
+        if (surface.wired)
+            ++wired;
+    }
+    if (*migration)
+        return PamStatus::Drift;
+    if (relevant == 0)
+        return PamStatus::Unknown;
+    if (wired == 0)
+        return PamStatus::NotConfigured;
+    return wired == relevant ? PamStatus::Clean : PamStatus::Drift;
 }
 
 QString reportValue(const QString &value)
@@ -260,55 +174,35 @@ QString makeSupportReport(const SystemStateSnapshot &state)
                           "- Fedora: %1\n"
                           "- Plasma: %2\n"
                           "- Display manager: %3\n"
-                          "- irlume: %4\n"
-                          "- Security tier: %5\n"
-                          "- TPM hardware: %6\n"
-                          "- Template protection: %7\n"
-                          "- Secure Boot: %8\n"
-                          "- Diagnostic code: %9\n")
+                          "- Backend version: %4\n"
+                          "- Diagnostic code: %5\n")
         .arg(reportValue(state.fedoraVersion), reportValue(state.plasmaVersion),
-             reportValue(state.activeDisplayManager), reportValue(state.engineVersion), enumToken(state.securityTier),
-             statusToken(state.tpmStatus), statusToken(state.templateProtectionStatus),
-             secureBootToken(state.secureBootStatus),
+             reportValue(state.activeDisplayManager), reportValue(state.engineVersion),
              reportValue(state.issueCode.isEmpty() ? QStringLiteral("none") : state.issueCode));
 }
 } // namespace
 
-SystemStateSnapshot SystemProbe::probe() const
+SystemStateSnapshot SystemProbe::probe(const EngineSnapshot &engine) const
 {
     SystemProbeInputs inputs;
     inputs.osRelease = readBoundedFile(QStringLiteral("/etc/os-release"));
     inputs.plasmaVersion = packageVersion(QStringLiteral("plasma-workspace"));
-
     const QFileInfo displayManager(QStringLiteral("/etc/systemd/system/display-manager.service"));
     inputs.displayManagerTarget =
         displayManager.isSymLink() ? displayManager.symLinkTarget() : displayManager.canonicalFilePath();
 
     const QDir efivars(QStringLiteral("/sys/firmware/efi/efivars"));
-    const QStringList secureBootVariables =
+    const QStringList variables =
         efivars.entryList({QStringLiteral("SecureBoot-*")}, QDir::Files | QDir::Readable, QDir::Name);
-    if (!secureBootVariables.isEmpty())
+    if (!variables.isEmpty())
     {
         inputs.secureBootVariablePresent = true;
-        inputs.secureBootVariable = readBoundedFile(efivars.filePath(secureBootVariables.constFirst()), 8);
+        inputs.secureBootVariable = readBoundedFile(efivars.filePath(variables.constFirst()), 8);
     }
-
-    inputs.tpmPresent = QDir(QStringLiteral("/sys/class/tpm")).exists() &&
-                        !QDir(QStringLiteral("/sys/class/tpm"))
-                             .entryList({QStringLiteral("tpm*")}, QDir::Dirs | QDir::NoDotAndDotDot)
-                             .isEmpty();
-
-    const QString irlume = QStringLiteral("/usr/bin/irlume");
-    inputs.irlumePresent = QFileInfo(irlume).isExecutable();
-    if (inputs.irlumePresent)
-    {
-        inputs.irlumeVersionOutput = runReadOnlyCommand(irlume, {QStringLiteral("--version")}).standardOutput;
-        inputs.irlumeStatusOutput = runReadOnlyCommand(irlume, {QStringLiteral("status")}).standardOutput;
-        inputs.irlumeDoctorOutput = runReadOnlyCommand(irlume, {QStringLiteral("doctor")}).standardOutput;
-        inputs.irlumeLoginStatusOutput =
-            runReadOnlyCommand(irlume, {QStringLiteral("login"), QStringLiteral("status")}).standardOutput;
-    }
-
+    const QDir tpm(QStringLiteral("/sys/class/tpm"));
+    inputs.tpmPresent =
+        tpm.exists() && !tpm.entryList({QStringLiteral("tpm*")}, QDir::Dirs | QDir::NoDotAndDotDot).isEmpty();
+    inputs.engine = engine;
     return evaluate(inputs);
 }
 
@@ -319,176 +213,124 @@ SystemStateSnapshot SystemProbe::evaluate(const SystemProbeInputs &inputs)
     state.dataSource = translate("Live local system");
     state.liveData = true;
     state.fedoraVersion = parseOsReleaseValue(inputs.osRelease, QStringLiteral("VERSION_ID"));
-    const QString distribution = parseOsReleaseValue(inputs.osRelease, QStringLiteral("ID")).toLower();
     state.plasmaVersion = inputs.plasmaVersion;
     state.activeDisplayManager = displayManagerLabel(inputs.displayManagerTarget);
     state.secureBootStatus = secureBootStatus(inputs);
     state.tpmStatus = inputs.tpmPresent ? CapabilityStatus::Available : CapabilityStatus::Unavailable;
-    state.engineVersion = normalizedVersion(inputs.irlumeVersionOutput);
+    state.engineVersion = inputs.engine.engineVersion;
+    state.passwordFallbackStatus = SystemStateSnapshot::PasswordFallbackStatus::Unknown;
 
-    if (!inputs.irlumePresent)
+    if (!inputs.engine.executablePresent)
     {
-        state.headline = translate("irlume is not installed");
-        state.summary = translate("Install irlume 0.6.x to run live face-authentication readiness checks.");
+        state.headline = translate("The face-authentication backend is not installed");
+        state.summary = translate("Install irlume 0.7 or newer to run Contract 1 readiness checks.");
         state.issueCode = QStringLiteral("engine-missing");
         state.engineStatus = EngineStatus::Missing;
         state.daemonStatus = DaemonStatus::Missing;
-        state.pamStatus = PamStatus::NotConfigured;
         state.supportReport = makeSupportReport(state);
         return state;
     }
-
-    if (!supportedIrlumeVersion(state.engineVersion))
+    if (!inputs.engine.contractAvailable)
     {
-        state.headline = translate("This irlume version is not supported");
-        state.summary = translate("plasma-irlume supports the read-only diagnostic output of irlume 0.6.x.");
-        state.issueCode = QStringLiteral("engine-version-unsupported");
-        state.engineStatus = EngineStatus::UnsupportedVersion;
+        state.headline = translate("The machine contract is unavailable");
+        state.summary = translate("The installed backend did not complete a valid Contract 1 handshake.");
+        state.issueCode = inputs.engine.errors.isEmpty() ? QStringLiteral("machine-contract-unavailable")
+                                                         : inputs.engine.errors.constFirst().code;
+        state.engineStatus = state.issueCode == QLatin1String("unsupported-contract")
+                                 ? EngineStatus::UnsupportedContract
+                                 : EngineStatus::Unavailable;
         state.supportReport = makeSupportReport(state);
         return state;
     }
 
     state.engineStatus = EngineStatus::Ready;
-    const QString status = inputs.irlumeStatusOutput;
-    state.daemonStatus =
-        status.contains(QStringLiteral("daemon        : running"))
-            ? DaemonStatus::Running
-            : (status.contains(QStringLiteral("daemon        : NOT reachable")) ? DaemonStatus::Broken
-                                                                                : DaemonStatus::Unknown);
-
-    if (status.contains(QRegularExpression(QStringLiteral(R"(enrollment\s+:\s+\d+ profile\(s\))"))))
+    if (inputs.engine.status)
     {
-        state.profileStatus = ProfileStatus::Enrolled;
-    }
-    else if (status.contains(QRegularExpression(QStringLiteral(R"(enrollment\s+:\s+none)"))))
-    {
-        state.profileStatus = ProfileStatus::NotEnrolled;
-    }
-    if (status.contains(QRegularExpression(QStringLiteral(R"(templates\s+:\s+encrypted at rest)"))))
-    {
-        state.templateProtectionStatus = CapabilityStatus::Available;
-    }
-    else if (status.contains(QRegularExpression(QStringLiteral(R"(templates\s+:\s+plaintext)"))))
-    {
-        state.templateProtectionStatus = CapabilityStatus::Unavailable;
-    }
-
-    const QRegularExpression cameraLine(QStringLiteral(R"(cameras\s+:\s+rgb=([^\s]+)\s+ir=([^\s]+))"));
-    const auto cameraMatch = cameraLine.match(status);
-    if (cameraMatch.hasMatch())
-    {
-        const bool rgb = cameraMatch.captured(1) != QStringLiteral("none");
-        const bool infrared = cameraMatch.captured(2) != QStringLiteral("none");
-        state.cameraType = infrared ? CameraType::Infrared : (rgb ? CameraType::Rgb : CameraType::None);
-        state.emitterStatus = infrared ? CapabilityStatus::Unknown : CapabilityStatus::Unavailable;
-        state.livenessStatus =
-            infrared ? CapabilityStatus::Available : (rgb ? CapabilityStatus::Unavailable : CapabilityStatus::Unknown);
+        const EngineStatusSnapshot &status = *inputs.engine.status;
+        if (status.daemon == EngineStatusSnapshot::Daemon::Running)
+            state.daemonStatus = DaemonStatus::Running;
+        else
+            state.daemonStatus = DaemonStatus::Broken;
+        if (status.enrollmentKnown)
+            state.profileStatus =
+                status.profileCount.value_or(0) > 0 ? ProfileStatus::Enrolled : ProfileStatus::NotEnrolled;
+        if (status.templates == EngineStatusSnapshot::TemplateProtection::Encrypted)
+            state.templateProtectionStatus = CapabilityStatus::Available;
+        else if (status.templates == EngineStatusSnapshot::TemplateProtection::Plaintext)
+            state.templateProtectionStatus = CapabilityStatus::Unavailable;
+        if (status.irCamera)
+        {
+            state.cameraType = CameraType::Infrared;
+            state.securityTier = SecurityTier::Unsupported;
+        }
+        else if (status.rgbCamera)
+        {
+            state.cameraType = CameraType::Rgb;
+            state.securityTier = SecurityTier::Convenience;
+        }
+        else
+        {
+            state.cameraType = CameraType::None;
+            state.securityTier = SecurityTier::Unsupported;
+        }
     }
 
-    const QString doctor = inputs.irlumeDoctorOutput;
-    if (doctor.contains(QStringLiteral("[doctor] TPM 2.0: none")))
-    {
-        state.tpmStatus = CapabilityStatus::Unavailable;
-    }
-    else if (doctor.contains(QRegularExpression(QStringLiteral(R"(\[doctor\] TPM 2\.0: .+ [✓\x{2705}])"))))
-    {
-        state.tpmStatus = CapabilityStatus::Available;
-    }
-    if (doctor.contains(QStringLiteral("[doctor] Secure Boot: enabled")))
-    {
-        state.secureBootStatus = SecureBootStatus::Enabled;
-    }
-    else if (doctor.contains(QStringLiteral("[doctor] Secure Boot: disabled")) ||
-             doctor.contains(QStringLiteral("[doctor] Secure Boot: SETUP MODE")))
-    {
-        state.secureBootStatus = SecureBootStatus::Disabled;
-    }
+    const CapabilityStatus doctorTpm = doctorCapability(inputs.engine, QStringLiteral("tpm"));
+    if (doctorTpm != CapabilityStatus::Unknown)
+        state.tpmStatus = doctorTpm;
+    state.livenessStatus = CapabilityStatus::Unknown;
+    state.emitterStatus = CapabilityStatus::Unknown;
 
-    state.pamStatus = pamStatusFromOutput(inputs.irlumeLoginStatusOutput, state.activeDisplayManager);
-    const bool displayManagerMigration =
-        displayManagerMigrationDetected(inputs.irlumeLoginStatusOutput, state.activeDisplayManager);
-    if (displayManagerMigration)
+    bool migration = false;
+    if (inputs.engine.login)
+        state.pamStatus = pamStatus(*inputs.engine.login, state.activeDisplayManager, &migration);
+    if (migration)
     {
-        state.pamStatus = PamStatus::Drift;
-    }
-
-    if (distribution != QStringLiteral("fedora") || state.fedoraVersion != QStringLiteral("44"))
-    {
+        state.issueCode = QStringLiteral("display-manager-migration");
         state.securityTier = SecurityTier::Unsupported;
-        state.headline = translate("This operating system is not supported");
-        state.summary = translate("Version 2.0 supports Fedora 44 on mutable DNF-based installations.");
-        state.issueCode = QStringLiteral("platform-unsupported");
     }
-    else if (state.activeDisplayManager != QStringLiteral("Plasma Login Manager") &&
-             state.activeDisplayManager != QStringLiteral("SDDM"))
+    else if (!inputs.engine.errors.isEmpty())
     {
-        state.securityTier = SecurityTier::Unsupported;
-        state.headline = translate("The active display manager is not supported");
-        state.summary = translate("Face login supports Plasma Login Manager and SDDM on Fedora 44.");
-        state.issueCode = QStringLiteral("display-manager-unsupported");
+        state.issueCode = inputs.engine.errors.constFirst().code;
     }
-    else if (state.daemonStatus != DaemonStatus::Running)
+    else if (state.daemonStatus == DaemonStatus::Broken)
     {
-        state.securityTier = SecurityTier::Unsupported;
-        state.headline = translate("The irlume service needs attention");
-        state.summary = translate("The engine is installed, but its background service is not reachable.");
         state.issueCode = QStringLiteral("daemon-unhealthy");
     }
-    else if (displayManagerMigration)
+
+    const QString distribution = parseOsReleaseValue(inputs.osRelease, QStringLiteral("ID")).toLower();
+    if (distribution != QLatin1String("fedora") || state.fedoraVersion != QLatin1String("44"))
     {
+        state.issueCode = QStringLiteral("platform-unsupported");
         state.securityTier = SecurityTier::Unsupported;
-        state.headline = translate("A display-manager migration needs attention");
-        state.summary = translate(
-            "Face Login detected wiring for the previous display manager and will not rewrite it automatically.");
-        state.issueCode = QStringLiteral("display-manager-migration");
     }
-    else if (state.pamStatus == PamStatus::Drift)
+
+    if (state.issueCode.isEmpty())
     {
-        state.securityTier = SecurityTier::Unsupported;
-        state.headline = translate("Authentication configuration has drifted");
-        state.summary = translate("The observed PAM state does not match the active display manager.");
-        state.issueCode = QStringLiteral("pam-drift");
-    }
-    else if (state.cameraType == CameraType::Infrared && state.livenessStatus == CapabilityStatus::Available)
-    {
-        state.securityTier = SecurityTier::Secure;
-        state.headline = translate("Secure face login hardware is available");
-        state.summary = translate("irlume reports infrared hardware and required liveness capability.");
-    }
-    else if (state.cameraType == CameraType::Rgb)
-    {
-        state.securityTier = SecurityTier::Convenience;
-        state.headline = translate("Face unlock is limited to convenience use");
-        state.summary = translate("RGB-only hardware is restricted to lock-screen use.");
-        state.issueCode = QStringLiteral("rgb-convenience-only");
+        state.headline = translate("Read-only face-authentication status is available");
+        state.summary =
+            translate("The backend supports Contract 1 diagnostics. Configuration changes remain disabled.");
     }
     else
     {
-        state.securityTier = SecurityTier::Unsupported;
-        state.headline = translate("No compatible face-login camera was found");
-        state.summary = translate("irlume did not report usable RGB or infrared camera hardware.");
-        state.issueCode = QStringLiteral("camera-unavailable");
+        state.headline = translate("Face Login needs attention");
+        state.summary = translate("Some read-only backend state is unavailable or inconsistent.");
     }
-
     state.supportReport = makeSupportReport(state);
     return state;
 }
 
 QString SystemProbe::parseOsReleaseValue(const QByteArray &contents, const QString &key)
 {
-    const QString prefix = key + QLatin1Char('=');
-    const QString text = QString::fromUtf8(contents);
-    for (const QString &line : text.split(QLatin1Char('\n')))
+    for (const QByteArray &line : contents.split('\n'))
     {
-        if (!line.startsWith(prefix))
-        {
+        const int separator = line.indexOf('=');
+        if (separator <= 0 || QString::fromLatin1(line.left(separator)) != key)
             continue;
-        }
-        QString value = line.sliced(prefix.size()).trimmed();
-        if (value.size() >= 2 && value.front() == QLatin1Char('"') && value.back() == QLatin1Char('"'))
-        {
-            value = value.sliced(1, value.size() - 2);
-        }
+        QString value = QString::fromUtf8(line.mid(separator + 1)).trimmed();
+        if (value.size() >= 2 && ((value.startsWith(QLatin1Char('"')) && value.endsWith(QLatin1Char('"'))) ||
+                                  (value.startsWith(QLatin1Char('\'')) && value.endsWith(QLatin1Char('\'')))))
+            value = value.mid(1, value.size() - 2);
         static const QRegularExpression safeValue(QStringLiteral(R"(\A[A-Za-z0-9._+~ -]{1,96}\z)"));
         return safeValue.match(value).hasMatch() ? value : QString();
     }

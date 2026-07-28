@@ -62,8 +62,7 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
 {
     FakeSystemStateAdapter adapter;
     ProfileModel profileModel;
-    EnrollmentSession enrollmentSession(QStringLiteral("/nonexistent/irlume"));
-    IrlumeProcess cameraProcess(QStringLiteral("/nonexistent/irlume"));
+    EnrollmentSession enrollmentSession;
     QQmlEngine engine;
     auto *localizedContext = KLocalization::setupLocalizedContext(&engine);
     localizedContext->setTranslationDomain(QStringLiteral("plasma_irlume"));
@@ -73,9 +72,8 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
         SystemState state;
         state.apply(adapter.stateForScenario(index));
         NullAuthActionRunner authRunner;
-        NullAuthActionRunner cameraRunner;
         AuthConfiguration authConfiguration(&state, &authRunner);
-        CameraConfiguration cameraConfiguration(&cameraProcess, &cameraRunner);
+        CameraConfiguration cameraConfiguration;
         SupportReport supportReport(&state, &profileModel, &authConfiguration);
 
         const QVariant stateValue = QVariant::fromValue(&state);

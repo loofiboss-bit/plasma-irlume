@@ -29,9 +29,16 @@ Kirigami.ScrollablePage {
 
         QQC2.Label {
             Layout.fillWidth: true
-            text: i18n("Review and enable Face Login for each supported scope. irlume plans every change; the KCM never edits PAM files directly.")
+            text: i18n("Review Face Login wiring. The installed Contract 1 backend is read-only, so configuration changes are disabled.")
             color: Kirigami.Theme.disabledTextColor
             wrapMode: Text.Wrap
+        }
+
+        Kirigami.InlineMessage {
+            Layout.fillWidth: true
+            visible: !authConfiguration.mutationSupported
+            type: Kirigami.MessageType.Information
+            text: i18n("Authentication changes require a future backend mutation capability. No PAM command will be started.")
         }
 
         Kirigami.InlineMessage {

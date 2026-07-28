@@ -2,7 +2,7 @@
 
 cmake_minimum_required(VERSION 3.22)
 
-project(plasma-irlume VERSION 2.0.0 LANGUAGES CXX)
+project(plasma-irlume VERSION 2.1.0 LANGUAGES CXX)
 
 set(QT_MIN_VERSION "6.8.0")
 set(KF_MIN_VERSION "6.10.0")

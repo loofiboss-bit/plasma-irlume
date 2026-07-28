@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "authactionrunner.h"
-#include "irlumeprocess.h"
+#include "faceauthbackend.h"
 
 #include <QObject>
 #include <QString>
@@ -14,7 +13,9 @@ class CameraConfiguration final : public QObject
     Q_OBJECT
 
     Q_PROPERTY(bool busy READ busy NOTIFY stateChanged)
-    Q_PROPERTY(bool contractAvailable READ contractAvailable NOTIFY stateChanged)
+    Q_PROPERTY(bool contractAvailable READ mutationSupported NOTIFY stateChanged)
+    Q_PROPERTY(bool readOnlyAvailable READ readOnlyAvailable NOTIFY stateChanged)
+    Q_PROPERTY(bool mutationSupported READ mutationSupported NOTIFY stateChanged)
     Q_PROPERTY(bool hasPairs READ hasPairs NOTIFY stateChanged)
     Q_PROPERTY(bool ready READ ready NOTIFY stateChanged)
     Q_PROPERTY(QStringList pairLabels READ pairLabels NOTIFY stateChanged)
@@ -29,11 +30,12 @@ class CameraConfiguration final : public QObject
     Q_PROPERTY(QString errorCode READ errorCode NOTIFY stateChanged)
 
   public:
-    explicit CameraConfiguration(IrlumeProcess *process, QObject *parent = nullptr);
-    CameraConfiguration(IrlumeProcess *process, AuthActionRunner *runner, QObject *parent = nullptr);
+    explicit CameraConfiguration(QObject *parent = nullptr);
 
+    void applySnapshot(const EngineSnapshot &snapshot);
     [[nodiscard]] bool busy() const;
-    [[nodiscard]] bool contractAvailable() const;
+    [[nodiscard]] bool readOnlyAvailable() const;
+    [[nodiscard]] bool mutationSupported() const;
     [[nodiscard]] bool hasPairs() const;
     [[nodiscard]] bool ready() const;
     [[nodiscard]] QStringList pairLabels() const;
@@ -56,38 +58,13 @@ class CameraConfiguration final : public QObject
   Q_SIGNALS:
     void stateChanged();
     void configurationChanged();
+    void refreshRequested();
 
   private:
-    enum class ReadPhase
-    {
-        Idle,
-        Capabilities,
-        Cameras,
-        Emitter,
-    };
+    void failCapability();
 
-    void handleEvent(const IrlumeProcess::Event &event);
-    void handleProcessError(IrlumeProcess::Operation operation, const QString &errorCode, bool retryable);
-    void handleActionCompleted(AuthAction action, bool success, const QVariantMap &data, const QString &errorCode);
-    [[nodiscard]] bool parseCameras(const QJsonObject &data);
-    void finishError(const QString &errorCode);
-    void beginRead(ReadPhase phase, IrlumeProcess::Operation operation);
-
-    IrlumeProcess *m_process = nullptr;
-    AuthActionRunner *m_runner = nullptr;
-    ReadPhase m_phase = ReadPhase::Idle;
-    bool m_busy = false;
-    bool m_contractAvailable = false;
-    bool m_activeKnown = false;
-    bool m_emitterTested = false;
-    bool m_emitterAvailable = false;
-    int m_emitterControlCount = 0;
-    int m_selectedPairIndex = -1;
-    int m_activePairIndex = -1;
-    QStringList m_pairIds;
-    QStringList m_pairLabels;
-    QString m_captureMode;
-    bool m_tuneConclusive = false;
+    bool m_readOnlyAvailable = false;
+    bool m_mutationSupported = false;
     QString m_statusText;
     QString m_errorCode;
 };

@@ -4,7 +4,6 @@
 #include "fakeadapter.h"
 #include "systemstate.h"
 
-#include <QSignalSpy>
 #include <QTest>
 
 class FakeAuthActionRunner final : public AuthActionRunner
@@ -15,12 +14,7 @@ class FakeAuthActionRunner final : public AuthActionRunner
     bool start(AuthAction action, const QVariantMap &arguments) override
     {
         calls.push_back({action, arguments});
-        return starts;
-    }
-
-    void finish(AuthAction action, bool success, const QVariantMap &data = {}, const QString &errorCode = {})
-    {
-        Q_EMIT completed(action, success, data, errorCode);
+        return true;
     }
 
     struct Call
@@ -29,7 +23,6 @@ class FakeAuthActionRunner final : public AuthActionRunner
         QVariantMap arguments;
     };
     QList<Call> calls;
-    bool starts = true;
 };
 
 class AuthConfigurationTest final : public QObject
@@ -37,15 +30,20 @@ class AuthConfigurationTest final : public QObject
     Q_OBJECT
 
   private Q_SLOTS:
-    void secureStateEnablesBothScopes();
-    void rgbStateNeverEnablesLoginScreen();
-    void recoveryMustBeAcknowledged();
-    void previewAndVerifiedMutationUpdateState();
-    void automaticRollbackIsReported();
-    void emergencyDisableUsesFixedVerifiedAction();
+    void contractOneIsReadOnly();
+    void allMutationEntrypointsFailClosed();
+    void loginSnapshotIsPresentedReadOnly();
 };
 
-void AuthConfigurationTest::secureStateEnablesBothScopes()
+EngineSnapshot contractOneSnapshot()
+{
+    EngineSnapshot snapshot;
+    snapshot.contractAvailable = true;
+    snapshot.capabilities.mutationSupported = false;
+    return snapshot;
+}
+
+void AuthConfigurationTest::contractOneIsReadOnly()
 {
     FakeSystemStateAdapter adapter;
     SystemState state;
@@ -53,128 +51,67 @@ void AuthConfigurationTest::secureStateEnablesBothScopes()
     FakeAuthActionRunner runner;
     AuthConfiguration configuration(&state, &runner);
 
-    QVERIFY(configuration.canEnableLockScreen());
-    QVERIFY(configuration.canEnableLoginScreen());
-    QVERIFY(configuration.canDisable());
+    configuration.applySnapshot(contractOneSnapshot());
+
+    QVERIFY(configuration.contractAvailable() == false);
+    QVERIFY(configuration.mutationSupported() == false);
+    QVERIFY(configuration.canEnableLockScreen() == false);
+    QVERIFY(configuration.canEnableLoginScreen() == false);
+    QVERIFY(configuration.canDisable() == false);
     QCOMPARE(configuration.recoveryCommand(), QStringLiteral("sudo irlume login disable --apply"));
 }
 
-void AuthConfigurationTest::rgbStateNeverEnablesLoginScreen()
-{
-    FakeSystemStateAdapter adapter;
-    auto snapshot = adapter.stateForScenario(FakeSystemStateAdapter::RgbOnly);
-    snapshot.profileStatus = SystemStateSnapshot::ProfileStatus::Enrolled;
-    SystemState state;
-    state.apply(snapshot);
-    FakeAuthActionRunner runner;
-    AuthConfiguration configuration(&state, &runner);
-
-    QVERIFY(configuration.canEnableLockScreen());
-    QVERIFY(!configuration.canEnableLoginScreen());
-    configuration.previewLoginScreen();
-    QVERIFY(runner.calls.isEmpty());
-    QCOMPARE(configuration.errorCode(), QStringLiteral("secure-tier-required"));
-}
-
-void AuthConfigurationTest::recoveryMustBeAcknowledged()
+void AuthConfigurationTest::allMutationEntrypointsFailClosed()
 {
     FakeSystemStateAdapter adapter;
     SystemState state;
     state.apply(adapter.stateForScenario(FakeSystemStateAdapter::SecureIr));
     FakeAuthActionRunner runner;
     AuthConfiguration configuration(&state, &runner);
+    configuration.applySnapshot(contractOneSnapshot());
 
-    configuration.enableLockScreen();
+    const QList<std::function<void()>> operations{
+        [&configuration]() { configuration.previewLockScreen(); },
+        [&configuration]() { configuration.previewLoginScreen(); },
+        [&configuration]() { configuration.previewDisable(); },
+        [&configuration]() { configuration.enableLockScreen(); },
+        [&configuration]() { configuration.enableLoginScreen(); },
+        [&configuration]() { configuration.disable(); },
+        [&configuration]() { configuration.disableNow(); },
+        [&configuration]() { configuration.rollbackLastTransaction(); },
+    };
+
+    for (const auto &operation : operations)
+    {
+        operation();
+        QCOMPARE(configuration.errorCode(), QStringLiteral("capability-unavailable"));
+        QVERIFY(configuration.busy() == false);
+    }
     QVERIFY(runner.calls.isEmpty());
-    QCOMPARE(configuration.errorCode(), QStringLiteral("recovery-not-acknowledged"));
-
-    configuration.setRecoveryAcknowledged(true);
-    configuration.enableLockScreen();
-    QVERIFY(runner.calls.isEmpty());
-    QCOMPARE(configuration.errorCode(), QStringLiteral("preview-required"));
-
-    configuration.previewLockScreen();
-    runner.finish(AuthAction::Preview, true,
-                  {
-                      {QStringLiteral("scope"), QStringLiteral("lock-screen")},
-                      {QStringLiteral("changes"), QStringList{QStringLiteral("pam-service:kde")}},
-                  });
-    QVERIFY(configuration.canApplyLockScreen());
-    configuration.enableLockScreen();
-    QCOMPARE(runner.calls.size(), 2);
-    QCOMPARE(runner.calls.last().action, AuthAction::EnableLockScreen);
 }
 
-void AuthConfigurationTest::previewAndVerifiedMutationUpdateState()
+void AuthConfigurationTest::loginSnapshotIsPresentedReadOnly()
 {
     FakeSystemStateAdapter adapter;
     SystemState state;
     state.apply(adapter.stateForScenario(FakeSystemStateAdapter::SecureIr));
     FakeAuthActionRunner runner;
     AuthConfiguration configuration(&state, &runner);
-    QSignalSpy changedSpy(&configuration, &AuthConfiguration::configurationChanged);
+    EngineSnapshot snapshot = contractOneSnapshot();
+    EngineLoginSnapshot login;
+    login.loginManagerServices = {QStringLiteral("plasmalogin")};
+    login.surfaces = {
+        {QStringLiteral("kde"), QStringLiteral("lock-screen"), true, true, QStringLiteral("required")},
+        {QStringLiteral("plasmalogin"), QStringLiteral("login-screen"), true, true, QStringLiteral("required")},
+    };
+    snapshot.login = login;
 
-    configuration.previewLockScreen();
-    QCOMPARE(runner.calls.last().action, AuthAction::Preview);
-    QCOMPARE(runner.calls.last().arguments.value(QStringLiteral("scope")).toString(), QStringLiteral("lock-screen"));
-    runner.finish(AuthAction::Preview, true,
-                  {{QStringLiteral("scope"), QStringLiteral("lock-screen")},
-                   {QStringLiteral("changes"),
-                    QStringList{QStringLiteral("pam-service:plasmalogin"), QStringLiteral("pam-service:kde")}}});
-    QVERIFY(configuration.previewAvailable());
-    QCOMPARE(configuration.previewChanges().size(), 2);
+    configuration.applySnapshot(snapshot);
 
-    configuration.setRecoveryAcknowledged(true);
-    configuration.enableLockScreen();
-    runner.finish(AuthAction::EnableLockScreen, true,
-                  {
-                      {QStringLiteral("transactionId"), QStringLiteral("transaction-example-001")},
-                      {QStringLiteral("verified"), true},
-                      {QStringLiteral("passwordFallbackPreserved"), true},
-                  });
     QVERIFY(configuration.lockScreenEnabled());
-    QVERIFY(!configuration.previewAvailable());
-    QCOMPARE(changedSpy.count(), 1);
-}
-
-void AuthConfigurationTest::automaticRollbackIsReported()
-{
-    FakeSystemStateAdapter adapter;
-    SystemState state;
-    state.apply(adapter.stateForScenario(FakeSystemStateAdapter::SecureIr));
-    FakeAuthActionRunner runner;
-    AuthConfiguration configuration(&state, &runner);
-
-    configuration.previewLoginScreen();
-    runner.finish(AuthAction::Preview, true,
-                  {
-                      {QStringLiteral("scope"), QStringLiteral("login-screen")},
-                      {QStringLiteral("changes"), QStringList{QStringLiteral("pam-service:plasmalogin")}},
-                  });
-    configuration.setRecoveryAcknowledged(true);
-    configuration.enableLoginScreen();
-    runner.finish(AuthAction::EnableLoginScreen, false, {{QStringLiteral("rollbackRestored"), true}},
-                  QStringLiteral("post-apply-verification-failed"));
-
-    QVERIFY(configuration.rollbackRestored());
-    QVERIFY(!configuration.loginScreenEnabled());
-    QVERIFY(configuration.statusText().contains(QStringLiteral("restored"), Qt::CaseInsensitive));
-}
-
-void AuthConfigurationTest::emergencyDisableUsesFixedVerifiedAction()
-{
-    FakeSystemStateAdapter adapter;
-    SystemState state;
-    state.apply(adapter.stateForScenario(FakeSystemStateAdapter::SecureIr));
-    FakeAuthActionRunner runner;
-    AuthConfiguration configuration(&state, &runner);
-
-    configuration.disableNow();
-
-    QCOMPARE(runner.calls.size(), 1);
-    QCOMPARE(runner.calls.constFirst().action, AuthAction::Disable);
-    QVERIFY(runner.calls.constFirst().arguments.isEmpty());
-    QVERIFY(configuration.busy());
+    QVERIFY(configuration.loginScreenEnabled());
+    QVERIFY(configuration.statusText().contains(QStringLiteral("read-only"), Qt::CaseInsensitive));
+    QVERIFY(runner.calls.isEmpty());
 }
 
 QTEST_GUILESS_MAIN(AuthConfigurationTest)

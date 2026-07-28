@@ -1,83 +1,43 @@
 # plasma-irlume
 
-`plasma-irlume` is a KDE Plasma System Settings integration for the
-[`irlume`](https://github.com/archledger/irlume) face-authentication engine on
-Fedora KDE.
+`plasma-irlume` is a KDE Plasma System Settings frontend for the separately
+packaged [`irlume`](https://github.com/archledger/irlume) face-authentication
+engine on Fedora KDE.
 
-The repository contains the **V2 development implementation**, built on the
-experimental 1.0.0 safety boundary: a
-discoverable Plasma 6 KCM, live Fedora and hardware diagnostics, guided profile
-management, a fixed-operation KAuth helper, transactional authentication
-planning and activation, post-apply verification, automatic rollback,
-one-click verified disable, in-product TTY recovery, actionable error guidance,
-redacted Markdown support-report export, and reproducible Fedora 44 packaging.
-
-> **Experimental:** version 1.0.0 is not a production release until the
-> real-hardware and clean-install release matrix in
-> [the test matrix](docs/TEST-MATRIX.md) passes. Packaging readiness does not
-> establish biometric or authentication safety on a particular computer.
-
-V2 adds four task-oriented areas, a resumable live-state setup path, an
-engine-advertised multi-profile limit, and a dedicated in-memory IR/RGB preview
-with FaceMesh landmarks and typed camera guidance. Profile maintenance includes
-record rename, guarded single-scan deletion, and explicit confirmation when a
-new capture matches an existing identity. Camera setup lists only opaque,
-reviewed secure pairs; selection, emitter setup, and capture tuning use fixed
-KAuth operations with post-operation verification.
-
-Profile mutations are fail-closed behind irlume's proposed versioned JSON/JSONL
-integration contract. The current irlume 0.6.1 release does not publish that
-contract, so installed 0.6.x systems show profile management as unavailable
-instead of parsing human output or using the private daemon protocol.
-Authentication mutations use the same fail-closed policy: irlume 0.6.1 does
-not advertise `login-transactions`, so the KCM cannot apply a live
-authentication change on that release.
+Version 2.1 is a transitional, read-only integration. It negotiates irlume
+Machine API Contract 1 and presents typed readiness, profile summaries, and
+authentication-wiring status. It does not implement a biometric engine.
 
 ## Engine compatibility
 
-Read-only diagnostics support the documented commands in irlume 0.6.x. The
-diagnostic adapter invokes only fixed commands (`--version`, `status`, `doctor`,
-and `login status`), parses a narrow set of known fields defensively, and fails
-closed for other versions or malformed output.
+The backend starts with the fixed handshake:
 
-The mutation adapters invoke only fixed machine-mode commands and validate
-contract version, command, operation ID, monotonic sequence, terminal event,
-bounded output, safe opaque profile IDs, and the absence of sensitive fields.
-The dedicated V2 enrollment adapter may display one bounded in-memory frame;
-the diagnostic adapter still rejects all image fields. Neither adapter stores
-frames or accepts a username, executable, PAM path, or free-form command from
-QML. Enrollment is tested automatically; an
-unverified new profile is deleted through the same typed contract.
+```text
+/usr/bin/irlume version --json
+```
 
-Authentication activation is an irlume-owned plan → apply → verify transaction.
-The privileged helper validates Fedora 44, the active display manager,
-enrollment, password fallback, and Secure-tier eligibility. Failed verification
-triggers rollback before an error reaches the KCM.
+Contract 1 is selected when the advertised contract range includes `1`.
+Compatibility is based on the contract and capabilities, not
+`engine_version`; future engine versions remain acceptable when they implement
+Contract 1. The following fixed read-only commands are capability-gated:
 
-Camera mutation is independently gated by `camera-config-json`. The desktop
-process can only list bounded labels and run the non-mutating emitter probe.
-The root helper accepts an opaque pair ID from that list or one of two
-argument-free actions; device nodes, UVC controls, round counts, paths, and
-shell input never cross the KAuth boundary.
+```text
+irlume status --json --contract 1
+irlume doctor --json --contract 1
+irlume profiles list --json --contract 1
+irlume login status --json --contract 1
+```
 
-See:
+Profile enrollment and maintenance, camera configuration, authentication
+tests, and login/PAM changes are disabled because Contract 1 exposes no
+reviewed mutation capability. Attempts fail locally with
+`capability-unavailable` and never start an undocumented engine command.
 
-- [Installation guide](docs/INSTALLATION.md)
-- [User guide](docs/USER-GUIDE.md)
-- [Engine contract](docs/ENGINE-CONTRACT.md)
-- [V2 implementation status](docs/V2-IMPLEMENTATION.md)
-- [Architecture boundary](docs/ARCHITECTURE.md)
-- [Upstream API request](docs/UPSTREAM-API-REQUEST.md)
-- [Phase 6 test matrix](docs/TEST-MATRIX.md)
-- [Fedora packaging](packaging/fedora/README.md)
-- [TTY recovery](docs/RECOVERY.md)
-- [Troubleshooting](docs/TROUBLESHOOTING.md)
-- [Fedora 44 KDE project plan](FEDORA_44_KDE_FACE_LOGIN_PROJECT_PLAN.md)
+See [Backend abstraction](docs/BACKEND-ABSTRACTION.md),
+[Engine contract](docs/ENGINE-CONTRACT.md), and
+[Native engine roadmap](docs/NATIVE-ENGINE-ROADMAP.md).
 
 ## Install on Fedora 44
-
-Enable the separate engine repository and the plasma-irlume repository, then
-install the KCM:
 
 ```bash
 sudo dnf copr enable archledger/irlume
@@ -91,37 +51,21 @@ Open **System Settings → Security & Privacy → Face Login**, or run:
 kcmshell6 kcm_irlume
 ```
 
-Read the [installation guide](docs/INSTALLATION.md) before changing
-authentication. It covers the supported platform, the current engine contract
-gate, updates, removal, verification, and recovery preparation. The
-[user guide](docs/USER-GUIDE.md) explains every page and the safe first-run
-flow.
+Installing, upgrading, or removing the KCM does not activate, deactivate, or
+rewrite authentication. The package does not bundle irlume, models, profiles,
+PAM modules, a daemon, or camera drivers.
 
 ## Build and test
 
-Required development packages include Qt 6, Extra CMake Modules, and the KF6
-Auth, CoreAddons, I18n, Kirigami, and KCMUtils development packages.
-
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
 cmake --build build
 ctest --test-dir build --output-on-failure
+python3 -m unittest discover -s tests -p 'test_*.py'
 /usr/lib64/qt6/bin/qmllint src/kcm/ui/*.qml src/kcm/ui/components/*.qml
 ```
 
-The proposed structured-contract checks use only Python's standard library:
-
-```bash
-python3 -m unittest discover -s tests -p 'test_*.py'
-```
-
-Fedora 44 packaging requires the separate `irlume` security engine. The KCM
-does not bundle the engine, biometric models, profiles, PAM modules, or camera
-code. Read-only diagnostics support `irlume >= 0.6.0` and `< 0.7.0`; mutation
-features remain fail-closed unless a reviewed engine advertises the structured
-contract described in [the engine contract](docs/ENGINE-CONTRACT.md).
-
-Build the source and binary RPM locally with:
+Build Fedora packages locally:
 
 ```bash
 packaging/fedora/create-source-archive.sh
@@ -129,19 +73,9 @@ rpmbuild -ba packaging/fedora/plasma-irlume.spec \
   --define "_sourcedir $PWD"
 ```
 
-The fixtures under `tests/fixtures/irlume/observed-private/` are sanitized
-source-derived evidence, not runtime inputs. Fixtures under
-`tests/fixtures/irlume/proposed-v1/` describe the preferred future structured
-API.
-
-For a local installation prefix:
-
-```bash
-cmake --install build --prefix "$PWD/build/prefix"
-XDG_DATA_DIRS="$PWD/build/prefix/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}" \
-QT_PLUGIN_PATH="$PWD/build/prefix/lib64/qt6/plugins" \
-kcmshell6 kcm_irlume
-```
+Sanitized fixtures under `tests/fixtures/irlume/contract-v1/` represent the
+released public Contract 1. Proposed mutation fixtures are isolated design
+artifacts and are never consumed by production code.
 
 ## License
 

@@ -1,0 +1,17 @@
+{
+  "contract_version": 1,
+  "engine_version": "0.7.0",
+  "command": "version",
+  "ok": true,
+  "data": {
+    "contract_versions": {"min": 1, "max": 1},
+    "capabilities": [
+      "version-json",
+      "profiles-list-json",
+      "status-json",
+      "doctor-json",
+      "login-status-json"
+    ],
+    "limits": {"max_profiles": 3}
+  }
+}

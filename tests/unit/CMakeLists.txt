@@ -10,19 +10,15 @@ target_link_libraries(test_systemstate
 
 add_test(NAME systemstate COMMAND test_systemstate)
 
-add_executable(test_irlumeprocess test_irlumeprocess.cpp)
+add_executable(test_irlumebackend test_irlumebackend.cpp)
 
-target_compile_definitions(test_irlumeprocess PRIVATE
-    IRLUME_SOURCE_DIR="${PROJECT_SOURCE_DIR}"
-)
-
-target_link_libraries(test_irlumeprocess
+target_link_libraries(test_irlumebackend
     irlume_adapter
     Qt6::Core
     Qt6::Test
 )
 
-add_test(NAME irlumeprocess COMMAND test_irlumeprocess)
+add_test(NAME irlumebackend COMMAND test_irlumebackend)
 
 add_executable(test_enrollmentsession test_enrollmentsession.cpp)
 
@@ -46,10 +42,6 @@ target_link_libraries(test_profilemodel
 add_test(NAME profilemodel COMMAND test_profilemodel)
 
 add_executable(test_authhelper test_authhelper.cpp)
-
-target_compile_definitions(test_authhelper PRIVATE
-    IRLUME_SOURCE_DIR="${PROJECT_SOURCE_DIR}"
-)
 
 target_link_libraries(test_authhelper
     irlume_auth_helper

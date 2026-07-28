@@ -23,9 +23,9 @@ class PackagingContractTests(unittest.TestCase):
             encoding="utf-8"
         )
 
-        self.assertRegex(cmake, r"project\(plasma-irlume VERSION 2\.0\.0 ")
-        self.assertIn('"Version": "2.0.0"', metadata)
-        self.assertRegex(spec, r"(?m)^Version:\s+2\.0\.0$")
+        self.assertRegex(cmake, r"project\(plasma-irlume VERSION 2\.1\.0 ")
+        self.assertIn('"Version": "2.1.0"', metadata)
+        self.assertRegex(spec, r"(?m)^Version:\s+2\.1\.0$")
         self.assertRegex(spec, r"(?m)^Release:\s+1")
 
     def test_spec_keeps_engine_separate_and_version_gated(self) -> None:
@@ -33,7 +33,7 @@ class PackagingContractTests(unittest.TestCase):
             encoding="utf-8"
         )
 
-        self.assertRegex(spec, r"(?m)^Requires:\s+irlume >= 0\.6\.0$")
+        self.assertRegex(spec, r"(?m)^Requires:\s+irlume >= 0\.7\.0$")
         self.assertNotRegex(spec, r"(?m)^Requires:\s+irlume <")
         self.assertNotRegex(
             spec, r"(?m)^%(?:pre|post|preun|postun|trigger)(?:\s|$)"

@@ -44,12 +44,42 @@ bool AuthConfiguration::busy() const
 
 bool AuthConfiguration::contractAvailable() const
 {
-    return m_contractAvailable;
+    return m_mutationSupported;
+}
+
+bool AuthConfiguration::mutationSupported() const
+{
+    return m_mutationSupported;
+}
+
+void AuthConfiguration::applySnapshot(const EngineSnapshot &snapshot)
+{
+    m_mutationSupported = snapshot.capabilities.mutationSupported;
+    m_contractAvailable = m_mutationSupported;
+    m_lockScreenEnabled = false;
+    m_loginScreenEnabled = false;
+    if (snapshot.login)
+    {
+        for (const EngineLoginSurface &surface : snapshot.login->surfaces)
+        {
+            if (surface.id == QLatin1String("kde") && surface.role == QLatin1String("lock-screen"))
+                m_lockScreenEnabled = surface.present && surface.wired;
+            if (snapshot.login->loginManagerServices.contains(surface.id) &&
+                surface.role == QLatin1String("login-screen"))
+                m_loginScreenEnabled = surface.present && surface.wired;
+        }
+    }
+    m_previewAvailable = false;
+    m_previewScope.clear();
+    m_errorCode.clear();
+    m_statusText =
+        translate("Authentication wiring is shown read-only. Contract 1 does not support configuration changes.");
+    Q_EMIT stateChanged();
 }
 
 bool AuthConfiguration::basePreflightReady() const
 {
-    return m_systemState->fedoraVersion() == QLatin1String("44") &&
+    return m_mutationSupported && m_systemState->fedoraVersion() == QLatin1String("44") &&
            (m_systemState->activeDisplayManager() == QLatin1String("Plasma Login Manager") ||
             m_systemState->activeDisplayManager() == QLatin1String("SDDM")) &&
            m_systemState->engineStatus() == SystemState::EngineStatus::Ready &&
@@ -72,7 +102,7 @@ bool AuthConfiguration::canEnableLoginScreen() const
 
 bool AuthConfiguration::canDisable() const
 {
-    return !m_busy && m_systemState->fedoraVersion() == QLatin1String("44") &&
+    return m_mutationSupported && !m_busy && m_systemState->fedoraVersion() == QLatin1String("44") &&
            (m_systemState->activeDisplayManager() == QLatin1String("Plasma Login Manager") ||
             m_systemState->activeDisplayManager() == QLatin1String("SDDM")) &&
            m_systemState->engineStatus() == SystemState::EngineStatus::Ready;
@@ -157,6 +187,12 @@ QString AuthConfiguration::recoveryCommand() const
 
 void AuthConfiguration::previewLockScreen()
 {
+    if (!m_mutationSupported)
+    {
+        finishLocalError(QStringLiteral("capability-unavailable"),
+                         translate("Contract 1 does not support authentication configuration changes."));
+        return;
+    }
     if (!canEnableLockScreen())
     {
         finishLocalError(QStringLiteral("preflight-failed"), translate("Lock-screen activation is not ready."));
@@ -167,6 +203,12 @@ void AuthConfiguration::previewLockScreen()
 
 void AuthConfiguration::previewLoginScreen()
 {
+    if (!m_mutationSupported)
+    {
+        finishLocalError(QStringLiteral("capability-unavailable"),
+                         translate("Contract 1 does not support authentication configuration changes."));
+        return;
+    }
     if (!canEnableLoginScreen())
     {
         finishLocalError(QStringLiteral("secure-tier-required"),
@@ -178,6 +220,12 @@ void AuthConfiguration::previewLoginScreen()
 
 void AuthConfiguration::previewDisable()
 {
+    if (!m_mutationSupported)
+    {
+        finishLocalError(QStringLiteral("capability-unavailable"),
+                         translate("Contract 1 does not support authentication configuration changes."));
+        return;
+    }
     if (!canDisable())
     {
         finishLocalError(QStringLiteral("preflight-failed"), translate("Face authentication cannot be disabled here."));
@@ -188,6 +236,12 @@ void AuthConfiguration::previewDisable()
 
 void AuthConfiguration::enableLockScreen()
 {
+    if (!m_mutationSupported)
+    {
+        finishLocalError(QStringLiteral("capability-unavailable"),
+                         translate("Contract 1 does not support authentication configuration changes."));
+        return;
+    }
     if (!m_recoveryAcknowledged)
     {
         finishLocalError(QStringLiteral("recovery-not-acknowledged"),
@@ -205,6 +259,12 @@ void AuthConfiguration::enableLockScreen()
 
 void AuthConfiguration::enableLoginScreen()
 {
+    if (!m_mutationSupported)
+    {
+        finishLocalError(QStringLiteral("capability-unavailable"),
+                         translate("Contract 1 does not support authentication configuration changes."));
+        return;
+    }
     if (!m_recoveryAcknowledged)
     {
         finishLocalError(QStringLiteral("recovery-not-acknowledged"),
@@ -222,6 +282,12 @@ void AuthConfiguration::enableLoginScreen()
 
 void AuthConfiguration::disable()
 {
+    if (!m_mutationSupported)
+    {
+        finishLocalError(QStringLiteral("capability-unavailable"),
+                         translate("Contract 1 does not support authentication configuration changes."));
+        return;
+    }
     if (!canApplyDisable())
     {
         finishLocalError(QStringLiteral("preview-required"), translate("Preview the disable plan before applying it."));
@@ -232,6 +298,12 @@ void AuthConfiguration::disable()
 
 void AuthConfiguration::disableNow()
 {
+    if (!m_mutationSupported)
+    {
+        finishLocalError(QStringLiteral("capability-unavailable"),
+                         translate("Contract 1 does not support authentication configuration changes."));
+        return;
+    }
     if (!canDisable())
     {
         finishLocalError(QStringLiteral("preflight-failed"),
@@ -245,6 +317,12 @@ void AuthConfiguration::disableNow()
 
 void AuthConfiguration::rollbackLastTransaction()
 {
+    if (!m_mutationSupported)
+    {
+        finishLocalError(QStringLiteral("capability-unavailable"),
+                         translate("Contract 1 does not support authentication configuration changes."));
+        return;
+    }
     if (m_busy || m_lastTransactionId.isEmpty())
     {
         return;
@@ -361,6 +439,10 @@ void AuthConfiguration::finishLocalError(const QString &errorCode, const QString
 
 QString AuthConfiguration::messageForError(const QString &errorCode) const
 {
+    if (errorCode == QLatin1String("capability-unavailable"))
+    {
+        return translate("Contract 1 does not support authentication configuration changes.");
+    }
     if (errorCode == QLatin1String("structured-contract-unavailable"))
     {
         return translate("The installed irlume release does not provide the reviewed login-transaction contract.");

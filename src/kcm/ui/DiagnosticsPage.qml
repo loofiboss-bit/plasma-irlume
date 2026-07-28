@@ -57,7 +57,7 @@ ColumnLayout {
 
             QQC2.Label {
                 Layout.fillWidth: true
-                text: i18n("While this desktop session is open, ask irlume to disable all Face Login integration and verify that password fallback remains available.")
+                text: i18n("Contract 1 reports current wiring but cannot disable it through the KCM. Use the documented TTY recovery command when a change is required.")
                 color: Kirigami.Theme.disabledTextColor
                 wrapMode: Text.Wrap
             }

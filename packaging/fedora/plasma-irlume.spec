@@ -1,5 +1,5 @@
 Name:           plasma-irlume
-Version:        2.0.0
+Version:        2.1.0
 Release:        1%{?dist}
 Summary:        Experimental KDE integration for the irlume face-authentication engine
 
@@ -23,17 +23,17 @@ BuildRequires:  python3
 BuildRequires:  qt6-qtbase-devel >= 6.8.0
 BuildRequires:  qt6-qtdeclarative-devel >= 6.8.0
 
-Requires:       irlume >= 0.6.0
+Requires:       irlume >= 0.7.0
 Requires:       kf6-kcmutils >= 6.10.0
 Requires:       kf6-kirigami >= 6.10.0
 Requires:       plasma-systemsettings
 Requires:       qt6-qtdeclarative >= 6.8.0
 
 %description
-plasma-irlume is an experimental Plasma 6 System Settings module for the
-separately packaged irlume face-authentication engine. It presents hardware
-and security readiness, profile workflows, transactional authentication
-controls, recovery guidance, and redacted diagnostics.
+plasma-irlume is a Plasma 6 System Settings front-end for the separately
+packaged irlume face-authentication engine. It presents typed, read-only
+readiness, profile, and authentication-wiring information through irlume
+Machine API Contract 1.
 
 The package does not contain biometric models, profiles, PAM modules, or the
 authentication engine. Removing it does not remove enrolled profiles or change
@@ -77,6 +77,10 @@ desktop-file-validate data/kcm_irlume.desktop
 %{_datadir}/polkit-1/actions/io.github.loofibossbit.plasmairlume.helper.policy
 
 %changelog
+* Tue Jul 28 2026 Loofi <noreply@example.invalid> - 2.1.0-1
+- Use irlume 0.7 Machine API Contract 1 through a backend-neutral boundary
+- Keep unsupported mutation operations disabled and fail-closed
+
 * Sun Jul 26 2026 Loofi <noreply@example.invalid> - 2.0.0-1
 - Release V2.0.0 with complete gated machine contract and preview workflows
 

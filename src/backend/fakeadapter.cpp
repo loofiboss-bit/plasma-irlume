@@ -26,7 +26,7 @@ SystemStateSnapshot baseline()
     state.dataSource = QCoreApplication::translate("FakeSystemStateAdapter", "Simulated preview");
     state.fedoraVersion = QStringLiteral("44");
     state.plasmaVersion = QStringLiteral("6.6.0");
-    state.engineVersion = QStringLiteral("0.6.2-fixture");
+    state.engineVersion = QStringLiteral("0.7.0-fixture");
     state.activeDisplayManager = QStringLiteral("Plasma Login Manager");
     state.securityTier = SecurityTier::Secure;
     state.cameraType = CameraType::Infrared;
@@ -118,14 +118,14 @@ SystemStateSnapshot FakeSystemStateAdapter::stateForScenario(int index) const
         return state;
     case UnsupportedIrlume:
         state.scenarioId = QStringLiteral("unsupported-irlume");
-        state.headline = QCoreApplication::translate("FakeSystemStateAdapter", "This irlume version is not supported");
+        state.headline = QCoreApplication::translate("FakeSystemStateAdapter", "The machine contract is not supported");
         state.summary = QCoreApplication::translate("FakeSystemStateAdapter",
-                                                    "The installed engine version is outside the reviewed 0.6.x "
-                                                    "read-only compatibility range.");
-        state.issueCode = QStringLiteral("engine-version-unsupported");
-        state.engineVersion = QStringLiteral("0.7.0");
+                                                    "The simulated backend does not advertise Machine API Contract "
+                                                    "1. The engine version is informational.");
+        state.issueCode = QStringLiteral("unsupported-contract");
+        state.engineVersion = QStringLiteral("1.0.0");
         state.securityTier = SecurityTier::Unsupported;
-        state.engineStatus = EngineStatus::UnsupportedVersion;
+        state.engineStatus = EngineStatus::UnsupportedContract;
         state.daemonStatus = DaemonStatus::Unknown;
         state.pamStatus = PamStatus::Unknown;
         state.profileStatus = ProfileStatus::Unknown;

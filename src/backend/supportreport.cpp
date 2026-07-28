@@ -170,8 +170,10 @@ QString SupportReport::titleForCode(const QString &code)
         return translate("TPM protection could not be unlocked");
     if (code == QLatin1String("secure-boot-pcr-changed"))
         return translate("The measured boot state changed");
-    if (code == QLatin1String("engine-version-unsupported") || code == QLatin1String("structured-contract-unavailable"))
-        return translate("The installed irlume version is not compatible");
+    if (code == QLatin1String("unsupported-contract"))
+        return translate("The installed backend does not support Machine API Contract 1");
+    if (code == QLatin1String("capability-unavailable"))
+        return translate("The requested backend capability is unavailable");
     if (code == QLatin1String("pam-drift"))
         return translate("Authentication configuration has drifted");
     if (code == QLatin1String("display-manager-migration"))
@@ -203,14 +205,14 @@ QString SupportReport::actionForCode(const QString &code)
     if (code == QLatin1String("secure-boot-pcr-changed"))
         return translate("Use password login and restore the expected Secure Boot or firmware state before re-arming "
                          "TPM protection.");
-    if (code == QLatin1String("engine-version-unsupported") || code == QLatin1String("structured-contract-unavailable"))
-        return translate("Install a reviewed compatible irlume release. Do not bypass the structured-contract gate.");
+    if (code == QLatin1String("unsupported-contract"))
+        return translate("Install an irlume release that advertises Machine API Contract 1.");
+    if (code == QLatin1String("capability-unavailable"))
+        return translate("Keep the unsupported operation disabled. Contract 1 is read-only.");
     if (code == QLatin1String("pam-drift"))
-        return translate(
-            "Disable Face Login from this page, run authselect check, then refresh before enabling it again.");
+        return translate("Use the documented engine recovery procedure outside this read-only KCM, then refresh.");
     if (code == QLatin1String("display-manager-migration"))
-        return translate("Disable the old integration first, refresh diagnostics, and preview a new plan for the "
-                         "active display manager.");
+        return translate("Use the engine recovery procedure to remove old wiring, then refresh this read-only view.");
     if (code == QLatin1String("kwallet-password-mismatch"))
         return translate(
             "Unlock KWallet with the account password and re-arm wallet integration after a password change.");

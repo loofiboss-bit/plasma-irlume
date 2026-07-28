@@ -5,6 +5,7 @@
 #include "authconfiguration.h"
 #include "cameraconfiguration.h"
 #include "enrollmentsession.h"
+#include "irlumebackend.h"
 #include "profilemodel.h"
 #include "supportreport.h"
 #include "systemprobe.h"
@@ -35,10 +36,9 @@ class IrlumeKcm final : public KQuickConfigModule
     Q_INVOKABLE void refresh();
 
   private:
+    IrlumeBackend m_backend;
     SystemProbe m_probe;
     SystemState m_systemState;
-    IrlumeProcess m_profileProcess;
-    IrlumeProcess m_cameraProcess;
     EnrollmentSession m_enrollmentSession;
     ProfileModel m_profileModel;
     AuthConfiguration m_authConfiguration;
