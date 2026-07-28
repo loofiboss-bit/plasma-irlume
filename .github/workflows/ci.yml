@@ -30,6 +30,8 @@ jobs:
           dnf install -y \
             clang-tools-extra \
             cmake \
+            cargo \
+            clippy \
             extra-cmake-modules \
             gcc-c++ \
             kf6-kcmutils-devel \
@@ -37,8 +39,9 @@ jobs:
             kf6-ki18n-devel \
             kf6-kirigami-devel \
             ninja-build \
-            python3-jsonschema \
             python3 \
+            rust \
+            rustfmt \
             qt6-qtbase-devel \
             qt6-qtdeclarative-devel \
             qt6-qtmultimedia-devel \
@@ -53,6 +56,12 @@ jobs:
         run: |
           cmake --fresh -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
           cmake --build build --parallel 2
+
+      - name: Check native engine skeleton
+        run: |
+          cargo fmt --manifest-path engine/Cargo.toml --all -- --check
+          cargo clippy --manifest-path engine/Cargo.toml --workspace --all-targets --locked -- -D warnings
+          cargo test --manifest-path engine/Cargo.toml --workspace --all-targets --locked
 
       - name: Run unit and fixture tests
         env:

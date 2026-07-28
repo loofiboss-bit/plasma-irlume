@@ -4,9 +4,10 @@
 __pycache__/
 *.py[cod]
 
-build/
+build*/
 .cache/
 rpmbuild/
 *.rpm
 *.src.rpm
-plasma-irlume-*.tar.gz
+kfaceauth-*.tar.gz
+engine/target/

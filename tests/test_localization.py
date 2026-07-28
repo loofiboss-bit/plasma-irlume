@@ -11,7 +11,7 @@ QML_FILES = sorted((ROOT / "src" / "kcm" / "ui").rglob("*.qml"))
 CPP_FILES = sorted((ROOT / "src" / "backend").glob("*.cpp")) + sorted(
     (ROOT / "src" / "preview").glob("*.cpp")
 )
-SWEDISH_CATALOG = ROOT / "po" / "sv" / "kcm_irlume.po"
+SWEDISH_CATALOG = ROOT / "po" / "sv" / "kcm_kfaceauth.po"
 
 
 def catalog_entries() -> dict[str, str]:

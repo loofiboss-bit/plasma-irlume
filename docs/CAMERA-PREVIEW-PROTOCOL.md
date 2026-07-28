@@ -1,6 +1,6 @@
 # Camera preview protocol v1
 
-The KCM starts `/usr/libexec/plasma-irlume-camera-preview-worker` directly,
+The KCM starts `/usr/libexec/kfaceauth-camera-preview-worker` directly,
 without a shell. Commands travel on stdin and responses on stdout. Each record
 is a four-byte unsigned big-endian length followed by one CBOR map. The
 maximum CBOR payload is 135,168 bytes.

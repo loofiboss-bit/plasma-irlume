@@ -1,16 +1,11 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
-add_library(irlume_backend STATIC
-    authactionrunner.cpp
-    authactionrunner.h
-    authconfiguration.cpp
-    authconfiguration.h
+add_library(kfaceauth_core STATIC
     camerapreviewsession.cpp
     camerapreviewsession.h
-    fakeadapter.cpp
-    fakeadapter.h
-    profilemodel.cpp
-    profilemodel.h
+    faceauthbackend.h
+    nativefaceauthbackend.cpp
+    nativefaceauthbackend.h
     refreshcoordinator.cpp
     refreshcoordinator.h
     supportreport.cpp
@@ -21,17 +16,17 @@ add_library(irlume_backend STATIC
     systemprobe.h
 )
 
-set_target_properties(irlume_backend PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(kfaceauth_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-target_link_libraries(irlume_backend
+target_link_libraries(kfaceauth_core
     PUBLIC
-        irlume_adapter
         preview_protocol
         Qt6::Concurrent
         Qt6::Core
         Qt6::Gui
 )
-target_include_directories(irlume_backend PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
-target_compile_definitions(irlume_backend PRIVATE
-    PLASMA_IRLUME_PREVIEW_WORKER_PATH="${CMAKE_INSTALL_PREFIX}/libexec/plasma-irlume-camera-preview-worker"
+target_include_directories(kfaceauth_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_compile_definitions(kfaceauth_core PRIVATE
+    KFACEAUTH_PREVIEW_WORKER_PATH="${CMAKE_INSTALL_PREFIX}/libexec/${KFACEAUTH_PREVIEW_WORKER}"
+    KFACEAUTH_SUPPORT_PREFIX="${KFACEAUTH_SUPPORT_PREFIX}"
 )

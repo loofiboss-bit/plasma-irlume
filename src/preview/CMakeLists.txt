@@ -24,13 +24,13 @@ target_link_libraries(camera_provider
 )
 target_include_directories(camera_provider PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
-add_executable(plasma-irlume-camera-preview-worker
+add_executable(${KFACEAUTH_PREVIEW_WORKER}
     main.cpp
     previewworker.cpp
     previewworker.h
 )
 
-target_link_libraries(plasma-irlume-camera-preview-worker
+target_link_libraries(${KFACEAUTH_PREVIEW_WORKER}
     PRIVATE
         camera_provider
         preview_protocol
@@ -39,7 +39,10 @@ target_link_libraries(plasma-irlume-camera-preview-worker
         Qt6::Multimedia
         PkgConfig::UDev
 )
+target_compile_definitions(${KFACEAUTH_PREVIEW_WORKER} PRIVATE
+    KFACEAUTH_PREVIEW_WORKER_NAME="${KFACEAUTH_PREVIEW_WORKER}"
+)
 
-install(TARGETS plasma-irlume-camera-preview-worker
+install(TARGETS ${KFACEAUTH_PREVIEW_WORKER}
     RUNTIME DESTINATION libexec
 )

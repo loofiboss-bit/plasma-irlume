@@ -1,0 +1,11 @@
+{
+    "KPlugin": {
+        "Description": "Development preview for native face-authentication groundwork",
+        "Icon": "preferences-desktop-user",
+        "License": "GPL-3.0-or-later",
+        "Name": "@KFACEAUTH_DISPLAY_NAME@ (Development Preview)",
+        "Version": "@PROJECT_VERSION@"
+    },
+    "X-KDE-Keywords": "Camera,Privacy,Native Engine,Development Preview",
+    "X-KDE-System-Settings-Parent-Category": "security-and-privacy"
+}

@@ -2,7 +2,8 @@
 
 cmake_minimum_required(VERSION 3.22)
 
-project(plasma-irlume VERSION 3.0.0 LANGUAGES CXX)
+include(cmake/ProjectIdentity.cmake)
+project(${KFACEAUTH_PROJECT_ID} VERSION ${KFACEAUTH_VERSION} LANGUAGES CXX)
 
 set(QT_MIN_VERSION "6.8.0")
 set(KF_MIN_VERSION "6.10.0")

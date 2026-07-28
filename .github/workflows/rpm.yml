@@ -40,7 +40,6 @@ jobs:
             kf6-ki18n-devel \
             kf6-kirigami-devel \
             ninja-build \
-            python3-jsonschema \
             python3 \
             qt6-qtbase-devel \
             qt6-qtdeclarative-devel \
@@ -54,28 +53,28 @@ jobs:
 
       - name: Build and lint RPM
         run: |
-          rpmbuild -ba packaging/fedora/plasma-irlume.spec \
+          rpmbuild -ba packaging/fedora/kfaceauth.spec \
             --define "_sourcedir $PWD"
-          rpmlint packaging/fedora/plasma-irlume.spec \
-            "$HOME"/rpmbuild/RPMS/*/plasma-irlume-*.rpm \
-            "$HOME"/rpmbuild/SRPMS/plasma-irlume-*.src.rpm
+          rpmlint packaging/fedora/kfaceauth.spec \
+            "$HOME"/rpmbuild/RPMS/*/kfaceauth-*.rpm \
+            "$HOME"/rpmbuild/SRPMS/kfaceauth-*.src.rpm
 
       - name: Test install and uninstall lifecycle
         run: |
           packaging/fedora/rpm-smoke-test.sh \
-            "$(find "$HOME/rpmbuild/RPMS" -type f -name 'plasma-irlume-[0-9]*.rpm' -print -quit)"
+            "$(find "$HOME/rpmbuild/RPMS" -type f -name 'kfaceauth-[0-9]*.rpm' -print -quit)"
 
       - name: Collect RPM artifacts
         run: |
           mkdir -p artifacts
-          cp "$HOME"/rpmbuild/RPMS/*/plasma-irlume-*.rpm artifacts/
-          cp "$HOME"/rpmbuild/SRPMS/plasma-irlume-*.src.rpm artifacts/
+          cp "$HOME"/rpmbuild/RPMS/*/kfaceauth-*.rpm artifacts/
+          cp "$HOME"/rpmbuild/SRPMS/kfaceauth-*.src.rpm artifacts/
           (cd artifacts && sha256sum ./*.rpm >SHA256SUMS)
 
       - name: Upload RPM artifacts to Workflow
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: plasma-irlume-fedora-44
+          name: kfaceauth-fedora-44
           path: artifacts/
           if-no-files-found: error
 

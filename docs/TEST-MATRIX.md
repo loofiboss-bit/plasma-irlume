@@ -1,35 +1,20 @@
 # Test matrix
 
-The v3.0.0 automated suite requires no physical camera and covers:
+| Area | Automated evidence |
+|---|---|
+| Native backend | queued completion, unavailable state, safe skeleton state, generation cancellation |
+| Coordinator | stale generations ignored, non-blocking refresh, teardown cancellation |
+| Unsupported operations | C++ capability snapshots and Rust dispatcher remain fail-closed |
+| Rust protocol | version, round trip, malformed message, zero length, oversized length before allocation |
+| Camera provider | bounded discovery and spectrum classification |
+| Preview protocol | framing, session, sequence, dimensions, payload limits |
+| Preview lifecycle | manual start, timeout, cancellation, frame clearing, backpressure |
+| QML | all active pages instantiate offscreen at narrow and wide sizes |
+| Privacy | reports exclude frames, device labels/tokens, paths, credentials, and biometric-like values |
+| Localization | every active single-line user message has Swedish text |
+| Packaging | central identity, no external engine requirement, no privileged scriptlet, reproducible archive shape |
+| RPM lifecycle | isolated install, upgrade, removal, payload, privilege, PAM-sentinel, and user-data checks |
 
-- provider classification for RGB, IR, and Unknown without name heuristics;
-- bounded format selection, 640×480 scaling, and the 128 KiB JPEG ceiling;
-- CBOR fragmentation, invalid and oversized records, session and monotonic
-  sequence validation, fixed command shape, and free-argument rejection;
-- discovery, start, frame delivery, stop, repeated start, worker crash,
-  startup timeout, stream stall, missing stop acknowledgement, simulated
-  60-second limit, hot-unplug, busy device, frame clearing, and stable errors;
-- latest-frame backpressure and bounded device/control queues;
-- QML creation at 320/480/960 px, keyboard focus, accessible camera names,
-  Swedish localization, and automatic stop when Camera Check is hidden;
-- unchanged Contract 1 command, generation, timeout, schema, redaction, and
-  read-only presentation coverage;
-- source archive, SRPM/RPM, rpmlint, dependency/payload inspection, absence of
-  privileged scriptlets, setuid bits and file capabilities, and isolated
-  install/upgrade/remove checks with PAM and user-data sentinels.
-
-Release qualification additionally requires text-only verification on the
-local Fedora 44 HP RGB/IR pair: both capture nodes must be classified, preview,
-and release cleanly. Public release gates require exact tag/CI lineage,
-checksums, RPM/SRPM inspection, COPR API `succeeded`, published 3.0.0 metadata,
-a clean Fedora 44 install, and an upgrade from public v2.0.0. These public
-gates are not satisfied by a local build.
-
-Run the local text-only camera check after building:
-
-```bash
-QT_QPA_PLATFORM=offscreen build/bin/camera_hardware_check
-```
-
-Its output contains only counts, RGB/IR/Unknown, stable errors, and pass/fail
-release results—never device identifiers, labels, or images.
+Real hardware remains a separate qualification task. Passing synthetic camera
+tests is not evidence that recognition, liveness, enrollment, or authentication
+works.

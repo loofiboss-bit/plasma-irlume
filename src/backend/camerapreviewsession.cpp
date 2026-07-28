@@ -11,8 +11,8 @@
 
 #include <algorithm>
 
-#ifndef PLASMA_IRLUME_PREVIEW_WORKER_PATH
-#define PLASMA_IRLUME_PREVIEW_WORKER_PATH "/usr/libexec/plasma-irlume-camera-preview-worker"
+#ifndef KFACEAUTH_PREVIEW_WORKER_PATH
+#define KFACEAUTH_PREVIEW_WORKER_PATH "/usr/libexec/kfaceauth-camera-preview-worker"
 #endif
 
 namespace
@@ -24,7 +24,7 @@ QString translate(const char *text)
 } // namespace
 
 CameraPreviewSession::CameraPreviewSession(QObject *parent)
-    : CameraPreviewSession(QStringLiteral(PLASMA_IRLUME_PREVIEW_WORKER_PATH), parent)
+    : CameraPreviewSession(QStringLiteral(KFACEAUTH_PREVIEW_WORKER_PATH), parent)
 {
 }
 

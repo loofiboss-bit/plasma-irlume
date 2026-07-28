@@ -1,51 +1,69 @@
 # Architecture
 
-plasma-irlume 3.0.0 has two independent, unprivileged data paths:
+Milestone 1 separates four unprivileged areas:
 
 ```text
-Read-only engine diagnostics             Native Camera Check
-QML                                      QML
- -> presentation models                   -> CameraPreviewSession
- -> RefreshCoordinator                    -> private stdin/stdout pipes
- -> FaceAuthBackend                       -> preview worker
- -> /usr/bin/irlume Contract 1             -> Qt Multimedia + libudev
+KDE System Settings
+  -> KFaceAuthKcm
+     -> RefreshCoordinator
+        -> NativeFaceAuthBackend
+     -> SystemProbe
+     -> CameraPreviewSession
+        -> kfaceauth-camera-preview-worker
+
+engine/
+  -> protocol
+  -> vision
+  -> templates
+  -> daemon
+  -> cli
 ```
 
-## Engine diagnostics
+## KCM coordination
 
-`RefreshCoordinator` assigns monotonic generations and accepts only current
-signals. `IrlumeBackend` uses a signal-driven `QProcess`, fixed Contract 1 read
-commands, three-second timeouts, and independent 256 KiB stdout/stderr limits.
-It uses no camera or mutation command. A native preview failure cannot clear
-or replace a valid irlume diagnostic result.
+`NativeFaceAuthBackend` implements the provider-neutral `FaceAuthBackend`
+interface. Requests, progress, completion, and cancellation carry a monotonically
+increasing generation. `RefreshCoordinator` ignores stale generations, and the
+backend cancels a pending generation before scheduling a newer one.
 
-## Native camera process
+The production backend is fully queued and currently completes with
+`native-engine-unavailable`. It does not use `QProcess`, a shell, a command
+path, a socket, or network access. An injected availability probe exists only
+for deterministic unit tests of the typed skeleton state.
 
-`CameraPreviewSession` is the only KCM-side preview model. Its states are
-`Idle`, `Discovering`, `Ready`, `Starting`, `Streaming`, `Stopping`, and
-`Failed`. It exposes sanitized devices, current selection and spectrum, frame
-availability, remaining time, dropped frames, status, and a stable error code.
+`SystemProbe` runs bounded local reads through `QtConcurrent` and applies results
+only when its generation is current. It reports OS, display-manager, Secure
+Boot, native-engine, and explicit unsupported capability states. Unknown or
+missing data is never interpreted as success.
 
-The worker owns `QMediaDevices`, `QCamera`, `QMediaCaptureSession`, and
-`QVideoSink`; the KCM never opens a video node. libudev classifies only
-`ID_INFRARED_CAMERA=1` as IR and a reviewed capture capability as RGB.
-Everything else is Unknown.
+## Camera path
 
-The parent and worker exchange length-framed CBOR v1 over private process
-pipes. Both validate the session, monotonic sequence, record size, command
-shape, device count, image dimensions, JPEG size, and spectrum. Commands have
-no path or free-form argument. The worker retains at most one pending frame;
-new frames replace older pending frames under backpressure.
+`CameraPreviewSession` owns a separate unprivileged worker process. This is the
+only runtime process started by the KCM, and it handles preview pixels only. It
+does not share a transport, state, or implementation with the native engine.
+The existing framed CBOR protocol, session identifiers, monotonic sequences,
+bounds, timeouts, backpressure, cancellation, and frame clearing remain intact.
 
-The parent stops preview when the page is hidden or the application becomes
-inactive. The worker independently enforces 60 seconds. A missing stop
-acknowledgement causes a hard worker termination after one second. Crash,
-protocol, startup, and stall failures clear the in-memory frame.
+## Rust workspace
 
-## Privilege and persistence boundary
+The workspace is source-only in Milestone 1:
 
-The worker is installed as an ordinary executable in `/usr/libexec` without
-setuid/setgid bits or file capabilities. It has no irlume adapter, privileged
-helper, KAuth, Polkit, system service, network feature, audio capture, or
-authentication API. Neither process persists frames or opaque device tokens.
-Support and configuration paths do not receive preview data.
+- `protocol` defines protocol version 1, a four-byte big-endian frame length,
+  4 KiB requests, 16 KiB responses, closed request/response enums, and typed
+  stable errors;
+- `vision` reports processing unavailable;
+- `templates` reports persistence unavailable;
+- `daemon` dispatches exactly one bounded status or capability request over
+  caller-provided local streams;
+- `cli` prints only the source skeleton's typed status and capabilities.
+
+All crates forbid unsafe Rust and have no third-party dependencies. They do not
+open sockets, access cameras, persist data, load models, or make authentication
+decisions. The KCM does not invoke either Rust binary.
+
+## Identity
+
+The temporary product, KCM, application, QML, translation, worker, and support
+report identifiers are defined in `cmake/ProjectIdentity.cmake`. Generated
+desktop and plugin metadata derive from that file. No compatibility aliases are
+installed.

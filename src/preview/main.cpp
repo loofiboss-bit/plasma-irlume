@@ -4,10 +4,14 @@
 
 #include <QCoreApplication>
 
+#ifndef KFACEAUTH_PREVIEW_WORKER_NAME
+#define KFACEAUTH_PREVIEW_WORKER_NAME "kfaceauth-camera-preview-worker"
+#endif
+
 int main(int argc, char **argv)
 {
     QCoreApplication application(argc, argv);
-    application.setApplicationName(QStringLiteral("plasma-irlume-camera-preview-worker"));
+    application.setApplicationName(QStringLiteral(KFACEAUTH_PREVIEW_WORKER_NAME));
 
     PreviewWorker worker;
     if (!worker.start())

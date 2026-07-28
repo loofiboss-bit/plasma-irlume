@@ -19,7 +19,7 @@ class CameraPreviewSessionTest final : public QObject
 
 void CameraPreviewSessionTest::discoveryPreviewAndStop()
 {
-    CameraPreviewSession session(QStringLiteral(IRLUME_FAKE_PREVIEW_WORKER_PATH), nullptr);
+    CameraPreviewSession session(QStringLiteral(KFACEAUTH_FAKE_PREVIEW_WORKER_PATH), nullptr);
     session.refreshDevices();
     QTRY_COMPARE(session.state(), CameraPreviewSession::State::Ready);
     QCOMPARE(session.deviceCount(), 10);
@@ -41,7 +41,7 @@ void CameraPreviewSessionTest::discoveryPreviewAndStop()
 
 void CameraPreviewSessionTest::invalidSelectionIsIgnored()
 {
-    CameraPreviewSession session(QStringLiteral(IRLUME_FAKE_PREVIEW_WORKER_PATH), nullptr);
+    CameraPreviewSession session(QStringLiteral(KFACEAUTH_FAKE_PREVIEW_WORKER_PATH), nullptr);
     session.refreshDevices();
     QTRY_COMPARE(session.state(), CameraPreviewSession::State::Ready);
     session.setSelectedDeviceIndex(99);
@@ -68,7 +68,7 @@ void selectByTokenLabel(CameraPreviewSession &session, const QString &label)
 
 void CameraPreviewSessionTest::stableFailures()
 {
-    CameraPreviewSession session(QStringLiteral(IRLUME_FAKE_PREVIEW_WORKER_PATH), nullptr);
+    CameraPreviewSession session(QStringLiteral(KFACEAUTH_FAKE_PREVIEW_WORKER_PATH), nullptr);
     session.refreshDevices();
     QTRY_COMPARE(session.state(), CameraPreviewSession::State::Ready);
 
@@ -88,7 +88,7 @@ void CameraPreviewSessionTest::stableFailures()
 
 void CameraPreviewSessionTest::lifecycleFailures()
 {
-    CameraPreviewSession session(QStringLiteral(IRLUME_FAKE_PREVIEW_WORKER_PATH), nullptr);
+    CameraPreviewSession session(QStringLiteral(KFACEAUTH_FAKE_PREVIEW_WORKER_PATH), nullptr);
     session.refreshDevices();
     QTRY_COMPARE(session.state(), CameraPreviewSession::State::Ready);
     selectByTokenLabel(session, QStringLiteral("Crash Test Camera"));
@@ -123,7 +123,7 @@ void CameraPreviewSessionTest::lifecycleFailures()
 
 void CameraPreviewSessionTest::timeLimitHotUnplugAndRepeatedStart()
 {
-    CameraPreviewSession session(QStringLiteral(IRLUME_FAKE_PREVIEW_WORKER_PATH), nullptr);
+    CameraPreviewSession session(QStringLiteral(KFACEAUTH_FAKE_PREVIEW_WORKER_PATH), nullptr);
     session.refreshDevices();
     QTRY_COMPARE(session.state(), CameraPreviewSession::State::Ready);
 

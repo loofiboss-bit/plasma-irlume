@@ -1,25 +1,25 @@
 # User guide
 
+KFaceAuth currently appears as a development preview in System Settings.
+
+## Overview
+
+Overview shows whether the native engine skeleton is available and explicitly
+marks vision, enrollment, authentication, PAM, and template persistence as not
+implemented. The normal Milestone 1 state is `Native engine unavailable`.
+
 ## Camera Check
 
-Open **Camera Check** to discover local cameras. Discovery does not start
-capture. Select a device and press **Start preview** to grant access for one
-preview session. The preview stops after 60 seconds or immediately when you
-press Stop, leave the tab, switch away from System Settings, or close the KCM.
+Select **Refresh** to discover local cameras. Select a camera and choose
+**Start preview** to begin a private preview. It stops after 60 seconds; you can
+also stop it manually or leave the page.
 
-RGB, Infrared, and Unknown describe only the locally observed camera node.
-A visible image does not verify liveness, security level, identity matching,
-or Face Login readiness. Preview does not enroll or modify a profile.
+The preview is only a camera and privacy diagnostic. It does not detect a face,
+recognize a person, test liveness, enroll anything, or prove authentication
+readiness.
 
-No approval is remembered. Frames and opaque device tokens remain in memory
-and are cleared on stop or failure.
+## Diagnostics
 
-## Read-only engine pages
-
-**Face Profiles** shows the Contract 1 profile list. **Access** shows observed
-login and lock-screen wiring. Neither page can change the engine, profiles, or
-PAM. **Support** contains redacted diagnostic state but no image, device
-identifier, or preview status.
-
-Unknown state is not treated as zero or success. If one irlume section fails,
-other valid diagnostic sections and Camera Check remain independent.
+Diagnostics refreshes bounded local status and can copy or export a redacted
+Markdown report. Review the report before sharing it. It intentionally excludes
+frames, device identifiers, biometric data, credentials, and local paths.

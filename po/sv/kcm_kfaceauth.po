@@ -1,0 +1,391 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: kfaceauth 4.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-28 23:57+0200\n"
+"PO-Revision-Date: 2026-07-28 22:00+0200\n"
+"Last-Translator: KFaceAuth contributors\n"
+"Language-Team: Swedish\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/preview/cameraprovider.cpp:192
+msgid "Camera"
+msgstr "Kamera"
+
+#: src/kcm/ui/CameraCheckPage.qml:18 src/kcm/ui/CameraCheckPage.qml:36
+#: src/kcm/ui/main.qml:31
+msgid "Camera Check"
+msgstr "Kamerakontroll"
+
+#: src/kcm/ui/CameraCheckPage.qml:44
+msgid ""
+"Preview starts only when you ask. Frames remain in memory, stop after 60 "
+"seconds, and are never used for enrollment or recognition."
+msgstr ""
+"Förhandsvisningen startar endast när du begär det. Bildrutor stannar i "
+"minnet, stoppas efter 60 sekunder och används aldrig för registrering eller "
+"igenkänning."
+
+#: src/kcm/ui/CameraCheckPage.qml:51
+msgid ""
+"A visible RGB or infrared image does not verify liveness, identity, security "
+"level, or authentication readiness."
+msgstr ""
+"En synlig RGB- eller infraröd bild verifierar inte livskontroll, identitet, "
+"säkerhetsnivå eller autentiseringsberedskap."
+
+#: src/kcm/ui/CameraCheckPage.qml:66
+msgid "Local camera"
+msgstr "Lokal kamera"
+
+#: src/kcm/ui/CameraCheckPage.qml:73
+msgid "Refresh"
+msgstr "Uppdatera"
+
+#: src/kcm/ui/CameraCheckPage.qml:86
+msgid "Private camera preview"
+msgstr "Privat kameraförhandsvisning"
+
+#: src/kcm/ui/CameraCheckPage.qml:100
+msgid "Infrared camera preview"
+msgstr "Förhandsvisning från infraröd kamera"
+
+#: src/kcm/ui/CameraCheckPage.qml:102
+msgid "RGB camera preview"
+msgstr "Förhandsvisning från RGB-kamera"
+
+#: src/kcm/ui/CameraCheckPage.qml:103
+msgid "Camera preview"
+msgstr "Kameraförhandsvisning"
+
+#: src/kcm/ui/CameraCheckPage.qml:110
+msgid "Starting camera…"
+msgstr "Startar kameran…"
+
+#: src/kcm/ui/CameraCheckPage.qml:111
+msgid "Preview is off"
+msgstr "Förhandsvisningen är avstängd"
+
+#: src/kcm/ui/CameraCheckPage.qml:124
+msgid "%1 s"
+msgstr "%1 s"
+
+#: src/kcm/ui/CameraCheckPage.qml:156
+msgid "Stop preview"
+msgstr "Stoppa förhandsvisning"
+
+#: src/kcm/ui/CameraCheckPage.qml:156
+msgid "Start preview"
+msgstr "Starta förhandsvisning"
+
+#: src/kcm/ui/CameraCheckPage.qml:174
+msgid "Dropped preview frames: %1"
+msgstr "Tappade bildrutor i förhandsvisningen: %1"
+
+#: src/kcm/ui/DiagnosticsPage.qml:19 src/kcm/ui/main.qml:37
+msgid "Diagnostics"
+msgstr "Diagnostik"
+
+#: src/kcm/ui/DiagnosticsPage.qml:30
+msgid ""
+"Diagnostics are read-only. Refreshing runs bounded local probes and never "
+"performs biometric or PAM operations."
+msgstr ""
+"Diagnostiken är skrivskyddad. Uppdatering kör begränsade lokala kontroller "
+"och utför aldrig biometriska åtgärder eller PAM-åtgärder."
+
+#: src/kcm/ui/DiagnosticsPage.qml:43
+msgid "Native status"
+msgstr "Native-status"
+
+#: src/kcm/ui/DiagnosticsPage.qml:48 src/kcm/ui/SetupStatusPage.qml:82
+msgid "Native engine"
+msgstr "Native-motor"
+
+#: src/kcm/ui/DiagnosticsPage.qml:57 src/kcm/ui/SetupStatusPage.qml:109
+msgid "Enrollment"
+msgstr "Registrering"
+
+#: src/kcm/ui/DiagnosticsPage.qml:66
+msgid "Authentication decisions"
+msgstr "Autentiseringsbeslut"
+
+#: src/kcm/ui/DiagnosticsPage.qml:75
+msgid "PAM configuration"
+msgstr "PAM-konfiguration"
+
+#: src/kcm/ui/DiagnosticsPage.qml:84
+msgid "Template persistence"
+msgstr "Beständig mallagring"
+
+#: src/kcm/ui/DiagnosticsPage.qml:93
+msgid "Secure Boot"
+msgstr "Säker start"
+
+#: src/kcm/ui/DiagnosticsPage.qml:100 src/kcm/ui/SetupStatusPage.qml:57
+msgid "Updating…"
+msgstr "Uppdaterar…"
+
+#: src/kcm/ui/DiagnosticsPage.qml:100
+msgid "Refresh diagnostics"
+msgstr "Uppdatera diagnostik"
+
+#: src/kcm/ui/DiagnosticsPage.qml:111
+msgid "Redacted support report preview"
+msgstr "Förhandsvisning av maskerad supportrapport"
+
+#: src/kcm/ui/DiagnosticsPage.qml:121
+msgid "Redacted support report"
+msgstr "Maskerad supportrapport"
+
+#: src/kcm/ui/DiagnosticsPage.qml:129
+msgid "Copy report"
+msgstr "Kopiera rapport"
+
+#: src/kcm/ui/DiagnosticsPage.qml:135
+msgid "Export report"
+msgstr "Exportera rapport"
+
+#: src/kcm/ui/DiagnosticsPage.qml:137
+msgid "Saves a redacted Markdown report in Documents"
+msgstr "Sparar en maskerad Markdown-rapport i Dokument"
+
+#: src/kcm/ui/SetupStatusPage.qml:20 src/kcm/ui/main.qml:25
+msgid "Overview"
+msgstr "Översikt"
+
+#: src/kcm/ui/SetupStatusPage.qml:31
+msgid ""
+"Milestone 1 provides local camera discovery and a bounded in-memory preview. "
+"It does not detect or recognize faces, test liveness, enroll profiles, store "
+"biometric data, configure PAM, or authenticate users."
+msgstr ""
+"Milstolpe 1 tillhandahåller lokal kameraidentifiering och en begränsad "
+"förhandsvisning i minnet. Den identifierar eller känner inte igen ansikten, "
+"testar inte livskontroll, registrerar inte profiler, lagrar inte biometriska "
+"data, konfigurerar inte PAM och autentiserar inte användare."
+
+#: src/kcm/ui/SetupStatusPage.qml:57
+msgid "Refresh status"
+msgstr "Uppdatera status"
+
+#: src/kcm/ui/SetupStatusPage.qml:64
+msgid "Open Camera Check"
+msgstr "Öppna kamerakontroll"
+
+#: src/kcm/ui/SetupStatusPage.qml:75
+msgid "Milestone status"
+msgstr "Status för milstolpen"
+
+#: src/kcm/ui/SetupStatusPage.qml:91
+msgid "Local cameras"
+msgstr "Lokala kameror"
+
+#: src/kcm/ui/SetupStatusPage.qml:92
+msgid "%1 camera found"
+msgid_plural "%1 cameras found"
+msgstr[0] "%1 kamera hittades"
+msgstr[1] "%1 kameror hittades"
+
+#: src/kcm/ui/SetupStatusPage.qml:100
+msgid "Vision processing"
+msgstr "Bildbehandling"
+
+#: src/kcm/ui/SetupStatusPage.qml:118
+msgid "Authentication and PAM"
+msgstr "Autentisering och PAM"
+
+#: src/kcm/ui/main.qml:13
+msgid "KFaceAuth (Development Preview)"
+msgstr "KFaceAuth (utvecklingsförhandsvisning)"
+
+#: src/kcm/ui/main.qml:20
+msgid "KFaceAuth sections"
+msgstr "KFaceAuth-avsnitt"
+
+#: src/backend/camerapreviewsession.cpp:22
+msgid "CameraPreviewSession"
+msgstr "Kameraförhandsvisningssession"
+
+#: src/backend/camerapreviewsession.cpp:200
+#: src/backend/camerapreviewsession.cpp:300
+msgid "Looking for local cameras…"
+msgstr "Söker efter lokala kameror…"
+
+#: src/backend/camerapreviewsession.cpp:214
+msgid "Starting the selected camera…"
+msgstr "Startar den valda kameran…"
+
+#: src/backend/camerapreviewsession.cpp:229
+msgid "Stopping and releasing the camera…"
+msgstr "Stoppar och frigör kameran…"
+
+#: src/backend/camerapreviewsession.cpp:373
+msgid "Preview is live and remains only in memory."
+msgstr "Förhandsvisningen är aktiv och stannar endast i minnet."
+
+#: src/backend/camerapreviewsession.cpp:388
+msgid "The camera has been released."
+msgstr "Kameran har frigjorts."
+
+#: src/backend/camerapreviewsession.cpp:440
+msgid "Select a camera and start a private preview."
+msgstr "Välj en kamera och starta en privat förhandsvisning."
+
+#: src/backend/camerapreviewsession.cpp:521
+msgid "Camera permission was denied."
+msgstr "Kamerabehörighet nekades."
+
+#: src/backend/camerapreviewsession.cpp:523
+msgid "No compatible local camera was found."
+msgstr "Ingen kompatibel lokal kamera hittades."
+
+#: src/backend/camerapreviewsession.cpp:525
+msgid "The selected camera is already in use."
+msgstr "Den valda kameran används redan."
+
+#: src/backend/camerapreviewsession.cpp:527
+msgid "The selected camera has no usable preview format."
+msgstr "Den valda kameran saknar ett användbart förhandsvisningsformat."
+
+#: src/backend/camerapreviewsession.cpp:529
+msgid "The camera did not start in time."
+msgstr "Kameran startade inte i tid."
+
+#: src/backend/camerapreviewsession.cpp:531
+msgid "The camera preview stopped delivering frames."
+msgstr "Kameraförhandsvisningen slutade leverera bildrutor."
+
+#: src/backend/camerapreviewsession.cpp:533
+msgid "The camera worker returned invalid data."
+msgstr "Kameraprocessen returnerade ogiltiga data."
+
+#: src/backend/camerapreviewsession.cpp:535
+msgid "The camera worker stopped unexpectedly."
+msgstr "Kameraprocessen stoppades oväntat."
+
+#: src/backend/camerapreviewsession.cpp:536
+msgid "The local camera is unavailable."
+msgstr "Den lokala kameran är inte tillgänglig."
+
+#: src/backend/supportreport.cpp:25
+msgid "SupportReport"
+msgstr "Support"
+
+#: src/backend/supportreport.cpp:82
+msgid "The redacted support report was copied."
+msgstr "Den maskerade supportrapporten kopierades."
+
+#: src/backend/supportreport.cpp:86
+msgid "The text could not be copied."
+msgstr "Texten kunde inte kopieras."
+
+#: src/backend/supportreport.cpp:103 src/backend/supportreport.cpp:114
+msgid "The support report could not be exported."
+msgstr "Supportrapporten kunde inte exporteras."
+
+#: src/backend/supportreport.cpp:120
+msgid "The redacted support report was exported to Documents."
+msgstr "Den maskerade supportrapporten exporterades till Dokument."
+
+#: src/backend/supportreport.cpp:145
+msgid "The camera is in use"
+msgstr "Kameran används"
+
+#: src/backend/supportreport.cpp:147
+msgid "The camera is unavailable"
+msgstr "Kameran är inte tillgänglig"
+
+#: src/backend/supportreport.cpp:149
+msgid "The native engine is unavailable"
+msgstr "Native-motorn är inte tillgänglig"
+
+#: src/backend/supportreport.cpp:151
+msgid "The native protocol is unavailable"
+msgstr "Native-protokollet är inte tillgängligt"
+
+#: src/backend/supportreport.cpp:152
+msgid "KFaceAuth needs attention"
+msgstr "KFaceAuth behöver åtgärdas"
+
+#: src/backend/supportreport.cpp:158
+msgid "Close applications using the camera, then retry the preview."
+msgstr ""
+"Stäng program som använder kameran och försök sedan med förhandsvisningen "
+"igen."
+
+#: src/backend/supportreport.cpp:160
+msgid "Reconnect or re-enable the camera, then refresh camera discovery."
+msgstr ""
+"Anslut eller aktivera kameran igen och uppdatera sedan kameraidentifieringen."
+
+#: src/backend/supportreport.cpp:163
+msgid ""
+"No action is required in Milestone 1. Biometric and PAM operations remain "
+"disabled."
+msgstr ""
+"Ingen åtgärd krävs i milstolpe 1. Biometriska åtgärder och PAM-åtgärder "
+"förblir inaktiverade."
+
+#: src/backend/supportreport.cpp:165
+msgid "No known issue is currently reported."
+msgstr "Inget känt problem rapporteras just nu."
+
+#: src/backend/supportreport.cpp:166
+msgid ""
+"Keep unsupported operations disabled and export the redacted report for "
+"development support."
+msgstr ""
+"Behåll åtgärder som inte stöds inaktiverade och exportera den maskerade "
+"rapporten för utvecklingssupport."
+
+#: src/backend/systemprobe.cpp:19
+msgid "SystemProbe"
+msgstr "SystemProbe"
+
+#: src/backend/systemprobe.cpp:94
+msgid "Live local system"
+msgstr "Lokalt system i realtid"
+
+#: src/backend/systemprobe.cpp:109
+msgid "Native engine unavailable"
+msgstr "Native-motorn är inte tillgänglig"
+
+#: src/backend/systemprobe.cpp:111
+msgid ""
+"The KCM remains usable for camera checks. Biometric and PAM operations are "
+"not implemented."
+msgstr ""
+"KCM-modulen kan fortfarande användas för kamerakontroller. Biometriska "
+"åtgärder och PAM-åtgärder är inte implementerade."
+
+#: src/backend/systemprobe.cpp:119
+msgid "Native protocol unavailable"
+msgstr "Native-protokollet är inte tillgängligt"
+
+#: src/backend/systemprobe.cpp:120
+msgid ""
+"The local engine did not provide the versioned Milestone 1 status protocol."
+msgstr ""
+"Den lokala motorn tillhandahöll inte det versionshanterade statusprotokollet "
+"för milstolpe 1."
+
+#: src/backend/systemprobe.cpp:126
+msgid "Native engine skeleton available"
+msgstr "Native-motorns skelett är tillgängligt"
+
+#: src/backend/systemprobe.cpp:128
+msgid ""
+"Status reporting is available. Recognition, enrollment, template storage, "
+"and PAM remain disabled."
+msgstr ""
+"Statusrapportering är tillgänglig. Igenkänning, registrering, mallagring och "
+"PAM förblir inaktiverade."
+
+#: src/preview/cameraprovider.cpp:192
+msgid "CameraProvider"
+msgstr "Kameravägledning"

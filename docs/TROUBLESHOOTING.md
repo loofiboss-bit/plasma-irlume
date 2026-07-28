@@ -1,31 +1,29 @@
 # Troubleshooting
 
-## Native Camera Check
+## Native engine unavailable
 
-| Error | Meaning and action |
-| --- | --- |
-| `permission-denied` | Camera access was denied. Grant access in the desktop prompt and refresh. |
-| `no-camera` | No compatible local capture node remains available. Reconnect the camera and refresh. |
-| `camera-busy` | Another application owns the selected camera. Stop that application and retry. |
-| `camera-unavailable` | The selected local node could not be opened. Refresh discovery. |
-| `format-unavailable` | The device advertises no usable preview format. Try another device. |
-| `startup-timeout` | Capture did not start within five seconds. |
-| `stream-stalled` | An active preview delivered no frame for three seconds. |
-| `protocol-error` | The private worker returned malformed, oversized, or out-of-sequence data. |
-| `worker-crashed` | The worker exited or did not acknowledge stop within one second. |
+This is expected in Milestone 1. The engine workspace is source-only and the KCM
+does not start it. Camera Check and diagnostics remain responsive. No biometric
+or PAM feature should become enabled.
 
-Every preview error clears the frame. Refresh starts a new private worker when
-the previous worker was terminated.
+## Camera unavailable
 
-## irlume diagnostics
+- close other applications using the camera;
+- verify the hardware privacy switch;
+- select **Refresh**;
+- reconnect the device if it is removable;
+- inspect the stable preview error code in Diagnostics.
 
-| Error | Meaning |
-| --- | --- |
-| `engine-not-installed` | `/usr/bin/irlume` is not executable. Install `irlume >= 0.7.0`. |
-| `unsupported-contract` | The advertised contract range does not include Contract 1. |
-| `invalid-handshake` | Required contract, capability, or public-limit data is malformed or missing. |
-| `invalid-json-document` | The engine did not return one valid JSON object. |
-| `engine-timeout` | A fixed read-only command exceeded its timeout. |
-| `engine-output-too-large` | A response exceeded the accepted output bound. |
+Camera errors do not alter native-engine status. Native-engine errors do not
+weaken preview bounds or privacy.
 
-Native preview errors do not erase otherwise valid irlume diagnostic data.
+## Preview stops
+
+Automatic stop after 60 seconds is expected. Hiding the page, deactivating
+System Settings, worker failure, or KCM teardown also stops capture and clears
+the current frame.
+
+## Build cannot find Qt Multimedia
+
+Install `qt6-qtmultimedia-devel`. The runtime package alone does not contain the
+CMake configuration and headers required to build the worker.

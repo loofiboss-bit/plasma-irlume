@@ -8,7 +8,7 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.irlume 3.0
+import org.kde.kfaceauth 4.0
 
 Kirigami.ScrollablePage {
     id: root
@@ -48,7 +48,7 @@ Kirigami.ScrollablePage {
             Layout.fillWidth: true
             visible: true
             type: Kirigami.MessageType.Warning
-            text: i18n("A visible RGB or infrared image does not verify liveness, security level, or Face Login readiness.")
+            text: i18n("A visible RGB or infrared image does not verify liveness, identity, security level, or authentication readiness.")
         }
 
         RowLayout {
