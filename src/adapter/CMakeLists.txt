@@ -4,8 +4,6 @@ add_library(irlume_adapter STATIC
     ${PROJECT_SOURCE_DIR}/src/backend/faceauthbackend.h
     backendfactory.cpp
     backendfactory.h
-    enrollmentsession.cpp
-    enrollmentsession.h
     irlumebackend.cpp
     irlumebackend.h
 )

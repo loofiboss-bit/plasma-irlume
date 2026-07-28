@@ -1,26 +1,25 @@
 # User guide
 
-The v2.2.0 KCM is a read-only status viewer. Refresh starts a bounded
-asynchronous check and disables refresh buttons until the current request
-finishes. Existing section data may remain visible with an **Updating…**
-status. If a new section result fails, that section is cleared and shows its
-own error and retry state.
+## Camera Check
 
-The summary distinguishes:
+Open **Camera Check** to discover local cameras. Discovery does not start
+capture. Select a device and press **Start preview** to grant access for one
+preview session. The preview stops after 60 seconds or immediately when you
+press Stop, leave the tab, switch away from System Settings, or close the KCM.
 
-- missing backend;
-- unavailable or incompatible Contract 1 handshake;
-- no compatible read capabilities;
-- partial read-only diagnostics;
-- complete read-only status.
+RGB, Infrared, and Unknown describe only the locally observed camera node.
+A visible image does not verify liveness, security level, identity matching,
+or Face Login readiness. Preview does not enroll or modify a profile.
 
-Profiles come only from `profiles list`, camera type only from the status
-camera section, authentication wiring only from `login status`, and readiness
-only from status plus relevant doctor checks.
+No approval is remembered. Frames and opaque device tokens remain in memory
+and are cleared on stop or failure.
 
-Infrared and RGB describe camera capability only. The KCM reports security
-tier, liveness, password fallback, and authentication safety as unknown unless
-an explicit supported result establishes them.
+## Read-only engine pages
 
-No button in this version captures a frame, enrolls a face, changes a profile,
-opens an authorization prompt, edits PAM, or starts a helper.
+**Face Profiles** shows the Contract 1 profile list. **Access** shows observed
+login and lock-screen wiring. Neither page can change the engine, profiles, or
+PAM. **Support** contains redacted diagnostic state but no image, device
+identifier, or preview status.
+
+Unknown state is not treated as zero or success. If one irlume section fails,
+other valid diagnostic sections and Camera Check remain independent.

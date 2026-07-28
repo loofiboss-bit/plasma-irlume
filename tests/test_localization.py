@@ -8,7 +8,9 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 QML_FILES = sorted((ROOT / "src" / "kcm" / "ui").rglob("*.qml"))
-CPP_FILES = sorted((ROOT / "src" / "backend").glob("*.cpp"))
+CPP_FILES = sorted((ROOT / "src" / "backend").glob("*.cpp")) + sorted(
+    (ROOT / "src" / "preview").glob("*.cpp")
+)
 SWEDISH_CATALOG = ROOT / "po" / "sv" / "kcm_irlume.po"
 
 

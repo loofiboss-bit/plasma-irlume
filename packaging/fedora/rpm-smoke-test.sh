@@ -52,11 +52,15 @@ printf 'user-setting\n' >"${smoke_root}/home/test/.config/plasma-irlume-preserve
 printf 'auth required pam_unix.so\n' >"${smoke_root}/etc/pam.d/plasma-irlume-sentinel"
 
 pam_hash_before="$(sha256sum "${smoke_root}/etc/pam.d/plasma-irlume-sentinel")"
+profile_hash_before="$(sha256sum "${smoke_root}/var/lib/irlume/profiles/preserve-me")"
+user_hash_before="$(sha256sum "${smoke_root}/home/test/.config/plasma-irlume-preserve-me")"
 
 rpm --root "${smoke_root}" --initdb
 rpm --root "${smoke_root}" --nodeps --install "${rpm_path}"
+rpm --root "${smoke_root}" --nodeps --upgrade --replacepkgs "${rpm_path}"
 
 required_paths=(
+    "/usr/libexec/plasma-irlume-camera-preview-worker"
     "/usr/share/applications/kcm_irlume.desktop"
 )
 
@@ -66,6 +70,16 @@ for path in "${required_paths[@]}"; do
         exit 1
     fi
 done
+
+if find "${smoke_root}/usr/libexec/plasma-irlume-camera-preview-worker" -perm /6000 -print -quit | grep -q .; then
+    echo "Camera preview worker must not be setuid or setgid" >&2
+    exit 1
+fi
+if command -v getcap >/dev/null 2>&1 &&
+    getcap "${smoke_root}/usr/libexec/plasma-irlume-camera-preview-worker" | grep -q .; then
+    echo "Camera preview worker must not have file capabilities" >&2
+    exit 1
+fi
 
 forbidden_patterns=(
     '/kauth/'
@@ -98,6 +112,8 @@ if [[ "$(sha256sum "${smoke_root}/etc/pam.d/plasma-irlume-sentinel")" != "${pam_
 fi
 grep -Fxq 'profile-state' "${smoke_root}/var/lib/irlume/profiles/preserve-me"
 grep -Fxq 'user-setting' "${smoke_root}/home/test/.config/plasma-irlume-preserve-me"
+[[ "$(sha256sum "${smoke_root}/var/lib/irlume/profiles/preserve-me")" == "${profile_hash_before}" ]]
+[[ "$(sha256sum "${smoke_root}/home/test/.config/plasma-irlume-preserve-me")" == "${user_hash_before}" ]]
 
 mapfile -t packaged_paths < <(
     rpm --root "${smoke_root}" -ql plasma-irlume \
@@ -122,5 +138,7 @@ done
 
 grep -Fxq 'profile-state' "${smoke_root}/var/lib/irlume/profiles/preserve-me"
 grep -Fxq 'user-setting' "${smoke_root}/home/test/.config/plasma-irlume-preserve-me"
+[[ "$(sha256sum "${smoke_root}/var/lib/irlume/profiles/preserve-me")" == "${profile_hash_before}" ]]
+[[ "$(sha256sum "${smoke_root}/home/test/.config/plasma-irlume-preserve-me")" == "${user_hash_before}" ]]
 
-echo "RPM install/uninstall lifecycle smoke test passed"
+echo "RPM install/upgrade/remove lifecycle smoke test passed"

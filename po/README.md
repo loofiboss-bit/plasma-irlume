@@ -13,7 +13,7 @@ xgettext --language=JavaScript --from-code=UTF-8 \
   -o po/kcm_irlume-qml.pot src/kcm/ui/*.qml src/kcm/ui/components/*.qml
 xgettext --language=C++ --from-code=UTF-8 \
   --keyword=translate:1 --keyword=QCoreApplication::translate:2 \
-  -o po/kcm_irlume-cpp.pot src/backend/*.cpp
+  -o po/kcm_irlume-cpp.pot src/backend/*.cpp src/preview/*.cpp
 xgettext --language=C++ --from-code=UTF-8 \
   --keyword=translate:1c,2 \
   -o po/kcm_irlume-context.pot src/backend/fakeadapter.cpp

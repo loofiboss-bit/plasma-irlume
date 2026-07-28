@@ -3,8 +3,8 @@
 kcmutils_add_qml_kcm(kcm_irlume
     DISABLE_DESKTOP_FILE_GENERATION
     SOURCES
-        enrollmentpreviewitem.cpp
-        enrollmentpreviewitem.h
+        camerapreviewitem.cpp
+        camerapreviewitem.h
         irlumekcm.cpp
         irlumekcm.h
 )

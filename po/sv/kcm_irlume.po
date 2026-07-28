@@ -1,9 +1,9 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: plasma-irlume 2.0.0-dev\n"
+"Project-Id-Version: plasma-irlume 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-26 18:02+0200\n"
-"PO-Revision-Date: 2026-07-26 00:00+0200\n"
+"POT-Creation-Date: 2026-07-28 21:54+0200\n"
+"PO-Revision-Date: 2026-07-28 22:00+0200\n"
 "Last-Translator: plasma-irlume contributors\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -12,25 +12,769 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/kcm/ui/EnrollmentPage.qml:343
+#: src/kcm/ui/AuthenticationPage.qml:17 src/kcm/ui/AuthenticationPage.qml:27
+#: src/kcm/ui/main.qml:48
+msgid "Access"
+msgstr "Åtkomst"
+
+#: src/kcm/ui/AuthenticationPage.qml:35
+msgid ""
+"Authentication wiring is read-only. v3 never edits PAM or starts a "
+"privileged helper."
+msgstr ""
+"Autentiseringskopplingen är skrivskyddad. v3 ändrar aldrig PAM och startar "
+"ingen privilegierad hjälpprocess."
+
+#: src/kcm/ui/AuthenticationPage.qml:41
+msgid "Authentication status"
+msgstr "Autentiseringsstatus"
+
+#: src/kcm/ui/AuthenticationPage.qml:48
+msgid "Lock screen"
+msgstr "Låsskärm"
+
+#: src/kcm/ui/AuthenticationPage.qml:49 src/kcm/ui/AuthenticationPage.qml:60
+msgid "Wired"
+msgstr "Inkopplad"
+
+#: src/kcm/ui/AuthenticationPage.qml:49 src/kcm/ui/AuthenticationPage.qml:60
+msgid "Not wired"
+msgstr "Inte inkopplad"
+
+#: src/kcm/ui/AuthenticationPage.qml:59
+msgid "Login screen"
+msgstr "Inloggningsskärm"
+
+#: src/kcm/ui/AuthenticationPage.qml:70 src/kcm/ui/OverviewPage.qml:137
+msgid "Password fallback"
+msgstr "Lösenordsreserv"
+
+#: src/kcm/ui/AuthenticationPage.qml:72
+msgid "Verified"
+msgstr "Verifierat"
+
+#: src/kcm/ui/AuthenticationPage.qml:74 src/kcm/ui/OverviewPage.qml:138
+msgid "Not verified"
+msgstr "Inte verifierat"
+
+#: src/kcm/ui/AuthenticationPage.qml:75 src/kcm/ui/SecurityPage.qml:34
+#: src/kcm/ui/SecurityPage.qml:44
+msgid "Unknown"
+msgstr "Okänt"
+
+#: src/kcm/ui/CameraCheckPage.qml:18 src/kcm/ui/CameraCheckPage.qml:36
+#: src/kcm/ui/main.qml:34
+msgid "Camera Check"
+msgstr "Kamerakontroll"
+
+#: src/kcm/ui/CameraCheckPage.qml:44
+msgid ""
+"Preview starts only when you ask. Frames remain in memory, stop after 60 "
+"seconds, and are never used for enrollment or recognition."
+msgstr ""
+"Förhandsvisningen startar endast när du begär det. Bildrutor stannar i "
+"minnet, stoppas efter 60 sekunder och används aldrig för registrering eller "
+"igenkänning."
+
+#: src/kcm/ui/CameraCheckPage.qml:51
+msgid ""
+"A visible RGB or infrared image does not verify liveness, security level, or "
+"Face Login readiness."
+msgstr ""
+"En synlig RGB- eller infraröd bild verifierar inte livskontroll, "
+"säkerhetsnivå eller beredskap för ansiktsinloggning."
+
+#: src/kcm/ui/CameraCheckPage.qml:66
+msgid "Local camera"
+msgstr "Lokal kamera"
+
+#: src/kcm/ui/CameraCheckPage.qml:72 src/kcm/ui/EnrollmentPage.qml:55
+msgid "Refresh"
+msgstr "Uppdatera"
+
+#: src/kcm/ui/CameraCheckPage.qml:85
+msgid "Private camera preview"
+msgstr "Privat kameraförhandsvisning"
+
+#: src/kcm/ui/CameraCheckPage.qml:99
+msgid "Infrared camera preview"
+msgstr "Förhandsvisning från infraröd kamera"
+
+#: src/kcm/ui/CameraCheckPage.qml:101
+msgid "RGB camera preview"
+msgstr "Förhandsvisning från RGB-kamera"
+
+#: src/kcm/ui/CameraCheckPage.qml:102
+msgid "Camera preview"
+msgstr "Kameraförhandsvisning"
+
+#: src/kcm/ui/CameraCheckPage.qml:109
+msgid "Starting camera…"
+msgstr "Startar kameran…"
+
+#: src/kcm/ui/CameraCheckPage.qml:110
+msgid "Preview is off"
+msgstr "Förhandsvisningen är avstängd"
+
+#: src/kcm/ui/CameraCheckPage.qml:123
+msgid "%1 s"
+msgstr "%1 s"
+
+#: src/kcm/ui/CameraCheckPage.qml:155
+msgid "Stop preview"
+msgstr "Stoppa förhandsvisning"
+
+#: src/kcm/ui/CameraCheckPage.qml:155
+msgid "Start preview"
+msgstr "Starta förhandsvisning"
+
+#: src/kcm/ui/CameraCheckPage.qml:173
+msgid "Dropped preview frames: %1"
+msgstr "Tappade bildrutor i förhandsvisningen: %1"
+
+#: src/kcm/ui/DiagnosticsPage.qml:25 src/kcm/ui/main.qml:55
+msgid "Support"
+msgstr "Support"
+
+#: src/kcm/ui/DiagnosticsPage.qml:33
+msgid ""
+"Diagnostics are read-only. Refreshing runs fixed local probes and never "
+"modifies authentication."
+msgstr ""
+"Diagnostiken är skrivskyddad. Uppdatering kör fasta lokala kontroller och "
+"ändrar aldrig autentiseringen."
+
+#: src/kcm/ui/DiagnosticsPage.qml:40
+msgid ""
+"Partial read-only diagnostics are available. One or more sections could not "
+"be refreshed."
+msgstr ""
+"Delvis skrivskyddad diagnostik är tillgänglig. En eller flera sektioner "
+"kunde inte uppdateras."
+
+#: src/kcm/ui/DiagnosticsPage.qml:48
+msgid "Recommended recovery action"
+msgstr "Rekommenderad återställningsåtgärd"
+
+#: src/kcm/ui/DiagnosticsPage.qml:54 src/kcm/ui/DiagnosticsPage.qml:61
+msgid "TTY recovery"
+msgstr "TTY-återställning"
+
+#: src/kcm/ui/DiagnosticsPage.qml:68
+msgid "Keep these instructions available before logging out or rebooting."
+msgstr "Ha instruktionerna tillgängliga innan du loggar ut eller startar om."
+
+#: src/kcm/ui/DiagnosticsPage.qml:80
+msgid "TTY recovery instructions"
+msgstr "TTY-instruktioner för återställning"
+
+#: src/kcm/ui/DiagnosticsPage.qml:85
+msgid "Copy recovery instructions"
+msgstr "Kopiera återställningsinstruktioner"
+
+#: src/kcm/ui/DiagnosticsPage.qml:96 src/kcm/ui/DiagnosticsPage.qml:102
+msgid "Diagnostic source"
+msgstr "Diagnostikkälla"
+
+#: src/kcm/ui/DiagnosticsPage.qml:108
+msgid "Current data source: %1"
+msgstr "Aktuell datakälla: %1"
+
+#: src/kcm/ui/DiagnosticsPage.qml:122
+msgid "Updating…"
+msgstr "Uppdaterar…"
+
+#: src/kcm/ui/DiagnosticsPage.qml:122
+msgid "Refresh diagnostics"
+msgstr "Uppdatera diagnostik"
+
+#: src/kcm/ui/DiagnosticsPage.qml:135 src/kcm/ui/DiagnosticsPage.qml:141
+msgid "Diagnostics"
+msgstr "Diagnostik"
+
+#: src/kcm/ui/DiagnosticsPage.qml:147
+msgid "Security tier"
+msgstr "Säkerhetsnivå"
+
+#: src/kcm/ui/DiagnosticsPage.qml:160 src/kcm/ui/OverviewPage.qml:82
+msgid "Camera"
+msgstr "Kamera"
+
+#: src/kcm/ui/DiagnosticsPage.qml:171 src/kcm/ui/SetupStatusPage.qml:125
+msgid "irlume engine"
+msgstr "irlume-motor"
+
+#: src/kcm/ui/DiagnosticsPage.qml:182
+msgid "Background service"
+msgstr "Bakgrundstjänst"
+
+#: src/kcm/ui/DiagnosticsPage.qml:193
+msgid "Authentication configuration"
+msgstr "Autentiseringskonfiguration"
+
+#: src/kcm/ui/DiagnosticsPage.qml:204
+msgid "TPM 2.0 hardware"
+msgstr "TPM 2.0-maskinvara"
+
+#: src/kcm/ui/DiagnosticsPage.qml:215 src/kcm/ui/SecurityPage.qml:95
+msgid "Template protection"
+msgstr "Mallskydd"
+
+#: src/kcm/ui/DiagnosticsPage.qml:226 src/kcm/ui/SecurityPage.qml:107
+msgid "Secure Boot"
+msgstr "Säker start"
+
+#: src/kcm/ui/DiagnosticsPage.qml:236 src/kcm/ui/DiagnosticsPage.qml:242
+msgid "Redacted support report preview"
+msgstr "Förhandsvisning av maskerad supportrapport"
+
+#: src/kcm/ui/DiagnosticsPage.qml:253
+msgid "Redacted support report"
+msgstr "Maskerad supportrapport"
+
+#: src/kcm/ui/DiagnosticsPage.qml:261
+msgid "Copy report"
+msgstr "Kopiera rapport"
+
+#: src/kcm/ui/DiagnosticsPage.qml:268
+msgid "Export report"
+msgstr "Exportera rapport"
+
+#: src/kcm/ui/DiagnosticsPage.qml:271
+msgid "Saves a redacted Markdown report in Documents"
+msgstr "Sparar en maskerad Markdown-rapport i Dokument"
+
+#: src/kcm/ui/DiagnosticsPage.qml:291
+msgid "Diagnostic code: %1"
+msgstr "Diagnostikkod: %1"
+
+#: src/kcm/ui/EnrollmentPage.qml:15 src/kcm/ui/EnrollmentPage.qml:25
+#: src/kcm/ui/main.qml:41
+msgid "Face Profiles"
+msgstr "Ansiktsprofiler"
+
+#: src/kcm/ui/EnrollmentPage.qml:33
+msgid ""
+"Profiles come from irlume Contract 1 and are read-only. Camera Check does "
+"not enroll or change a face profile."
+msgstr ""
+"Profiler kommer från irlume Contract 1 och är skrivskyddade. "
+"Kamerakontrollen registrerar eller ändrar ingen ansiktsprofil."
+
+#: src/kcm/ui/EnrollmentPage.qml:66
+msgid "No face profiles are enrolled."
+msgstr "Inga ansiktsprofiler är registrerade."
+
+#: src/kcm/ui/EnrollmentPage.qml:67
+msgid "Profile information is unavailable."
+msgstr "Profilinformationen är inte tillgänglig."
+
+#: src/kcm/ui/EnrollmentPage.qml:109
 msgid "%1 appearance scan"
 msgid_plural "%1 appearance scans"
 msgstr[0] "%1 utseendeskanning"
 msgstr[1] "%1 utseendeskanningar"
 
-#: src/kcm/ui/EnrollmentPage.qml:296
-msgid "%1 of %2 profiles used"
-msgstr "%1 av %2 profiler används"
+#: src/kcm/ui/EnrollmentPage.qml:122
+msgid "• %1"
+msgstr "• %1"
 
-#: src/kcm/ui/EnrollmentPage.qml:105
-msgid "%1 of %2 scans captured"
-msgstr "%1 av %2 skanningar tagna"
+#: src/kcm/ui/OverviewPage.qml:63
+msgid "Readiness path"
+msgstr "Beredskapsväg"
 
-#: src/kcm/ui/SetupStatusPage.qml:145
+#: src/kcm/ui/OverviewPage.qml:69
+msgid ""
+"Every link must be healthy before face authentication can be considered "
+"ready."
+msgstr ""
+"Varje del måste fungera innan ansiktsautentisering kan anses vara redo."
+
+#: src/kcm/ui/OverviewPage.qml:91
+msgid "irlume"
+msgstr "irlume"
+
+#: src/kcm/ui/OverviewPage.qml:93
+msgid "Engine %1"
+msgstr "Motor %1"
+
+#: src/kcm/ui/OverviewPage.qml:94
+msgid "No engine version reported"
+msgstr "Ingen motorversion rapporterades"
+
+#: src/kcm/ui/OverviewPage.qml:102
+msgid "Desktop authentication"
+msgstr "Skrivbordsautentisering"
+
+#: src/kcm/ui/OverviewPage.qml:114 src/kcm/ui/OverviewPage.qml:120
+msgid "Current status"
+msgstr "Aktuell status"
+
+#: src/kcm/ui/OverviewPage.qml:126
+msgid "Face profile"
+msgstr "Ansiktsprofil"
+
+#: src/kcm/ui/OverviewPage.qml:138
+msgid "Always available"
+msgstr "Alltid tillgängligt"
+
+#: src/kcm/ui/SecurityPage.qml:21 src/kcm/ui/SecurityPage.qml:27
+msgid "Platform"
+msgstr "Plattform"
+
+#: src/kcm/ui/SecurityPage.qml:33
+msgid "Fedora"
+msgstr "Fedora"
+
+#: src/kcm/ui/SecurityPage.qml:43
+msgid "Plasma"
+msgstr "Plasma"
+
+#: src/kcm/ui/SecurityPage.qml:53
+msgid "Display manager"
+msgstr "Inloggningshanterare"
+
+#: src/kcm/ui/SecurityPage.qml:64 src/kcm/ui/SecurityPage.qml:70
+msgid "Security capabilities"
+msgstr "Säkerhetsfunktioner"
+
+#: src/kcm/ui/SecurityPage.qml:76
+msgid "TPM 2.0"
+msgstr "TPM 2.0"
+
+#: src/kcm/ui/SecurityPage.qml:84
+msgid "Without TPM protection, face templates have reduced protection at rest."
+msgstr "Utan TPM-skydd har ansiktsmallar sämre skydd vid lagring."
+
+#: src/kcm/ui/SecurityPage.qml:118
+msgid "IR emitter"
+msgstr "IR-sändare"
+
+#: src/kcm/ui/SecurityPage.qml:129
+msgid "Liveness checks"
+msgstr "Närvarokontroller"
+
+#: src/kcm/ui/SecurityPage.qml:140
+msgid ""
+"RGB-only hardware is a convenience feature. Login-screen activation remains "
+"unavailable."
+msgstr ""
+"Maskinvara med endast RGB är en bekvämlighetsfunktion. Aktivering på "
+"inloggningsskärmen är inte tillgänglig."
+
+#: src/kcm/ui/SetupStatusPage.qml:34
+msgid "Check the read-only irlume connection"
+msgstr "Kontrollera den skrivskyddade irlume-anslutningen"
+
+#: src/kcm/ui/SetupStatusPage.qml:36
+msgid "Check the local camera"
+msgstr "Kontrollera den lokala kameran"
+
+#: src/kcm/ui/SetupStatusPage.qml:38
+msgid "Review face profiles"
+msgstr "Granska ansiktsprofiler"
+
+#: src/kcm/ui/SetupStatusPage.qml:39
+msgid "Review Face Login wiring"
+msgstr "Granska inkopplingen för ansiktsinloggning"
+
+#: src/kcm/ui/SetupStatusPage.qml:41 src/kcm/ui/main.qml:27
+msgid "Setup & Status"
+msgstr "Konfiguration och status"
+
+#: src/kcm/ui/SetupStatusPage.qml:61
+msgid "Next action"
+msgstr "Nästa åtgärd"
+
+#: src/kcm/ui/SetupStatusPage.qml:81
+msgid "Refresh status"
+msgstr "Uppdatera status"
+
+#: src/kcm/ui/SetupStatusPage.qml:82
+msgid "Open Camera Check"
+msgstr "Öppna kamerakontroll"
+
+#: src/kcm/ui/SetupStatusPage.qml:83
+msgid "Open Face Profiles"
+msgstr "Öppna ansiktsprofiler"
+
+#: src/kcm/ui/SetupStatusPage.qml:83
+msgid "Open Access"
+msgstr "Öppna Åtkomst"
+
+#: src/kcm/ui/SetupStatusPage.qml:105
+msgid ""
+"Some read-only irlume sections are unavailable. Available sections remain "
+"independent."
+msgstr ""
+"Vissa skrivskyddade irlume-avsnitt är inte tillgängliga. Tillgängliga "
+"avsnitt förblir oberoende."
+
+#: src/kcm/ui/SetupStatusPage.qml:112
+msgid ""
+"Camera Check is local and separate from irlume. Finding a camera does not "
+"prove that Face Login is secure or enabled."
+msgstr ""
+"Kamerakontrollen är lokal och fristående från irlume. Att en kamera hittas "
+"bevisar inte att ansiktsinloggning är säker eller aktiverad."
+
+#: src/kcm/ui/SetupStatusPage.qml:118
+msgid "Readiness summary"
+msgstr "Beredskapssammanfattning"
+
+#: src/kcm/ui/SetupStatusPage.qml:136
+msgid "Engine camera capability"
+msgstr "Motorns kameraförmåga"
+
+#: src/kcm/ui/SetupStatusPage.qml:147
+msgid "Local cameras"
+msgstr "Lokala kameror"
+
+#: src/kcm/ui/SetupStatusPage.qml:148
+msgid "%1 camera found"
+msgid_plural "%1 cameras found"
+msgstr[0] "%1 kamera hittades"
+msgstr[1] "%1 kameror hittades"
+
+#: src/kcm/ui/SetupStatusPage.qml:158
+msgid "Face profiles"
+msgstr "Ansiktsprofiler"
+
+#: src/kcm/ui/SetupStatusPage.qml:159
+msgid "%1 profile"
+msgid_plural "%1 profiles"
+msgstr[0] "%1 profil"
+msgstr[1] "%1 profiler"
+
+#: src/kcm/ui/SetupStatusPage.qml:169
+msgid "Authentication wiring"
+msgstr "Autentiseringsinkoppling"
+
+#: src/kcm/ui/SetupStatusPage.qml:179
+msgid "Setup path"
+msgstr "Konfigurationsväg"
+
+#: src/kcm/ui/SetupStatusPage.qml:184
+msgid "Read-only engine diagnostics"
+msgstr "Skrivskyddad motordiagnostik"
+
+#: src/kcm/ui/SetupStatusPage.qml:185
+msgid "Local camera discovery"
+msgstr "Lokal kameraupptäckt"
+
+#: src/kcm/ui/SetupStatusPage.qml:186
+msgid "Read-only face profiles"
+msgstr "Skrivskyddade ansiktsprofiler"
+
+#: src/kcm/ui/SetupStatusPage.qml:187
+msgid "Read-only Face Login wiring"
+msgstr "Skrivskyddad inkoppling för ansiktsinloggning"
+
+#: src/kcm/ui/SetupStatusPage.qml:210
 msgid "%1. %2"
 msgstr "%1. %2"
 
-#: src/backend/supportreport.cpp:76
+#: src/kcm/ui/SetupStatusPage.qml:216
+msgid "Available"
+msgstr "Tillgängligt"
+
+#: src/kcm/ui/SetupStatusPage.qml:217
+msgid "Current"
+msgstr "Aktuellt"
+
+#: src/kcm/ui/SetupStatusPage.qml:217
+msgid "Not established"
+msgstr "Inte fastställt"
+
+#: src/kcm/ui/main.qml:13
+msgid "Face Login"
+msgstr "Ansiktsinloggning"
+
+#: src/kcm/ui/main.qml:20
+msgid "Face Login sections"
+msgstr "Avsnitt för ansiktsinloggning"
+
+#: src/backend/authconfiguration.cpp:13
+msgid "AuthConfiguration"
+msgstr "Autentisering"
+
+#: src/backend/authconfiguration.cpp:25
+msgid "Preview a change before enabling face authentication."
+msgstr "Autentisering"
+
+#: src/backend/authconfiguration.cpp:62
+msgid "Updating read-only authentication wiring…"
+msgstr "Uppdaterar skrivskyddad autentiseringsinkoppling…"
+
+#: src/backend/authconfiguration.cpp:88
+msgid "The read-only authentication wiring status is unavailable."
+msgstr ""
+"Status för den skrivskyddade autentiseringsinkopplingen är inte tillgänglig."
+
+#: src/backend/authconfiguration.cpp:91
+msgid "The backend does not advertise read-only authentication wiring."
+msgstr "Bakänden annonserar inte skrivskyddad autentiseringsinkoppling."
+
+#: src/backend/authconfiguration.cpp:94
+msgid ""
+"Authentication wiring is shown read-only. Contract 1 does not support "
+"configuration changes."
+msgstr ""
+"Autentiseringsinkopplingen visas skrivskyddad. Contract 1 stöder inte "
+"konfigurationsändringar."
+
+#: src/backend/authconfiguration.cpp:211 src/backend/authconfiguration.cpp:227
+#: src/backend/authconfiguration.cpp:244 src/backend/authconfiguration.cpp:260
+#: src/backend/authconfiguration.cpp:283 src/backend/authconfiguration.cpp:306
+#: src/backend/authconfiguration.cpp:322 src/backend/authconfiguration.cpp:341
+#: src/backend/authconfiguration.cpp:462
+msgid "Contract 1 does not support authentication configuration changes."
+msgstr "Contract 1 stöder inte ändringar av autentiseringskonfigurationen."
+
+#: src/backend/authconfiguration.cpp:216
+msgid "Lock-screen activation is not ready."
+msgstr "Aktivering på inloggningsskärmen kräver säker infraröd nivå."
+
+#: src/backend/authconfiguration.cpp:219
+msgid "Lock-screen face unlock"
+msgstr "Ansiktsupplåsning på låsskärmen"
+
+#: src/backend/authconfiguration.cpp:233
+msgid "Login-screen activation requires the Secure infrared tier."
+msgstr "Aktivering på inloggningsskärmen kräver säker infraröd nivå."
+
+#: src/backend/authconfiguration.cpp:236
+msgid "Login-screen face authentication"
+msgstr "Autentisering"
+
+#: src/backend/authconfiguration.cpp:249
+msgid "Face authentication cannot be disabled here."
+msgstr ""
+"Ansiktsautentisering för sudo, su, SSH och Polkit ingår inte i V2 och kan "
+"inte aktiveras här."
+
+#: src/backend/authconfiguration.cpp:252
+msgid "Disable face authentication"
+msgstr "Autentisering"
+
+#: src/backend/authconfiguration.cpp:266 src/backend/authconfiguration.cpp:289
+msgid "Read and acknowledge the TTY recovery command before enabling."
+msgstr "Jag har läst TTY-kommandot för återställning"
+
+#: src/backend/authconfiguration.cpp:272
+msgid "Preview the lock-screen plan before enabling."
+msgstr "Granska återställning före aktivering"
+
+#: src/backend/authconfiguration.cpp:295
+msgid "Preview the login-screen plan before enabling."
+msgstr "Granska återställning före aktivering"
+
+#: src/backend/authconfiguration.cpp:311
+msgid "Preview the disable plan before applying it."
+msgstr "Förhandsgranska inaktiveringsplanen innan den tillämpas."
+
+#: src/backend/authconfiguration.cpp:328
+msgid "Face authentication cannot be disabled safely from this session."
+msgstr ""
+"Ansiktsautentisering kan inte inaktiveras säkert från den här sessionen."
+
+#: src/backend/authconfiguration.cpp:351
+msgid "Restoring the previous authentication configuration…"
+msgstr "Autentisering"
+
+#: src/backend/authconfiguration.cpp:355
+msgid "Rollback could not be started."
+msgstr "Återställningen kunde inte startas."
+
+#: src/backend/authconfiguration.cpp:368
+msgid "Asking irlume for a non-mutating plan…"
+msgstr "Begär en icke-ändrande plan från irlume…"
+
+#: src/backend/authconfiguration.cpp:372
+msgid "The preview could not be started."
+msgstr "Förhandsvisningen kunde inte startas."
+
+#: src/backend/authconfiguration.cpp:381
+msgid "Applying, verifying, and protecting password fallback…"
+msgstr "Tillämpar, verifierar och skyddar lösenordsreserven…"
+
+#: src/backend/authconfiguration.cpp:386
+msgid "The authentication change could not be started."
+msgstr "Autentisering"
+
+#: src/backend/authconfiguration.cpp:402
+msgid "The previous configuration was restored automatically."
+msgstr "Den tidigare konfigurationen återställdes automatiskt."
+
+#: src/backend/authconfiguration.cpp:415
+msgid "The plan is read-only. Review it before applying the change."
+msgstr "Planen är skrivskyddad. Granska den innan ändringen tillämpas."
+
+#: src/backend/authconfiguration.cpp:423
+msgid "The previous authentication configuration was restored."
+msgstr "Autentisering"
+
+#: src/backend/authconfiguration.cpp:444
+msgid ""
+"Authentication changed and verified. Password fallback remains available."
+msgstr ""
+"Autentiseringen ändrades och verifierades. Lösenordsreserven är fortsatt "
+"tillgänglig."
+
+#: src/backend/authconfiguration.cpp:466
+msgid ""
+"The installed irlume release does not provide the reviewed login-transaction "
+"contract."
+msgstr ""
+"Den installerade irlume-versionen tillhandahåller inte det granskade avtalet "
+"för inloggningstransaktioner."
+
+#: src/backend/authconfiguration.cpp:470
+msgid "Administrator authentication was cancelled. Nothing was changed."
+msgstr "Administratörsautentiseringen avbröts. Ingenting ändrades."
+
+#: src/backend/authconfiguration.cpp:474
+msgid "Login-screen face authentication requires the Secure infrared tier."
+msgstr "Aktivering på inloggningsskärmen kräver säker infraröd nivå."
+
+#: src/backend/authconfiguration.cpp:478
+msgid "Post-apply verification failed."
+msgstr "Verifieringen efter tillämpning misslyckades."
+
+#: src/backend/authconfiguration.cpp:482
+msgid ""
+"Automatic rollback could not be confirmed. Use the TTY recovery command now."
+msgstr ""
+"Automatisk återställning kunde inte bekräftas. Använd TTY-kommandot för "
+"återställning nu."
+
+#: src/backend/authconfiguration.cpp:484
+msgid ""
+"The authentication operation failed without a verified configuration change."
+msgstr ""
+"Autentiseringsåtgärden misslyckades utan en verifierad konfigurationsändring."
+
+#: src/backend/camerapreviewsession.cpp:20
+msgid "CameraPreviewSession"
+msgstr ""
+
+#: src/backend/camerapreviewsession.cpp:193
+#: src/backend/camerapreviewsession.cpp:293
+msgid "Looking for local cameras…"
+msgstr "Söker efter lokala kameror…"
+
+#: src/backend/camerapreviewsession.cpp:207
+msgid "Starting the selected camera…"
+msgstr "Startar den valda kameran…"
+
+#: src/backend/camerapreviewsession.cpp:222
+msgid "Stopping and releasing the camera…"
+msgstr "Stoppar och frigör kameran…"
+
+#: src/backend/camerapreviewsession.cpp:366
+msgid "Preview is live and remains only in memory."
+msgstr "Förhandsvisningen är aktiv och stannar endast i minnet."
+
+#: src/backend/camerapreviewsession.cpp:381
+msgid "The camera has been released."
+msgstr "Kameran har frigjorts."
+
+#: src/backend/camerapreviewsession.cpp:433
+msgid "Select a camera and start a private preview."
+msgstr "Välj en kamera och starta en privat förhandsvisning."
+
+#: src/backend/camerapreviewsession.cpp:513
+msgid "Camera permission was denied."
+msgstr "Kamerabehörighet nekades."
+
+#: src/backend/camerapreviewsession.cpp:515
+msgid "No compatible local camera was found."
+msgstr "Ingen kompatibel lokal kamera hittades."
+
+#: src/backend/camerapreviewsession.cpp:517
+msgid "The selected camera is already in use."
+msgstr "Den valda kameran används redan."
+
+#: src/backend/camerapreviewsession.cpp:519
+msgid "The selected camera has no usable preview format."
+msgstr "Den valda kameran saknar ett användbart förhandsvisningsformat."
+
+#: src/backend/camerapreviewsession.cpp:521
+msgid "The camera did not start in time."
+msgstr "Kameran startade inte i tid."
+
+#: src/backend/camerapreviewsession.cpp:523
+msgid "The camera preview stopped delivering frames."
+msgstr "Kameraförhandsvisningen slutade leverera bildrutor."
+
+#: src/backend/camerapreviewsession.cpp:525
+msgid "The camera worker returned invalid data."
+msgstr "Kameraprocessen returnerade ogiltiga data."
+
+#: src/backend/camerapreviewsession.cpp:527
+msgid "The camera worker stopped unexpectedly."
+msgstr "Kameraprocessen stoppades oväntat."
+
+#: src/backend/camerapreviewsession.cpp:528
+msgid "The local camera is unavailable."
+msgstr "Den lokala kameran är inte tillgänglig."
+
+#: src/backend/fakeadapter.cpp:22 src/backend/fakeadapter.cpp:24
+#: src/backend/fakeadapter.cpp:26 src/backend/fakeadapter.cpp:56
+#: src/backend/fakeadapter.cpp:57 src/backend/fakeadapter.cpp:58
+#: src/backend/fakeadapter.cpp:59 src/backend/fakeadapter.cpp:60
+#: src/backend/fakeadapter.cpp:61 src/backend/fakeadapter.cpp:62
+#: src/backend/fakeadapter.cpp:76 src/backend/fakeadapter.cpp:78
+#: src/backend/fakeadapter.cpp:88 src/backend/fakeadapter.cpp:89
+#: src/backend/fakeadapter.cpp:102 src/backend/fakeadapter.cpp:104
+#: src/backend/fakeadapter.cpp:120 src/backend/fakeadapter.cpp:121
+#: src/backend/fakeadapter.cpp:138 src/backend/fakeadapter.cpp:140
+#: src/backend/fakeadapter.cpp:151 src/backend/fakeadapter.cpp:153
+#: src/backend/fakeadapter.cpp:161 src/backend/fakeadapter.cpp:162
+msgid "FakeSystemStateAdapter"
+msgstr "FakeSystemStateAdapter"
+
+#: src/backend/profilemodel.cpp:11
+msgid "ProfileModel"
+msgstr "ProfileModel"
+
+#: src/backend/profilemodel.cpp:68
+msgid "Updating the read-only profile list…"
+msgstr "Uppdaterar den skrivskyddade profillistan…"
+
+#: src/backend/profilemodel.cpp:89
+msgid "The backend did not complete a valid read-only handshake."
+msgstr "Bakänden slutförde inte en giltig skrivskyddad handskakning."
+
+#: src/backend/profilemodel.cpp:93
+msgid "The backend does not advertise read-only profile listing."
+msgstr "Bakänden annonserar inte skrivskyddad profillistning."
+
+#: src/backend/profilemodel.cpp:98
+msgid "The read-only profile list is unavailable."
+msgstr "Den skrivskyddade profillistan är inte tillgänglig."
+
+#: src/backend/profilemodel.cpp:103
+msgid ""
+"Profiles are shown read-only. Contract 1 does not support enrollment or "
+"profile changes."
+msgstr ""
+"Profiler visas skrivskyddade. Contract 1 stöder inte registrering eller "
+"profiländringar."
+
+#: src/backend/profilemodel.cpp:208
+msgid ""
+"The installed backend exposes read-only Contract 1 but not the required "
+"mutation capability."
+msgstr ""
+"Den installerade bakänden erbjuder skrivskyddat Contract 1 men inte den "
+"ändringsförmåga som krävs."
+
+#: src/backend/supportreport.cpp:22
+msgid "SupportReport"
+msgstr "Support"
+
+#: src/backend/supportreport.cpp:78
 msgid ""
 "1. Press Ctrl+Alt+F3 to open a text console.\n"
 "2. Sign in with your existing password.\n"
@@ -46,848 +790,83 @@ msgstr ""
 "5. Kör: systemctl status irlumed --no-pager\n"
 "6. Bekräfta lösenordsautentisering innan du loggar ut eller startar om."
 
-#: src/backend/systemprobe.cpp:440
-msgid "A display-manager migration needs attention"
-msgstr "En migrering av inloggningshanteraren behöver åtgärdas"
+#: src/backend/supportreport.cpp:103
+msgid "The redacted support report was copied."
+msgstr "Den maskerade supportrapporten kopierades."
+
+#: src/backend/supportreport.cpp:108
+msgid "The TTY recovery instructions were copied."
+msgstr "TTY-instruktionerna för återställning kopierades."
+
+#: src/backend/supportreport.cpp:125 src/backend/supportreport.cpp:135
+msgid "The support report could not be exported."
+msgstr "Supportrapporten kunde inte exporteras."
+
+#: src/backend/supportreport.cpp:141
+msgid "The redacted support report was exported to Documents."
+msgstr "Den maskerade supportrapporten exporterades till Dokument."
+
+#: src/backend/supportreport.cpp:166
+msgid "The camera is in use"
+msgstr "Kameran används"
+
+#: src/backend/supportreport.cpp:168
+msgid "The camera is missing"
+msgstr "Kameran saknas"
+
+#: src/backend/supportreport.cpp:170
+msgid "The infrared emitter is unavailable"
+msgstr "Den infraröda sändaren är inte tillgänglig"
+
+#: src/backend/supportreport.cpp:172
+msgid "TPM protection could not be unlocked"
+msgstr "TPM-skyddet kunde inte låsas upp"
+
+#: src/backend/supportreport.cpp:174
+msgid "The measured boot state changed"
+msgstr "Det uppmätta starttillståndet ändrades"
+
+#: src/backend/supportreport.cpp:176
+msgid "The installed backend does not support Machine API Contract 1"
+msgstr "Den installerade bakänden stöder inte Machine API Contract 1"
 
 #: src/backend/supportreport.cpp:178
+msgid "The requested backend capability is unavailable"
+msgstr "Den begärda förmågan i bakänden är inte tillgänglig"
+
+#: src/backend/supportreport.cpp:180
+msgid "Authentication configuration has drifted"
+msgstr "Autentiseringskonfigurationen har avvikit"
+
+#: src/backend/supportreport.cpp:182
 msgid "A display-manager migration was detected"
 msgstr "En migrering av inloggningshanteraren upptäcktes"
 
-#: src/kcm/ui/EnrollmentPage.qml:393
-msgid ""
-"A usable camera must be available before enrollment or recognition testing."
-msgstr ""
-"En användbar kamera måste vara tillgänglig före registrering eller "
-"igenkänningstest."
-
-#: src/kcm/ui/AuthenticationPage.qml:16 src/kcm/ui/AuthenticationPage.qml:26
-#: src/kcm/ui/main.qml:40
-msgid "Access"
-msgstr "Åtkomst"
-
-#: src/kcm/ui/EnrollmentPage.qml:352
-msgid ""
-"Add a scan for glasses, a beard change, or different lighting. This is "
-"usually better than deleting and recreating the profile."
-msgstr ""
-"Lägg till en skanning för glasögon, förändrat skägg eller annan belysning. "
-"Det är oftast bättre än att ta bort och skapa profilen på nytt."
-
-#: src/kcm/ui/EnrollmentPage.qml:272
-#, fuzzy
-msgid "Add another face profile"
-msgstr "Ansiktsprofil"
-
-#: src/kcm/ui/EnrollmentPage.qml:368
-msgid "Add appearance scan"
-msgstr "Lägg till utseendeskanning"
-
-#: src/backend/profilemodel.cpp:630
-#, fuzzy
-msgid "Adding an appearance scan…"
-msgstr "Lägg till utseendeskanning"
-
-#: src/backend/authconfiguration.cpp:370
-msgid "Administrator authentication was cancelled. Nothing was changed."
-msgstr "Administratörsautentiseringen avbröts. Ingenting ändrades."
-
-#: src/kcm/ui/OverviewPage.qml:136
-msgid "Always available"
-msgstr "Alltid tillgängligt"
-
-#: src/backend/fakeadapter.cpp:79
-msgctxt "FakeSystemStateAdapter"
-msgid ""
-"An RGB camera is available, but it does not meet the secure login-screen "
-"tier."
-msgstr ""
-"En RGB-kamera är tillgänglig, men den uppfyller inte säkerhetsnivån för "
-"inloggningsskärmen."
-
-#: src/backend/profilemodel.cpp:357
-#, fuzzy
-msgid "Appearance scan added."
-msgstr "Lägg till utseendeskanning"
-
-#: src/backend/authconfiguration.cpp:285
-msgid "Applying, verifying, and protecting password fallback…"
-msgstr "Tillämpar, verifierar och skyddar lösenordsreserven…"
-
-#: src/backend/authconfiguration.cpp:272
-msgid "Asking irlume for a non-mutating plan…"
-msgstr "Begär en icke-ändrande plan från irlume…"
-
-#: src/backend/authconfiguration.cpp:13
-#, fuzzy
-msgid "AuthConfiguration"
-msgstr "Autentisering"
-
-#: src/kcm/ui/AuthenticationPage.qml:197
-#, fuzzy
-msgid "Authentication change preview"
-msgstr "Autentisering"
-
-#: src/backend/authconfiguration.cpp:348
-msgid ""
-"Authentication changed and verified. Password fallback remains available."
-msgstr ""
-"Autentiseringen ändrades och verifierades. Lösenordsreserven är fortsatt "
-"tillgänglig."
-
-#: src/kcm/ui/DiagnosticsPage.qml:216
-#, fuzzy
-msgid "Authentication configuration"
-msgstr "Autentisering"
-
-#: src/backend/supportreport.cpp:176 src/backend/systemprobe.cpp:448
-#, fuzzy
-msgid "Authentication configuration has drifted"
-msgstr "Autentisering"
-
-#: src/backend/fakeadapter.cpp:152
-#, fuzzy
-msgctxt "FakeSystemStateAdapter"
-msgid "Authentication configuration has drifted"
-msgstr "Autentisering"
-
-#: src/backend/supportreport.cpp:182
-msgid "Automatic recovery could not be confirmed"
-msgstr "Automatisk återställning kunde inte bekräftas"
-
-#: src/backend/authconfiguration.cpp:382
-msgid ""
-"Automatic rollback could not be confirmed. Use the TTY recovery command now."
-msgstr ""
-"Automatisk återställning kunde inte bekräftas. Använd TTY-kommandot för "
-"återställning nu."
-
-#: src/kcm/ui/SetupStatusPage.qml:179
-msgid "Available"
-msgstr "Tillgängligt"
-
-#: src/kcm/ui/AuthenticationPage.qml:108
-msgid ""
-"Available for Secure infrared and RGB Convenience hardware after a healthy "
-"profile check."
-msgstr ""
-"Tillgängligt för säker infraröd maskinvara och RGB-bekvämlighet efter en "
-"godkänd profilkontroll."
-
-#: src/kcm/ui/DiagnosticsPage.qml:205
-msgid "Background service"
-msgstr "Bakgrundstjänst"
-
-#: src/backend/fakeadapter.cpp:61
-msgctxt "FakeSystemStateAdapter"
-msgid "Broken daemon"
-msgstr "Trasig bakgrundstjänst"
-
-#: src/kcm/ui/DiagnosticsPage.qml:183 src/kcm/ui/OverviewPage.qml:80
-msgid "Camera"
-msgstr "Kamera"
-
-#: src/kcm/ui/SetupStatusPage.qml:117
-msgid "Camera and infrared test"
-msgstr "Kamera- och infrarött test"
-
-#: src/kcm/ui/EnrollmentPage.qml:207
-msgid "Camera guidance"
-msgstr "Kameravägledning"
-
-#: src/backend/profilemodel.cpp:656
-#, fuzzy
-msgid "Camera ready"
-msgstr "Kamera"
-
-#: src/backend/profilemodel.cpp:701
-msgid "Camera release could not be confirmed. Refresh before trying again."
-msgstr ""
-"Det kunde inte bekräftas att kameran frigjordes. Uppdatera innan du försöker "
-"igen."
-
-#: src/kcm/ui/EnrollmentPage.qml:127
-msgid "Cancel"
-msgstr "Avbryt"
-
-#: src/kcm/ui/EnrollmentPage.qml:251
-msgid "Cancel preview"
-msgstr "Avbryt förhandsvisning"
-
-#: src/backend/profilemodel.cpp:215
-msgid "Cancelling and releasing the camera…"
-msgstr "Avbryter och frigör kameran…"
-
-#: src/kcm/ui/EnrollmentPage.qml:186
-msgid "Capture in %1"
-msgstr "Bild tas om %1"
-
-#: src/kcm/ui/EnrollmentPage.qml:246
-msgid "Capture quality: %1 percent"
-msgstr "Bildkvalitet: %1 procent"
-
-#: src/backend/profilemodel.cpp:660
-msgid "Capturing appearance"
-msgstr "Tar utseendebild"
-
-#: src/kcm/ui/EnrollmentPage.qml:214
-msgid "Centered"
-msgstr "Centrerad"
-
-#: src/kcm/ui/EnrollmentPage.qml:58 src/kcm/ui/SetupStatusPage.qml:84
-msgid "Check again"
-msgstr "Kontrollera igen"
-
-#: src/backend/profilemodel.cpp:664
-msgid "Checking liveness"
-msgstr "Kontrollerar närvaro"
-
-#: src/backend/profilemodel.cpp:615
-msgid "Checking the irlume integration contract…"
-msgstr "Kontrollerar irlumes integrationsavtal…"
-
-#: src/backend/profilemodel.cpp:672
-msgid "Cleaning up"
-msgstr "Rensar"
-
-#: src/backend/supportreport.cpp:193
-msgid "Close applications using the camera, then retry the operation."
-msgstr "Stäng program som använder kameran och försök sedan igen."
-
-#: src/backend/profilemodel.cpp:668
-msgid "Comparing with the selected profile"
-msgstr "Jämför med den valda profilen"
-
-#: src/kcm/ui/SetupStatusPage.qml:132 src/kcm/ui/SetupStatusPage.qml:151
-msgid "Complete"
-msgstr "Klar"
-
-#: src/kcm/ui/SetupStatusPage.qml:34
-msgid "Connect and test a supported camera"
-msgstr "Anslut och testa en kamera som stöds"
-
-#: src/kcm/ui/DiagnosticsPage.qml:120
-msgid "Copy recovery instructions"
-msgstr "Kopiera återställningsinstruktioner"
-
-#: src/kcm/ui/DiagnosticsPage.qml:284
-msgid "Copy report"
-msgstr "Kopiera rapport"
-
-#: src/kcm/ui/EnrollmentPage.qml:264
-#, fuzzy
-msgid "Create a face profile"
-msgstr "Ansiktsprofil"
-
-#: src/backend/profilemodel.cpp:621
-#, fuzzy
-msgid "Creating a face profile…"
-msgstr "Ansiktsprofil"
-
-#: src/kcm/ui/SetupStatusPage.qml:132 src/kcm/ui/SetupStatusPage.qml:152
-msgid "Current"
-msgstr "Aktuellt"
-
-#: src/kcm/ui/DiagnosticsPage.qml:143
-msgid "Current data source: %1"
-msgstr "Aktuell datakälla: %1"
-
-#: src/kcm/ui/SetupStatusPage.qml:162
-msgid "Current protection"
-msgstr "Aktuellt skydd"
-
-#: src/kcm/ui/OverviewPage.qml:112 src/kcm/ui/OverviewPage.qml:118
-msgid "Current status"
-msgstr "Aktuell status"
-
-#: src/kcm/ui/EnrollmentPage.qml:403
-#, fuzzy
-msgid "Delete face profile?"
-msgstr "Ansiktsprofil"
-
-#: src/kcm/ui/EnrollmentPage.qml:375
-#, fuzzy
-msgid "Delete profile"
-msgstr "Ansiktsprofil"
-
-#: src/kcm/ui/EnrollmentPage.qml:404
-msgid ""
-"Delete “%1” and all of its appearance scans for the current account? Face "
-"recognition will stop working until a new profile is enrolled."
-msgstr ""
-"Ta bort ”%1” och alla dess utseendeskanningar för det aktuella kontot? "
-"Ansiktsigenkänning slutar fungera tills en ny profil har registrerats."
-
-#: src/backend/profilemodel.cpp:633
-#, fuzzy
-msgid "Deleting the selected face profile…"
-msgstr "Ansiktsprofil"
-
-#: src/kcm/ui/OverviewPage.qml:100
-#, fuzzy
-msgid "Desktop authentication"
-msgstr "Autentisering"
-
-#: src/kcm/ui/DiagnosticsPage.qml:314
-#, fuzzy
-msgid "Diagnostic code: %1"
-msgstr "Diagnostik"
-
-#: src/kcm/ui/DiagnosticsPage.qml:131 src/kcm/ui/DiagnosticsPage.qml:137
-#, fuzzy
-msgid "Diagnostic source"
-msgstr "Diagnostik"
-
-#: src/kcm/ui/DiagnosticsPage.qml:160 src/kcm/ui/DiagnosticsPage.qml:166
-msgid "Diagnostics"
-msgstr "Diagnostik"
-
-#: src/kcm/ui/DiagnosticsPage.qml:32
-msgid ""
-"Diagnostics are read-only. Refreshing runs fixed local probes and never "
-"modifies authentication."
-msgstr ""
-"Diagnostiken är skrivskyddad. Uppdatering kör fasta lokala kontroller och "
-"ändrar aldrig autentiseringen."
-
-#: src/kcm/ui/AuthenticationPage.qml:263
-msgid "Disable"
-msgstr "Inaktivera"
-
-#: src/backend/supportreport.cpp:210
-msgid ""
-"Disable Face Login from this page, run authselect check, then refresh before "
-"enabling it again."
-msgstr ""
-"Inaktivera ansiktsinloggning från den här sidan, kör authselect check och "
-"uppdatera innan du aktiverar den igen."
-
-#: src/kcm/ui/DiagnosticsPage.qml:67
-#, fuzzy
-msgid "Disable Face Login now"
-msgstr "Ansiktsinloggning"
-
-#: src/kcm/ui/AuthenticationPage.qml:233
-#, fuzzy
-msgid "Disable face authentication"
-msgstr "Autentisering"
-
-#: src/kcm/ui/AuthenticationPage.qml:241
-msgid "Disable integration"
-msgstr "Inaktivera integration"
-
-#: src/kcm/ui/AuthenticationPage.qml:247
-msgid ""
-"Disable only the targets reported by irlume for the active display manager."
-msgstr ""
-"Inaktivera endast målen som irlume rapporterar för den aktiva "
-"inloggningshanteraren."
-
-#: src/backend/supportreport.cpp:212
-#, fuzzy
-msgid ""
-"Disable the old integration first, refresh diagnostics, and preview a new "
-"plan for the active display manager."
-msgstr ""
-"Inaktivera endast målen som irlume rapporterar för den aktiva "
-"inloggningshanteraren."
-
-#: src/kcm/ui/DiagnosticsPage.qml:67
-msgid "Disabling…"
-msgstr "Inaktiverar…"
-
-#: src/kcm/ui/SecurityPage.qml:53
-msgid "Display manager"
-msgstr "Inloggningshanterare"
-
-#: src/kcm/ui/EnrollmentPage.qml:215
-msgid "Distance"
-msgstr "Avstånd"
-
-#: src/kcm/ui/DiagnosticsPage.qml:46 src/kcm/ui/DiagnosticsPage.qml:53
-msgid "Emergency disable"
-msgstr "Nödinaktivering"
-
-#: src/kcm/ui/AuthenticationPage.qml:117 src/kcm/ui/AuthenticationPage.qml:169
-msgid "Enabled"
-msgstr "Aktiverat"
-
-#: src/kcm/ui/OverviewPage.qml:91
-msgid "Engine %1"
-msgstr "Motor %1"
-
-#: src/kcm/ui/SetupStatusPage.qml:116
-msgid "Engine compatibility"
-msgstr "Motorkompatibilitet"
-
-#: src/kcm/ui/AuthenticationPage.qml:211
-msgid "Engine-owned targets in the dry-run plan:"
-msgstr "Motorägda mål i testkörningsplanen:"
-
-#: src/backend/profilemodel.cpp:544
-msgid "Enrollment completed and recognition was verified."
-msgstr "Registreringen slutfördes och igenkänningen verifierades."
-
-#: src/backend/profilemodel.cpp:375
-msgid "Enrollment could not be verified, so the new profile was removed."
-msgstr "Registreringen kunde inte verifieras, så den nya profilen togs bort."
-
-#: src/backend/profilemodel.cpp:402
-msgid ""
-"Enrollment ended without a confirmed terminal event. Refresh before trying "
-"again."
-msgstr ""
-"Registreringen avslutades utan en bekräftad sluthändelse. Uppdatera innan du "
-"försöker igen."
-
-#: src/kcm/ui/OverviewPage.qml:67
-msgid ""
-"Every link must be healthy before face authentication can be considered "
-"ready."
-msgstr ""
-"Varje del måste fungera innan ansiktsautentisering kan anses vara redo."
-
-#: src/backend/fakeadapter.cpp:62
-msgctxt "FakeSystemStateAdapter"
-msgid "Existing PAM drift"
-msgstr "Befintlig PAM-avvikelse"
-
-#: src/kcm/ui/DiagnosticsPage.qml:291
-msgid "Export report"
-msgstr "Exportera rapport"
-
-#: src/kcm/ui/main.qml:13
-msgid "Face Login"
-msgstr "Ansiktsinloggning"
-
-#: src/backend/systemprobe.cpp:442
-msgid ""
-"Face Login detected wiring for the previous display manager and will not "
-"rewrite it automatically."
-msgstr ""
-"Ansiktsinloggning hittade kopplingar för den tidigare inloggningshanteraren "
-"och skriver inte om dem automatiskt."
-
-#: src/backend/supportreport.cpp:187
-#, fuzzy
-msgid "Face Login needs attention"
-msgstr "Ansiktsinloggning"
-
-#: src/kcm/ui/main.qml:20
-#, fuzzy
-msgid "Face Login sections"
-msgstr "Ansiktsinloggning"
-
-#: src/kcm/ui/EnrollmentPage.qml:20 src/kcm/ui/EnrollmentPage.qml:38
-#: src/kcm/ui/main.qml:33
-#, fuzzy
-msgid "Face Profiles"
-msgstr "Ansiktsprofil"
-
-#: src/backend/authconfiguration.cpp:183
-#, fuzzy
-msgid "Face authentication cannot be disabled here."
-msgstr ""
-"Ansiktsautentisering för sudo, su, SSH och Polkit ingår inte i V2 och kan "
-"inte aktiveras här."
-
-#: src/backend/authconfiguration.cpp:238
-msgid "Face authentication cannot be disabled safely from this session."
-msgstr ""
-"Ansiktsautentisering kan inte inaktiveras säkert från den här sessionen."
-
-#: src/kcm/ui/AuthenticationPage.qml:296
-msgid ""
-"Face authentication for sudo, su, SSH, and Polkit is outside V2 and cannot "
-"be enabled here."
-msgstr ""
-"Ansiktsautentisering för sudo, su, SSH och Polkit ingår inte i V2 och kan "
-"inte aktiveras här."
-
-#: src/kcm/ui/EnrollmentPage.qml:213
-msgid "Face detected"
-msgstr "Ansikte hittat"
-
-#: src/backend/fakeadapter.cpp:90
-msgctxt "FakeSystemStateAdapter"
-msgid ""
-"Face login remains unavailable until compatible camera hardware is present."
-msgstr ""
-"Ansiktsinloggning förblir otillgänglig tills kompatibel kameramaskinvara "
-"finns."
-
-#: src/backend/systemprobe.cpp:427
-msgid "Face login supports Plasma Login Manager and SDDM on Fedora 44."
-msgstr "Ansiktsinloggning stöder Plasma Login Manager och SDDM på Fedora 44."
-
-#: src/kcm/ui/OverviewPage.qml:124
-msgid "Face profile"
-msgstr "Ansiktsprofil"
-
-#: src/backend/profilemodel.cpp:379
-#, fuzzy
-msgid "Face profile deleted."
-msgstr "Ansiktsprofil"
-
-#: src/kcm/ui/SetupStatusPage.qml:118
-#, fuzzy
-msgid "Face profile registration"
-msgstr "Ansiktsprofil"
-
-#: src/backend/profilemodel.cpp:340
-#, fuzzy
-msgid "Face profiles are ready."
-msgstr "Ansiktsprofil"
-
-#: src/backend/systemprobe.cpp:461
-msgid "Face unlock is limited to convenience use"
-msgstr "Ansiktsupplåsning är begränsad till bekvämlighetsanvändning"
-
-#: src/backend/fakeadapter.cpp:77
-#, fuzzy
-msgctxt "FakeSystemStateAdapter"
-msgid "Face unlock is limited to convenience use"
-msgstr "Ansiktsupplåsning är begränsad till bekvämlighetsanvändning"
-
-#: src/backend/fakeadapter.cpp:22 src/backend/fakeadapter.cpp:24
-#: src/backend/fakeadapter.cpp:26 src/backend/fakeadapter.cpp:56
-#: src/backend/fakeadapter.cpp:57 src/backend/fakeadapter.cpp:58
-#: src/backend/fakeadapter.cpp:59 src/backend/fakeadapter.cpp:60
-#: src/backend/fakeadapter.cpp:61 src/backend/fakeadapter.cpp:62
-#: src/backend/fakeadapter.cpp:77 src/backend/fakeadapter.cpp:79
-#: src/backend/fakeadapter.cpp:89 src/backend/fakeadapter.cpp:90
-#: src/backend/fakeadapter.cpp:103 src/backend/fakeadapter.cpp:105
-#: src/backend/fakeadapter.cpp:121 src/backend/fakeadapter.cpp:122
-#: src/backend/fakeadapter.cpp:139 src/backend/fakeadapter.cpp:141
-#: src/backend/fakeadapter.cpp:152 src/backend/fakeadapter.cpp:154
-#: src/backend/fakeadapter.cpp:162 src/backend/fakeadapter.cpp:163
-msgid "FakeSystemStateAdapter"
-msgstr "FakeSystemStateAdapter"
-
-#: src/kcm/ui/SecurityPage.qml:33
-msgid "Fedora"
-msgstr "Fedora"
-
-#: src/kcm/ui/AuthenticationPage.qml:77
-msgid "I have read the TTY recovery command"
-msgstr "Jag har läst TTY-kommandot för återställning"
-
-#: src/kcm/ui/SecurityPage.qml:118
-msgid "IR emitter"
-msgstr "IR-sändare"
-
-#: src/kcm/ui/EnrollmentPage.qml:171
-msgid "IR · Secure"
-msgstr "IR · Säker"
-
-#: src/kcm/ui/AuthenticationPage.qml:63
-msgid ""
-"If graphical login or unlock stops working, switch to a TTY, sign in with "
-"your password, and run:"
-msgstr ""
-"Om grafisk inloggning eller upplåsning slutar fungera, växla till en TTY, "
-"logga in med ditt lösenord och kör:"
-
-#: src/kcm/ui/EnrollmentPage.qml:160
-msgid "Infrared camera preview with face landmarks"
-msgstr "Förhandsvisning från infraröd kamera med ansiktspunkter"
-
-#: src/backend/fakeadapter.cpp:24
-msgctxt "FakeSystemStateAdapter"
-msgid ""
-"Infrared hardware and the simulated irlume service pass every read-only "
-"readiness check."
-msgstr ""
-"Infraröd maskinvara och den simulerade irlume-tjänsten klarar alla "
-"skrivskyddade beredskapskontroller."
-
-#: src/kcm/ui/EnrollmentPage.qml:218
-msgid "Infrared ready"
-msgstr "Infrarött redo"
-
-#: src/backend/supportreport.cpp:207
-msgid ""
-"Install a reviewed compatible irlume release. Do not bypass the structured-"
-"contract gate."
-msgstr ""
-"Installera en granskad kompatibel irlume-version. Kringgå inte grinden för "
-"det strukturerade avtalet."
-
-#: src/backend/systemprobe.cpp:332
-msgid "Install irlume 0.6.x to run live face-authentication readiness checks."
-msgstr ""
-"Installera irlume 0.6.x för att köra beredskapskontroller för "
-"ansiktsautentisering i realtid."
-
-#: src/backend/supportreport.cpp:222
-msgid "Install the supported irlume package, then refresh diagnostics."
-msgstr ""
-"Installera det irlume-paket som stöds och uppdatera sedan diagnostiken."
-
-#: src/backend/supportreport.cpp:180
+#: src/backend/supportreport.cpp:184
 msgid "KWallet needs the account password"
 msgstr "KWallet behöver kontots lösenord"
 
-#: src/backend/supportreport.cpp:218
-msgid ""
-"Keep the desktop session open and use the TTY recovery instructions now."
-msgstr ""
-"Håll skrivbordssessionen öppen och använd TTY-instruktionerna för "
-"återställning nu."
+#: src/backend/supportreport.cpp:186
+msgid "Automatic recovery could not be confirmed"
+msgstr "Automatisk återställning kunde inte bekräftas"
 
-#: src/kcm/ui/DiagnosticsPage.qml:103
-msgid "Keep these instructions available before logging out or rebooting."
-msgstr "Ha instruktionerna tillgängliga innan du loggar ut eller startar om."
+#: src/backend/supportreport.cpp:188
+msgid "The irlume service is unavailable"
+msgstr "irlume-tjänsten är inte tillgänglig"
 
-#: src/kcm/ui/EnrollmentPage.qml:217
-msgid "Lighting"
-msgstr "Belysning"
+#: src/backend/supportreport.cpp:190
+msgid "irlume is not installed"
+msgstr "irlume är inte installerat"
 
-#: src/kcm/ui/EnrollmentPage.qml:139
-msgid "Live camera guidance"
-msgstr "Kameravägledning i realtid"
+#: src/backend/supportreport.cpp:191 src/backend/systemprobe.cpp:296
+msgid "Face Login needs attention"
+msgstr "Ansiktsinloggning behöver åtgärdas"
 
-#: src/backend/systemprobe.cpp:319
-msgid "Live local system"
-msgstr "Lokalt system i realtid"
+#: src/backend/supportreport.cpp:197
+msgid "Close applications using the camera, then retry the operation."
+msgstr "Stäng program som använder kameran och försök sedan igen."
 
-#: src/kcm/ui/SecurityPage.qml:129
-msgid "Liveness checks"
-msgstr "Närvarokontroller"
-
-#: src/backend/profilemodel.cpp:618
-#, fuzzy
-msgid "Loading face profiles…"
-msgstr "Ansiktsprofil"
-
-#: src/kcm/ui/AuthenticationPage.qml:94 src/kcm/ui/AuthenticationPage.qml:102
-msgid "Lock screen"
-msgstr "Låsskärm"
-
-#: src/backend/authconfiguration.cpp:162
-#, fuzzy
-msgid "Lock-screen activation is not ready."
-msgstr "Aktivering på inloggningsskärmen kräver säker infraröd nivå."
-
-#: src/backend/authconfiguration.cpp:165
-msgid "Lock-screen face unlock"
-msgstr "Ansiktsupplåsning på låsskärmen"
-
-#: src/kcm/ui/AuthenticationPage.qml:144 src/kcm/ui/AuthenticationPage.qml:152
-msgid "Login screen"
-msgstr "Inloggningsskärm"
-
-#: src/kcm/ui/AuthenticationPage.qml:160
-msgid "Login-screen activation requires the Secure infrared tier."
-msgstr "Aktivering på inloggningsskärmen kräver säker infraröd nivå."
-
-#: src/backend/authconfiguration.cpp:176
-#, fuzzy
-msgid "Login-screen face authentication"
-msgstr "Autentisering"
-
-#: src/backend/authconfiguration.cpp:374
-#, fuzzy
-msgid "Login-screen face authentication requires the Secure infrared tier."
-msgstr "Aktivering på inloggningsskärmen kräver säker infraröd nivå."
-
-#: src/kcm/ui/EnrollmentPage.qml:278
-msgid ""
-"Look toward the camera and slowly vary your angle while irlume captures "
-"encrypted recognition scans."
-msgstr ""
-"Titta mot kameran och ändra långsamt vinkeln medan irlume tar krypterade "
-"igenkänningsskanningar."
-
-#: src/kcm/ui/EnrollmentPage.qml:216
-msgid "Looking at camera"
-msgstr "Tittar mot kameran"
-
-#: src/backend/fakeadapter.cpp:59
-#, fuzzy
-msgctxt "FakeSystemStateAdapter"
-msgid "Missing irlume"
-msgstr "irlume"
-
-#: src/kcm/ui/SetupStatusPage.qml:63
-msgid "Next action"
-msgstr "Nästa åtgärd"
-
-#: src/backend/fakeadapter.cpp:58
-#, fuzzy
-msgctxt "FakeSystemStateAdapter"
-msgid "No camera"
-msgstr "Kamera"
-
-#: src/backend/fakeadapter.cpp:89
-#, fuzzy
-msgctxt "FakeSystemStateAdapter"
-msgid "No compatible camera was found"
-msgstr "Ingen kompatibel kamera för ansiktsinloggning hittades"
-
-#: src/backend/systemprobe.cpp:468
-msgid "No compatible face-login camera was found"
-msgstr "Ingen kompatibel kamera för ansiktsinloggning hittades"
-
-#: src/kcm/ui/OverviewPage.qml:92
-msgid "No engine version reported"
-msgstr "Ingen motorversion rapporterades"
-
-#: src/backend/profilemodel.cpp:339
-#, fuzzy
-msgid "No face profile is enrolled."
-msgstr "Ansiktsprofil"
-
-#: src/backend/supportreport.cpp:224
-msgid "No known issue is currently reported."
-msgstr "Inget känt problem rapporteras just nu."
-
-#: src/kcm/ui/AuthenticationPage.qml:117 src/kcm/ui/AuthenticationPage.qml:169
-msgid "No verified change in this session"
-msgstr "Ingen verifierad ändring i den här sessionen"
-
-#: src/kcm/ui/OverviewPage.qml:136 src/kcm/ui/SetupStatusPage.qml:179
-msgid "Not verified"
-msgstr "Inte verifierat"
-
-#: src/kcm/ui/SetupStatusPage.qml:85
-msgid "Open Access"
-msgstr "Öppna Åtkomst"
-
-#: src/kcm/ui/SetupStatusPage.qml:85
-#, fuzzy
-msgid "Open Face Profiles"
-msgstr "Ansiktsprofil"
-
-#: src/kcm/ui/AuthenticationPage.qml:84
-msgid ""
-"Password authentication remains enabled and is verified after every "
-"successful change."
-msgstr ""
-"Lösenordsautentisering förblir aktiverad och verifieras efter varje lyckad "
-"ändring."
-
-#: src/kcm/ui/OverviewPage.qml:135 src/kcm/ui/SetupStatusPage.qml:178
-msgid "Password fallback"
-msgstr "Lösenordsreserv"
-
-#: src/kcm/ui/SetupStatusPage.qml:132 src/kcm/ui/SetupStatusPage.qml:152
-msgid "Pending"
-msgstr "Väntar"
-
-#: src/kcm/ui/SecurityPage.qml:43
-msgid "Plasma"
-msgstr "Plasma"
-
-#: src/kcm/ui/SecurityPage.qml:21 src/kcm/ui/SecurityPage.qml:27
-msgid "Platform"
-msgstr "Plattform"
-
-#: src/kcm/ui/EnrollmentPage.qml:193
-msgid "Position your face inside the guide."
-msgstr "Placera ansiktet innanför guiden."
-
-#: src/backend/authconfiguration.cpp:378
-msgid "Post-apply verification failed."
-msgstr "Verifieringen efter tillämpning misslyckades."
-
-#: src/backend/authconfiguration.cpp:25
-#, fuzzy
-msgid "Preview a change before enabling face authentication."
-msgstr "Autentisering"
-
-#: src/kcm/ui/AuthenticationPage.qml:256
-msgid "Preview disable"
-msgstr "Förhandsgranska inaktivering"
-
-#: src/backend/fakeadapter.cpp:162
-#, fuzzy
-msgctxt "FakeSystemStateAdapter"
-msgid "Preview state is unavailable"
-msgstr "Den infraröda sändaren är inte tillgänglig"
-
-#: src/backend/authconfiguration.cpp:227
-msgid "Preview the disable plan before applying it."
-msgstr "Förhandsgranska inaktiveringsplanen innan den tillämpas."
-
-#: src/backend/authconfiguration.cpp:200
-#, fuzzy
-msgid "Preview the lock-screen plan before enabling."
-msgstr "Granska återställning före aktivering"
-
-#: src/backend/authconfiguration.cpp:217
-#, fuzzy
-msgid "Preview the login-screen plan before enabling."
-msgstr "Granska återställning före aktivering"
-
-#: src/kcm/ui/EnrollmentPage.qml:55
-msgid ""
-"Profile management requires an irlume release with the structured "
-"integration contract."
-msgstr ""
-"Profilhantering kräver en irlume-version med det strukturerade "
-"integrationsavtalet."
-
-#: src/kcm/ui/EnrollmentPage.qml:69
-msgid "Profile operation status"
-msgstr "Status för profilåtgärd"
-
-#: src/backend/profilemodel.cpp:17
-msgid "ProfileModel"
-msgstr "ProfileModel"
-
-#: src/kcm/ui/EnrollmentPage.qml:159
-msgid "RGB camera preview with face landmarks"
-msgstr "Förhandsvisning från RGB-kamera med ansiktspunkter"
-
-#: src/kcm/ui/EnrollmentPage.qml:171
-msgid "RGB · Convenience"
-msgstr "RGB · Bekvämlighet"
-
-#: src/backend/fakeadapter.cpp:57
-msgctxt "FakeSystemStateAdapter"
-msgid "RGB-only hardware"
-msgstr "Maskinvara med endast RGB"
-
-#: src/kcm/ui/SecurityPage.qml:140
-msgid ""
-"RGB-only hardware is a convenience feature. Login-screen activation remains "
-"unavailable."
-msgstr ""
-"Maskinvara med endast RGB är en bekvämlighetsfunktion. Aktivering på "
-"inloggningsskärmen är inte tillgänglig."
-
-#: src/backend/systemprobe.cpp:462
-msgid "RGB-only hardware is restricted to lock-screen use."
-msgstr "Maskinvara med endast RGB är begränsad till låsskärmen."
-
-#: src/backend/authconfiguration.cpp:194 src/backend/authconfiguration.cpp:211
-#, fuzzy
-msgid "Read and acknowledge the TTY recovery command before enabling."
-msgstr "Jag har läst TTY-kommandot för återställning"
-
-#: src/kcm/ui/OverviewPage.qml:61
-msgid "Readiness path"
-msgstr "Beredskapsväg"
-
-#: src/backend/profilemodel.cpp:697
-msgid "Recognition did not match. The test did not change the profile."
-msgstr "Igenkänningen stämde inte. Testet ändrade inte profilen."
-
-#: src/kcm/ui/SetupStatusPage.qml:119
-msgid "Recognition test"
-msgstr "Igenkänningstest"
-
-#: src/backend/profilemodel.cpp:545
-#, fuzzy
-msgid "Recognition test passed."
-msgstr "Igenkänningstest"
-
-#: src/kcm/ui/DiagnosticsPage.qml:40
-msgid "Recommended recovery action"
-msgstr "Rekommenderad återställningsåtgärd"
-
-#: src/backend/supportreport.cpp:195
+#: src/backend/supportreport.cpp:199
 msgid ""
 "Reconnect or re-enable the camera, reboot into the previous kernel if this "
 "followed an update, then refresh diagnostics."
@@ -895,436 +874,7 @@ msgstr ""
 "Anslut eller aktivera kameran igen. Starta med föregående kärna om detta "
 "följde en uppdatering och uppdatera sedan diagnostiken."
 
-#: src/kcm/ui/AuthenticationPage.qml:49 src/kcm/ui/AuthenticationPage.qml:57
-msgid "Recovery before enabling"
-msgstr "Återställning före aktivering"
-
-#: src/kcm/ui/SetupStatusPage.qml:120
-msgid "Recovery readiness"
-msgstr "Återställningsberedskap"
-
-#: src/kcm/ui/DiagnosticsPage.qml:276
-msgid "Redacted support report"
-msgstr "Maskerad supportrapport"
-
-#: src/kcm/ui/DiagnosticsPage.qml:259 src/kcm/ui/DiagnosticsPage.qml:265
-msgid "Redacted support report preview"
-msgstr "Förhandsvisning av maskerad supportrapport"
-
-#: src/kcm/ui/DiagnosticsPage.qml:149
-#, fuzzy
-msgid "Refresh diagnostics"
-msgstr "Diagnostik"
-
-#: src/kcm/ui/SetupStatusPage.qml:36
-msgid "Register your first face profile"
-msgstr "Registrera din första ansiktsprofil"
-
-#: src/kcm/ui/EnrollmentPage.qml:44
-msgid ""
-"Register, test, and improve recognition. Preview frames stay in memory and "
-"are cleared when the session ends."
-msgstr ""
-"Registrera, testa och förbättra igenkänningen. Förhandsvisningsbilder "
-"stannar i minnet och rensas när sessionen avslutas."
-
-#: src/backend/profilemodel.cpp:709
-msgid ""
-"Removal of the unverified profile could not be confirmed. Refresh before "
-"continuing."
-msgstr ""
-"Det kunde inte bekräftas att den overifierade profilen togs bort. Uppdatera "
-"innan du fortsätter."
-
-#: src/backend/profilemodel.cpp:636
-msgid "Removing an unverified partial profile…"
-msgstr "Tar bort en overifierad ofullständig profil…"
-
-#: src/backend/authconfiguration.cpp:255
-#, fuzzy
-msgid "Restoring the previous authentication configuration…"
-msgstr "Autentisering"
-
-#: src/kcm/ui/AuthenticationPage.qml:132 src/kcm/ui/AuthenticationPage.qml:184
-#: src/kcm/ui/SetupStatusPage.qml:121
-msgid "Review and enable"
-msgstr "Granska och aktivera"
-
-#: src/kcm/ui/SetupStatusPage.qml:39
-msgid "Review and enable Face Login"
-msgstr "Granska och aktivera ansiktsinloggning"
-
-#: src/kcm/ui/AuthenticationPage.qml:32
-msgid ""
-"Review and enable Face Login for each supported scope. irlume plans every "
-"change; the KCM never edits PAM files directly."
-msgstr ""
-"Granska och aktivera ansiktsinloggning för varje omfång som stöds. irlume "
-"planerar varje ändring; KCM-modulen redigerar aldrig PAM-filer direkt."
-
-#: src/kcm/ui/AuthenticationPage.qml:125 src/kcm/ui/AuthenticationPage.qml:177
-msgid "Review plan"
-msgstr "Granska plan"
-
-#: src/kcm/ui/SetupStatusPage.qml:38
-msgid "Review recovery before enabling"
-msgstr "Granska återställning före aktivering"
-
-#: src/backend/authconfiguration.cpp:259
-msgid "Rollback could not be started."
-msgstr "Återställningen kunde inte startas."
-
-#: src/kcm/ui/DiagnosticsPage.qml:71
-msgid "Runs the fixed verified disable operation immediately"
-msgstr "Kör den fasta verifierade inaktiveringsåtgärden omedelbart"
-
-#: src/kcm/ui/DiagnosticsPage.qml:294
-msgid "Saves a redacted Markdown report in Documents"
-msgstr "Sparar en maskerad Markdown-rapport i Dokument"
-
-#: src/kcm/ui/DiagnosticsPage.qml:249 src/kcm/ui/SecurityPage.qml:107
-#, fuzzy
-msgid "Secure Boot"
-msgstr "Säkerhet"
-
-#: src/backend/fakeadapter.cpp:56
-msgctxt "FakeSystemStateAdapter"
-msgid "Secure IR hardware"
-msgstr "Säker IR-maskinvara"
-
-#: src/backend/systemprobe.cpp:455
-msgid "Secure face login hardware is available"
-msgstr "Säker maskinvara för ansiktsinloggning är tillgänglig"
-
-#: src/backend/fakeadapter.cpp:22
-#, fuzzy
-msgctxt "FakeSystemStateAdapter"
-msgid "Secure face login is available"
-msgstr "Säker maskinvara för ansiktsinloggning är tillgänglig"
-
-#: src/kcm/ui/AuthenticationPage.qml:159
-msgid "Secure infrared hardware and liveness checks are ready."
-msgstr "Säker infraröd maskinvara och närvarokontroller är redo."
-
-#: src/kcm/ui/SecurityPage.qml:64 src/kcm/ui/SecurityPage.qml:70
-msgid "Security capabilities"
-msgstr "Säkerhetsfunktioner"
-
-#: src/kcm/ui/SetupStatusPage.qml:167
-#, fuzzy
-msgid "Security level"
-msgstr "Säkerhet"
-
-#: src/kcm/ui/DiagnosticsPage.qml:172
-#, fuzzy
-msgid "Security tier"
-msgstr "Säkerhet"
-
-#: src/kcm/ui/EnrollmentPage.qml:272
-msgid "Set up face recognition"
-msgstr "Konfigurera ansiktsigenkänning"
-
-#: src/kcm/ui/SetupStatusPage.qml:41 src/kcm/ui/main.qml:26
-msgid "Setup & Status"
-msgstr "Konfiguration och status"
-
-#: src/kcm/ui/SetupStatusPage.qml:110
-msgid "Setup path"
-msgstr "Konfigurationsväg"
-
-#: src/backend/fakeadapter.cpp:26
-#, fuzzy
-msgctxt "FakeSystemStateAdapter"
-msgid "Simulated preview"
-msgstr "Avbryt förhandsvisning"
-
-#: src/kcm/ui/EnrollmentPage.qml:284
-msgid "Start enrollment"
-msgstr "Starta registrering"
-
-#: src/kcm/ui/DiagnosticsPage.qml:24 src/kcm/ui/main.qml:47
-msgid "Support"
-msgstr "Support"
-
-#: src/backend/supportreport.cpp:22
-#, fuzzy
-msgid "SupportReport"
-msgstr "Support"
-
-#: src/backend/systemprobe.cpp:39
-msgid "SystemProbe"
-msgstr "SystemProbe"
-
-#: src/kcm/ui/SecurityPage.qml:76
-msgid "TPM 2.0"
-msgstr "TPM 2.0"
-
-#: src/kcm/ui/DiagnosticsPage.qml:227
-msgid "TPM 2.0 hardware"
-msgstr "TPM 2.0-maskinvara"
-
-#: src/backend/supportreport.cpp:170
-msgid "TPM protection could not be unlocked"
-msgstr "TPM-skyddet kunde inte låsas upp"
-
-#: src/kcm/ui/DiagnosticsPage.qml:89 src/kcm/ui/DiagnosticsPage.qml:96
-msgid "TTY recovery"
-msgstr "TTY-återställning"
-
-#: src/kcm/ui/AuthenticationPage.qml:72
-msgid "TTY recovery command"
-msgstr "TTY-kommando för återställning"
-
-#: src/kcm/ui/DiagnosticsPage.qml:115
-msgid "TTY recovery instructions"
-msgstr "TTY-instruktioner för återställning"
-
-#: src/kcm/ui/DiagnosticsPage.qml:238 src/kcm/ui/SecurityPage.qml:95
-msgid "Template protection"
-msgstr "Mallskydd"
-
-#: src/kcm/ui/EnrollmentPage.qml:361
-msgid "Test recognition"
-msgstr "Testa igenkänning"
-
-#: src/backend/profilemodel.cpp:627
-msgid "Testing recognition without changing the profile…"
-msgstr "Testar igenkänning utan att ändra profilen…"
-
-#: src/backend/profilemodel.cpp:624
-msgid "Testing the new profile before keeping it…"
-msgstr "Testar den nya profilen innan den behålls…"
-
-#: src/backend/supportreport.cpp:106
-#, fuzzy
-msgid "The TTY recovery instructions were copied."
-msgstr "TTY-instruktioner för återställning"
-
-#: src/backend/systemprobe.cpp:426
-msgid "The active display manager is not supported"
-msgstr "Den aktiva inloggningshanteraren stöds inte"
-
-#: src/backend/authconfiguration.cpp:290
-#, fuzzy
-msgid "The authentication change could not be started."
-msgstr "Autentisering"
-
-#: src/backend/authconfiguration.cpp:384
-msgid ""
-"The authentication operation failed without a verified configuration change."
-msgstr ""
-"Autentiseringsåtgärden misslyckades utan en verifierad konfigurationsändring."
-
-#: src/backend/profilemodel.cpp:689
-msgid "The camera is busy. Close other camera applications, then try again."
-msgstr "Kameran är upptagen. Stäng andra kameraappar och försök igen."
-
-#: src/backend/supportreport.cpp:164
-#, fuzzy
-msgid "The camera is in use"
-msgstr "Kameravägledning i realtid"
-
-#: src/backend/supportreport.cpp:166
-msgid "The camera is missing"
-msgstr "Kameran saknas"
-
-#: src/backend/systemprobe.cpp:434
-msgid "The engine is installed, but its background service is not reachable."
-msgstr "Motorn är installerad, men dess bakgrundstjänst kan inte nås."
-
-#: src/backend/profilemodel.cpp:711
-msgid "The face profile operation could not be completed."
-msgstr "Åtgärden för ansiktsprofilen kunde inte slutföras."
-
-#: src/backend/fakeadapter.cpp:105
-msgctxt "FakeSystemStateAdapter"
-msgid ""
-"The face-authentication engine is required before readiness can be checked."
-msgstr ""
-"Motorn för ansiktsautentisering krävs innan beredskapen kan kontrolleras."
-
-#: src/backend/supportreport.cpp:168
-msgid "The infrared emitter is unavailable"
-msgstr "Den infraröda sändaren är inte tillgänglig"
-
-#: src/backend/fakeadapter.cpp:123
-#, fuzzy
-msgctxt "FakeSystemStateAdapter"
-msgid ""
-"The installed engine version is outside the reviewed 0.6.x read-only "
-"compatibility range."
-msgstr "Den installerade irlume-versionen är inte kompatibel"
-
-#: src/backend/authconfiguration.cpp:366
-msgid ""
-"The installed irlume release does not provide the reviewed login-transaction "
-"contract."
-msgstr ""
-"Den installerade irlume-versionen tillhandahåller inte det granskade avtalet "
-"för inloggningstransaktioner."
-
-#: src/backend/supportreport.cpp:174
-msgid "The installed irlume version is not compatible"
-msgstr "Den installerade irlume-versionen är inte kompatibel"
-
-#: src/backend/supportreport.cpp:184
-msgid "The irlume service is unavailable"
-msgstr "irlume-tjänsten är inte tillgänglig"
-
-#: src/backend/systemprobe.cpp:433
-msgid "The irlume service needs attention"
-msgstr "irlume-tjänsten behöver åtgärdas"
-
-#: src/backend/fakeadapter.cpp:139
-#, fuzzy
-msgctxt "FakeSystemStateAdapter"
-msgid "The irlume service needs attention"
-msgstr "irlume-tjänsten behöver åtgärdas"
-
-#: src/backend/supportreport.cpp:172
-msgid "The measured boot state changed"
-msgstr "Det uppmätta starttillståndet ändrades"
-
-#: src/backend/systemprobe.cpp:449
-#, fuzzy
-msgid "The observed PAM state does not match the active display manager."
-msgstr ""
-"Inaktivera endast målen som irlume rapporterar för den aktiva "
-"inloggningshanteraren."
-
-#: src/backend/fakeadapter.cpp:154
-#, fuzzy
-msgctxt "FakeSystemStateAdapter"
-msgid ""
-"The observed PAM state no longer matches the simulated engine plan. This "
-"read-only phase makes no changes."
-msgstr ""
-"Inaktivera endast målen som irlume rapporterar för den aktiva "
-"inloggningshanteraren."
-
-#: src/backend/profilemodel.cpp:693
-msgid "The operation was cancelled and the camera was released."
-msgstr "Åtgärden avbröts och kameran frigjordes."
-
-#: src/backend/authconfiguration.cpp:319
-msgid "The plan is read-only. Review it before applying the change."
-msgstr "Planen är skrivskyddad. Granska den innan ändringen tillämpas."
-
-#: src/backend/authconfiguration.cpp:276
-msgid "The preview could not be started."
-msgstr "Förhandsvisningen kunde inte startas."
-
-#: src/backend/authconfiguration.cpp:327
-#, fuzzy
-msgid "The previous authentication configuration was restored."
-msgstr "Autentisering"
-
-#: src/backend/authconfiguration.cpp:306
-msgid "The previous configuration was restored automatically."
-msgstr "Den tidigare konfigurationen återställdes automatiskt."
-
-#: src/backend/supportreport.cpp:101
-#, fuzzy
-msgid "The redacted support report was copied."
-msgstr "Förhandsvisning av maskerad supportrapport"
-
-#: src/backend/supportreport.cpp:139
-#, fuzzy
-msgid "The redacted support report was exported to Documents."
-msgstr "Förhandsvisning av maskerad supportrapport"
-
-#: src/backend/fakeadapter.cpp:164
-msgctxt "FakeSystemStateAdapter"
-msgid "The requested fake-adapter scenario does not exist."
-msgstr "Det begärda scenariot för den simulerade adaptern finns inte."
-
-#: src/backend/fakeadapter.cpp:141
-#, fuzzy
-msgctxt "FakeSystemStateAdapter"
-msgid ""
-"The simulated engine is compatible, but its background service is not "
-"healthy."
-msgstr "Motorn är installerad, men dess bakgrundstjänst kan inte nås."
-
-#: src/backend/supportreport.cpp:123 src/backend/supportreport.cpp:133
-msgid "The support report could not be exported."
-msgstr "Supportrapporten kunde inte exporteras."
-
-#: src/backend/supportreport.cpp:272
-msgid "The text could not be copied."
-msgstr "Texten kunde inte kopieras."
-
-#: src/backend/profilemodel.cpp:681
-msgid ""
-"This irlume release does not provide the structured profile-management "
-"contract."
-msgstr ""
-"Den här irlume-versionen tillhandahåller inte det strukturerade avtalet för "
-"profilhantering."
-
-#: src/backend/systemprobe.cpp:343
-msgid "This irlume version is not supported"
-msgstr "Den här irlume-versionen stöds inte"
-
-#: src/backend/fakeadapter.cpp:121
-#, fuzzy
-msgctxt "FakeSystemStateAdapter"
-msgid "This irlume version is not supported"
-msgstr "Den här irlume-versionen stöds inte"
-
-#: src/backend/systemprobe.cpp:418
-msgid "This operating system is not supported"
-msgstr "Det här operativsystemet stöds inte"
-
-#: src/kcm/ui/EnrollmentPage.qml:120
-msgid "Try again"
-msgstr "Försök igen"
-
-#: src/kcm/ui/SecurityPage.qml:34 src/kcm/ui/SecurityPage.qml:44
-msgid "Unknown"
-msgstr "Okänt"
-
-#: src/backend/supportreport.cpp:216
-msgid ""
-"Unlock KWallet with the account password and re-arm wallet integration after "
-"a password change."
-msgstr ""
-"Lås upp KWallet med kontolösenordet och aktivera plånboksintegrationen på "
-"nytt efter en lösenordsändring."
-
-#: src/backend/fakeadapter.cpp:60
-msgctxt "FakeSystemStateAdapter"
-msgid "Unsupported irlume version"
-msgstr "irlume-version som inte stöds"
-
-#: src/kcm/ui/SetupStatusPage.qml:32
-msgid "Upgrade irlume to unlock guided setup"
-msgstr "Uppgradera irlume för att låsa upp guidad konfiguration"
-
-#: src/backend/supportreport.cpp:204
-msgid ""
-"Use password login and restore the expected Secure Boot or firmware state "
-"before re-arming TPM protection."
-msgstr ""
-"Använd lösenordsinloggning och återställ förväntat Secure Boot- eller "
-"firmwaretillstånd innan TPM-skyddet aktiveras på nytt."
-
-#: src/backend/supportreport.cpp:226
-msgid ""
-"Use password login, avoid changing PAM files manually, and export the "
-"redacted report for support."
-msgstr ""
-"Använd lösenordsinloggning, undvik att ändra PAM-filer manuellt och "
-"exportera den maskerade rapporten för support."
-
-#: src/backend/supportreport.cpp:220
-msgid ""
-"Use password login, check systemctl status irlumed, then refresh diagnostics."
-msgstr ""
-"Använd lösenordsinloggning, kontrollera systemctl status irlumed och "
-"uppdatera sedan diagnostiken."
-
-#: src/backend/supportreport.cpp:199
+#: src/backend/supportreport.cpp:203
 msgid ""
 "Use password login, check the camera privacy controls and cabling, then run "
 "diagnostics again."
@@ -1332,7 +882,7 @@ msgstr ""
 "Använd lösenordsinloggning, kontrollera kamerans sekretessreglage och kablar "
 "och kör sedan diagnostiken igen."
 
-#: src/backend/supportreport.cpp:201
+#: src/backend/supportreport.cpp:205
 msgid ""
 "Use password login. Do not reset the TPM; restore the previous boot state or "
 "re-arm protection through irlume."
@@ -1340,410 +890,1009 @@ msgstr ""
 "Använd lösenordsinloggning. Återställ inte TPM; återställ föregående "
 "starttillstånd eller aktivera skyddet på nytt genom irlume."
 
-#: src/backend/systemprobe.cpp:419
-msgid "Version 2.0 supports Fedora 44 on mutable DNF-based installations."
-msgstr ""
-"Version 2.0 stöder Fedora 44 på ändringsbara DNF-baserade installationer."
-
-#: src/kcm/ui/DiagnosticsPage.qml:60
+#: src/backend/supportreport.cpp:208
 msgid ""
-"While this desktop session is open, ask irlume to disable all Face Login "
-"integration and verify that password fallback remains available."
+"Use password login and restore the expected Secure Boot or firmware state "
+"before re-arming TPM protection."
 msgstr ""
-"Medan skrivbordssessionen är öppen kan irlume inaktivera all integration för "
-"ansiktsinloggning och verifiera att lösenordsreserven förblir tillgänglig."
+"Använd lösenordsinloggning och återställ förväntat Secure Boot- eller "
+"firmwaretillstånd innan TPM-skyddet aktiveras på nytt."
 
-#: src/kcm/ui/SecurityPage.qml:84
-msgid "Without TPM protection, face templates have reduced protection at rest."
-msgstr "Utan TPM-skydd har ansiktsmallar sämre skydd vid lagring."
+#: src/backend/supportreport.cpp:211
+msgid "Install an irlume release that advertises Machine API Contract 1."
+msgstr "Installera en irlume-version som annonserar Machine API Contract 1."
 
-#: src/backend/profilemodel.cpp:674
-msgid "Working"
-msgstr "Arbetar"
+#: src/backend/supportreport.cpp:213
+msgid "Keep the unsupported operation disabled. Contract 1 is read-only."
+msgstr ""
+"Låt åtgärden som inte stöds vara inaktiverad. Contract 1 är skrivskyddat."
 
-#: src/kcm/ui/OverviewPage.qml:89
-msgid "irlume"
-msgstr "irlume"
-
-#: src/kcm/ui/SetupStatusPage.qml:104
+#: src/backend/supportreport.cpp:215
 msgid ""
-"irlume 0.6.x remains available for read-only diagnostics. Guided setup "
-"requires the reviewed V2 engine contract."
+"Use the documented engine recovery procedure outside this read-only KCM, "
+"then refresh."
 msgstr ""
-"irlume 0.6.x är fortsatt tillgänglig för skrivskyddad diagnostik. Guidad "
-"konfiguration kräver det granskade V2-motoravtalet."
+"Använd motorns dokumenterade återställningsprocedur utanför den här "
+"skrivskyddade inställningsmodulen och uppdatera sedan."
 
-#: src/backend/profilemodel.cpp:705
-msgid "irlume did not finish in time."
-msgstr "irlume slutförde inte åtgärden i tid."
-
-#: src/backend/systemprobe.cpp:469
-msgid "irlume did not report usable RGB or infrared camera hardware."
+#: src/backend/supportreport.cpp:217
+msgid ""
+"Use the engine recovery procedure to remove old wiring, then refresh this "
+"read-only view."
 msgstr ""
-"irlume rapporterade ingen användbar RGB- eller infraröd kameramaskinvara."
+"Använd motorns återställningsprocedur för att ta bort gammal inkoppling och "
+"uppdatera sedan den här skrivskyddade vyn."
 
-#: src/kcm/ui/DiagnosticsPage.qml:194
-msgid "irlume engine"
-msgstr "irlume-motor"
+#: src/backend/supportreport.cpp:220
+msgid ""
+"Unlock KWallet with the account password and re-arm wallet integration after "
+"a password change."
+msgstr ""
+"Lås upp KWallet med kontolösenordet och aktivera plånboksintegrationen på "
+"nytt efter en lösenordsändring."
 
-#: src/backend/supportreport.cpp:186 src/backend/systemprobe.cpp:331
-#, fuzzy
-msgid "irlume is not installed"
-msgstr "irlume-motor"
+#: src/backend/supportreport.cpp:222
+msgid ""
+"Keep the desktop session open and use the TTY recovery instructions now."
+msgstr ""
+"Håll skrivbordssessionen öppen och använd TTY-instruktionerna för "
+"återställning nu."
 
-#: src/backend/fakeadapter.cpp:103
-#, fuzzy
+#: src/backend/supportreport.cpp:224
+msgid ""
+"Use password login, check systemctl status irlumed, then refresh diagnostics."
+msgstr ""
+"Använd lösenordsinloggning, kontrollera systemctl status irlumed och "
+"uppdatera sedan diagnostiken."
+
+#: src/backend/supportreport.cpp:226
+msgid "Install the supported irlume package, then refresh diagnostics."
+msgstr ""
+"Installera det irlume-paket som stöds och uppdatera sedan diagnostiken."
+
+#: src/backend/supportreport.cpp:228
+msgid "No known issue is currently reported."
+msgstr "Inget känt problem rapporteras just nu."
+
+#: src/backend/supportreport.cpp:230
+msgid ""
+"Use password login, avoid changing PAM files manually, and export the "
+"redacted report for support."
+msgstr ""
+"Använd lösenordsinloggning, undvik att ändra PAM-filer manuellt och "
+"exportera den maskerade rapporten för support."
+
+#: src/backend/supportreport.cpp:276
+msgid "The text could not be copied."
+msgstr "Texten kunde inte kopieras."
+
+#: src/backend/systemprobe.cpp:30
+msgid "SystemProbe"
+msgstr "SystemProbe"
+
+#: src/backend/systemprobe.cpp:181
+msgid "Live local system"
+msgstr "Lokalt system i realtid"
+
+#: src/backend/systemprobe.cpp:193
+msgid "The face-authentication backend is not installed"
+msgstr "Bakänden för ansiktsautentisering är inte installerad"
+
+#: src/backend/systemprobe.cpp:194
+msgid "Install irlume 0.7 or newer to run Contract 1 readiness checks."
+msgstr ""
+"Installera irlume 0.7 eller senare för att köra beredskapskontroller för "
+"Contract 1."
+
+#: src/backend/systemprobe.cpp:203
+msgid "The machine contract is unavailable"
+msgstr "Maskinkontraktet är inte tillgängligt"
+
+#: src/backend/systemprobe.cpp:204
+msgid "The installed backend did not complete a valid Contract 1 handshake."
+msgstr ""
+"Den installerade bakänden slutförde inte en giltig handskakning för Contract "
+"1."
+
+#: src/backend/systemprobe.cpp:216
+msgid "No compatible read capabilities are available"
+msgstr "Inga kompatibla läsförmågor är tillgängliga"
+
+#: src/backend/systemprobe.cpp:218
+msgid ""
+"The backend completed Contract 1 negotiation but advertised no supported "
+"diagnostics."
+msgstr ""
+"Bakänden slutförde Contract 1-förhandlingen men annonserade ingen diagnostik "
+"som stöds."
+
+#: src/backend/systemprobe.cpp:290
+msgid "Read-only face-authentication status is available"
+msgstr "Skrivskyddad status för ansiktsautentisering är tillgänglig"
+
+#: src/backend/systemprobe.cpp:292
+msgid ""
+"The backend supports Contract 1 diagnostics. Configuration changes remain "
+"disabled."
+msgstr ""
+"Bakänden stöder Contract 1-diagnostik. Konfigurationsändringar förblir "
+"inaktiverade."
+
+#: src/backend/systemprobe.cpp:297
+msgid "Some read-only backend state is unavailable or inconsistent."
+msgstr ""
+"Viss skrivskyddad status från bakänden är inte tillgänglig eller är "
+"inkonsekvent."
+
+#: src/preview/cameraprovider.cpp:192
+msgid "CameraProvider"
+msgstr "Kameravägledning"
+
+#: src/backend/fakeadapter.cpp:22
+msgctxt "FakeSystemStateAdapter"
+msgid "Read-only diagnostics are available"
+msgstr "Skrivskyddad diagnostik är tillgänglig"
+
+#: src/backend/fakeadapter.cpp:24
+msgctxt "FakeSystemStateAdapter"
+msgid ""
+"Infrared camera capability and simulated Contract 1 diagnostics are "
+"available. No authentication security level is inferred."
+msgstr ""
+"Infraröd kameraförmåga och simulerad Contract 1-diagnostik är tillgängliga. "
+"Ingen säkerhetsnivå för autentisering härleds."
+
+#: src/backend/fakeadapter.cpp:26
+msgctxt "FakeSystemStateAdapter"
+msgid "Simulated preview"
+msgstr "Simulerad förhandsvisning"
+
+#: src/backend/fakeadapter.cpp:56
+msgctxt "FakeSystemStateAdapter"
+msgid "Secure IR hardware"
+msgstr "Säker IR-maskinvara"
+
+#: src/backend/fakeadapter.cpp:57
+msgctxt "FakeSystemStateAdapter"
+msgid "RGB-only hardware"
+msgstr "Maskinvara med endast RGB"
+
+#: src/backend/fakeadapter.cpp:58
+msgctxt "FakeSystemStateAdapter"
+msgid "No camera"
+msgstr "Ingen kamera"
+
+#: src/backend/fakeadapter.cpp:59
+msgctxt "FakeSystemStateAdapter"
+msgid "Missing irlume"
+msgstr "irlume saknas"
+
+#: src/backend/fakeadapter.cpp:60
+msgctxt "FakeSystemStateAdapter"
+msgid "Unsupported irlume version"
+msgstr "irlume-version som inte stöds"
+
+#: src/backend/fakeadapter.cpp:61
+msgctxt "FakeSystemStateAdapter"
+msgid "Broken daemon"
+msgstr "Trasig bakgrundstjänst"
+
+#: src/backend/fakeadapter.cpp:62
+msgctxt "FakeSystemStateAdapter"
+msgid "Existing PAM drift"
+msgstr "Befintlig PAM-avvikelse"
+
+#: src/backend/fakeadapter.cpp:76
+msgctxt "FakeSystemStateAdapter"
+msgid "RGB camera capability is available"
+msgstr "RGB-kameraförmåga är tillgänglig"
+
+#: src/backend/fakeadapter.cpp:79
+msgctxt "FakeSystemStateAdapter"
+msgid ""
+"Camera type alone does not establish liveness or an authentication security "
+"level."
+msgstr ""
+"Enbart kameratyp fastställer inte livskontroll eller säkerhetsnivå för "
+"autentisering."
+
+#: src/backend/fakeadapter.cpp:88
+msgctxt "FakeSystemStateAdapter"
+msgid "No compatible camera was found"
+msgstr "Ingen kompatibel kamera hittades"
+
+#: src/backend/fakeadapter.cpp:89
+msgctxt "FakeSystemStateAdapter"
+msgid ""
+"Face login remains unavailable until compatible camera hardware is present."
+msgstr ""
+"Ansiktsinloggning förblir otillgänglig tills kompatibel kameramaskinvara "
+"finns."
+
+#: src/backend/fakeadapter.cpp:102
 msgctxt "FakeSystemStateAdapter"
 msgid "irlume is not installed"
 msgstr "irlume-motor"
 
-#: src/backend/profilemodel.cpp:685
-msgid "irlume is not installed."
-msgstr "irlume är inte installerat."
-
-#: src/backend/systemprobe.cpp:456
-#, fuzzy
-msgid "irlume reports infrared hardware and required liveness capability."
-msgstr "Säker infraröd maskinvara och närvarokontroller är redo."
-
-#: src/backend/systemprobe.cpp:344
-msgid "plasma-irlume supports the read-only diagnostic output of irlume 0.6.x."
-msgstr "plasma-irlume stöder skrivskyddad diagnostik från irlume 0.6.x."
-
-#: src/kcm/ui/EnrollmentPage.qml
-msgid "Keep scans in the existing profile?"
-msgstr "Behåll skanningarna i den befintliga profilen?"
-
-#: src/kcm/ui/EnrollmentPage.qml
+#: src/backend/fakeadapter.cpp:104
+msgctxt "FakeSystemStateAdapter"
 msgid ""
-"irlume recognized this face as “%2” and added %1 scan. Choose OK to keep it "
-"and run a recognition test, or Cancel to remove only the new scan."
-msgid_plural ""
-"irlume recognized this face as “%2” and added %1 scans. Choose OK to keep "
-"them and run a recognition test, or Cancel to remove only the new scans."
-msgstr[0] ""
-"irlume kände igen ansiktet som ”%2” och lade till %1 skanning. Välj OK för "
-"att behålla den och köra ett igenkänningstest, eller Avbryt för att bara ta "
-"bort den nya skanningen."
-msgstr[1] ""
-"irlume kände igen ansiktet som ”%2” och lade till %1 skanningar. Välj OK för "
-"att behålla dem och köra ett igenkänningstest, eller Avbryt för att bara ta "
-"bort de nya skanningarna."
-
-#: src/backend/profilemodel.cpp
-msgid ""
-"irlume matched an existing identity. Confirm whether to keep the added scans."
+"The face-authentication engine is required before readiness can be checked."
 msgstr ""
-"irlume matchade en befintlig identitet. Bekräfta om de tillagda skanningarna "
-"ska behållas."
+"Motorn för ansiktsautentisering krävs innan beredskapen kan kontrolleras."
 
-#: src/backend/profilemodel.cpp
-msgid "The added scans were kept and recognition was verified."
-msgstr "De tillagda skanningarna behölls och igenkänningen verifierades."
-
-#: src/backend/profilemodel.cpp
-msgid "The added scans were removed; the existing profile was left unchanged."
-msgstr ""
-"De tillagda skanningarna togs bort; den befintliga profilen lämnades "
-"oförändrad."
-
-#: src/backend/profilemodel.cpp
-msgid "Restoring the profile state from before enrollment…"
-msgstr "Återställer profilens tillstånd från före registreringen…"
-
-#: src/kcm/ui/EnrollmentPage.qml
-msgid "Rename scan"
-msgstr "Byt namn på skanning"
-
-#: src/kcm/ui/EnrollmentPage.qml
-msgid "Rename scan “%1”"
-msgstr "Byt namn på skanningen ”%1”"
-
-#: src/kcm/ui/EnrollmentPage.qml
-msgid "Delete scan"
-msgstr "Ta bort skanning"
-
-#: src/kcm/ui/EnrollmentPage.qml
-msgid "Delete scan “%1”"
-msgstr "Ta bort skanningen ”%1”"
-
-#: src/kcm/ui/EnrollmentPage.qml
-msgid "Rename profile"
-msgstr "Byt namn på profil"
-
-#: src/kcm/ui/EnrollmentPage.qml
-msgid "Rename appearance scan"
-msgstr "Byt namn på utseendeskanning"
-
-#: src/kcm/ui/EnrollmentPage.qml
-msgid "Rename face profile"
-msgstr "Byt namn på ansiktsprofil"
-
-#: src/kcm/ui/EnrollmentPage.qml
-msgid "Rename"
-msgstr "Byt namn"
-
-#: src/kcm/ui/EnrollmentPage.qml
-msgid "Display name"
-msgstr "Visningsnamn"
-
-#: src/kcm/ui/EnrollmentPage.qml
-msgid "Delete appearance scan?"
-msgstr "Ta bort utseendeskanning?"
-
-#: src/kcm/ui/EnrollmentPage.qml
-msgid ""
-"Delete “%1” only? The profile and its other appearance scans will be kept."
-msgstr ""
-"Ta bara bort ”%1”? Profilen och dess övriga utseendeskanningar behålls."
-
-#: src/backend/profilemodel.cpp
-msgid "Appearance scan deleted."
-msgstr "Utseendeskanningen togs bort."
-
-#: src/backend/profilemodel.cpp
-msgid "Appearance scan renamed."
-msgstr "Utseendeskanningen fick ett nytt namn."
-
-#: src/backend/profilemodel.cpp
-msgid "Face profile renamed."
-msgstr "Ansiktsprofilen fick ett nytt namn."
-
-#: src/backend/profilemodel.cpp
-msgid "Deleting the selected appearance scan…"
-msgstr "Tar bort den valda utseendeskanningen…"
-
-#: src/backend/profilemodel.cpp
-msgid "Renaming the selected profile record…"
-msgstr "Byter namn på den valda profilposten…"
-
-#: src/kcm/ui/AuthenticationPage.qml:222
-msgid "• %1"
-msgstr "• %1"
-
-#~ msgid "Overview"
-#~ msgstr "Översikt"
-msgid "Camera tuning completed with a conclusive capture mode."
-msgstr "Kamerajustering slutfördes med ett entydigt bildtagningsläge."
-
-msgid "Camera tuning completed; the measurement was not conclusive."
-msgstr "Kamerajustering slutfördes, men mätningen var inte entydig."
-
-msgid "Check the reviewed camera pair and infrared emitter."
-msgstr "Kontrollera det granskade kameraparet och den infraröda sändaren."
-
-msgid "Checking the camera configuration contract…"
-msgstr "Kontrollerar kontraktet för kamerakonfiguration…"
-
-msgid "Configuring and verifying the infrared emitter…"
-msgstr "Konfigurerar och verifierar den infraröda sändaren…"
-
-msgid "Measuring and selecting the bounded capture mode…"
-msgstr "Mäter och väljer det avgränsade bildtagningsläget…"
-
-msgid "Reading reviewed camera pairs…"
-msgstr "Läser granskade kamerapar…"
-
-msgid "Selecting and verifying the secure camera pair…"
-msgstr "Väljer och verifierar det säkra kameraparet…"
-
-msgid "Testing infrared emitter controls without changing them…"
-msgstr "Testar styrning av den infraröda sändaren utan att ändra den…"
-
-msgid "The active camera and infrared emitter controls are ready."
-msgstr "Den aktiva kameran och styrningen av den infraröda sändaren är klara."
-
-msgid "The camera operation failed without a verified configuration change."
-msgstr "Kameraåtgärden misslyckades utan någon verifierad konfigurationsändring."
-
-msgid "The camera pair is available, but no infrared emitter control was found."
-msgstr "Kameraparet är tillgängligt, men ingen styrning av den infraröda sändaren hittades."
-
-msgid "The camera pair was selected and independently verified."
-msgstr "Kameraparet valdes och verifierades oberoende."
-
-msgid "The infrared emitter was configured and verified."
-msgstr "Den infraröda sändaren konfigurerades och verifierades."
-
-msgid "The installed irlume release does not provide the reviewed camera contract."
-msgstr "Den installerade irlume-versionen tillhandahåller inte det granskade kamerakontraktet."
-
-msgid "The selected camera pair is already active."
-msgstr "Det valda kameraparet är redan aktivt."
-
-msgid "Active pair"
-msgstr "Aktivt par"
-
-msgid "Camera configuration"
-msgstr "Kamerakonfiguration"
-
-msgid "Camera management requires the reviewed irlume camera contract."
-msgstr "Kamerahantering kräver det granskade kamerakontraktet i irlume."
-
-msgid "Capture mode"
-msgstr "Bildtagningsläge"
-
-msgid "Infrared emitter"
-msgstr "Infraröd sändare"
-
-msgid "Not selected"
-msgstr "Inte valt"
-
-msgid "Not tested"
-msgstr "Inte testat"
-
-msgid "Secure camera pair"
-msgstr "Säkert kamerapar"
-
-msgid "Set up emitter"
-msgstr "Konfigurera sändare"
-
-msgid "Tune capture"
-msgstr "Justera bildtagning"
-
-msgid "Unavailable"
-msgstr "Inte tillgänglig"
-
-msgid "Use pair"
-msgstr "Använd par"
-
-msgid "Verified"
-msgstr "Verifierat"
-
-msgid "Review Face Login wiring. The installed Contract 1 backend is read-only, so configuration changes are disabled."
-msgstr "Granska inkopplingen för Ansiktsinloggning. Den installerade Contract 1-bakänden är skrivskyddad, så konfigurationsändringar är inaktiverade."
-
-msgid "Authentication changes require a future backend mutation capability. No PAM command will be started."
-msgstr "Autentiseringsändringar kräver en framtida ändringsförmåga i bakänden. Inget PAM-kommando kommer att startas."
-
-msgid "Contract 1 reports current wiring but cannot disable it through the KCM. Use the documented TTY recovery command when a change is required."
-msgstr "Contract 1 rapporterar aktuell inkoppling men kan inte inaktivera den via inställningsmodulen. Använd det dokumenterade TTY-återställningskommandot när en ändring krävs."
-
-msgid "Profiles are read-only because the installed backend does not expose mutation capabilities."
-msgstr "Profiler är skrivskyddade eftersom den installerade bakänden inte erbjuder ändringsförmågor."
-
-msgid "Install a Contract 1 compatible backend"
-msgstr "Installera en bakände som är kompatibel med Contract 1"
-
-msgid "irlume Contract 1 is read-only. Enrollment and authentication changes remain disabled."
-msgstr "irlume Contract 1 är skrivskyddat. Registrering och autentiseringsändringar förblir inaktiverade."
-
-msgid "Contract 1 reports camera capability but does not support camera configuration."
-msgstr "Contract 1 rapporterar kameraförmåga men stöder inte kamerakonfiguration."
-
-msgid "Authentication wiring is shown read-only. Contract 1 does not support configuration changes."
-msgstr "Autentiseringsinkopplingen visas skrivskyddad. Contract 1 stöder inte konfigurationsändringar."
-
-msgid "Contract 1 does not support authentication configuration changes."
-msgstr "Contract 1 stöder inte ändringar av autentiseringskonfigurationen."
-
-msgid "Camera capability is available read-only. Pair selection and tuning are disabled."
-msgstr "Kameraförmågan är tillgänglig skrivskyddad. Parval och justering är inaktiverade."
-
-msgid "Camera capability is unknown because read-only status is unavailable."
-msgstr "Kameraförmågan är okänd eftersom skrivskyddad status inte är tillgänglig."
-
-msgid "The installed backend exposes read-only Contract 1 but not camera mutation capabilities."
-msgstr "Den installerade bakänden erbjuder skrivskyddat Contract 1 men inga förmågor för kameraändringar."
-
-msgid "The backend did not complete a valid read-only handshake."
-msgstr "Bakänden slutförde inte en giltig skrivskyddad handskakning."
-
-msgid "The backend does not advertise read-only profile listing."
-msgstr "Bakänden annonserar inte skrivskyddad profillistning."
-
-msgid "The read-only profile list is unavailable."
-msgstr "Den skrivskyddade profillistan är inte tillgänglig."
-
-msgid "Profiles are shown read-only. Contract 1 does not support enrollment or profile changes."
-msgstr "Profiler visas skrivskyddade. Contract 1 stöder inte registrering eller profiländringar."
-
-msgid "The installed backend exposes read-only Contract 1 but not the required mutation capability."
-msgstr "Den installerade bakänden erbjuder skrivskyddat Contract 1 men inte den ändringsförmåga som krävs."
-
-msgid "The face-authentication backend is not installed"
-msgstr "Bakänden för ansiktsautentisering är inte installerad"
-
-msgid "Install irlume 0.7 or newer to run Contract 1 readiness checks."
-msgstr "Installera irlume 0.7 eller senare för att köra beredskapskontroller för Contract 1."
-
-msgid "The machine contract is unavailable"
-msgstr "Maskinkontraktet är inte tillgängligt"
-
-msgid "The installed backend did not complete a valid Contract 1 handshake."
-msgstr "Den installerade bakänden slutförde inte en giltig handskakning för Contract 1."
-
-msgid "Read-only face-authentication status is available"
-msgstr "Skrivskyddad status för ansiktsautentisering är tillgänglig"
-
-msgid "The backend supports Contract 1 diagnostics. Configuration changes remain disabled."
-msgstr "Bakänden stöder Contract 1-diagnostik. Konfigurationsändringar förblir inaktiverade."
-
-msgid "Some read-only backend state is unavailable or inconsistent."
-msgstr "Viss skrivskyddad status från bakänden är inte tillgänglig eller är inkonsekvent."
-
-msgid "The installed backend does not support Machine API Contract 1"
-msgstr "Den installerade bakänden stöder inte Machine API Contract 1"
-
-msgid "The requested backend capability is unavailable"
-msgstr "Den begärda förmågan i bakänden är inte tillgänglig"
-
-msgid "Install an irlume release that advertises Machine API Contract 1."
-msgstr "Installera en irlume-version som annonserar Machine API Contract 1."
-
-msgid "Keep the unsupported operation disabled. Contract 1 is read-only."
-msgstr "Låt åtgärden som inte stöds vara inaktiverad. Contract 1 är skrivskyddat."
-
-msgid "Use the documented engine recovery procedure outside this read-only KCM, then refresh."
-msgstr "Använd motorns dokumenterade återställningsprocedur utanför den här skrivskyddade inställningsmodulen och uppdatera sedan."
-
-msgid "Use the engine recovery procedure to remove old wiring, then refresh this read-only view."
-msgstr "Använd motorns återställningsprocedur för att ta bort gammal inkoppling och uppdatera sedan den här skrivskyddade vyn."
-
+#: src/backend/fakeadapter.cpp:120
+msgctxt "FakeSystemStateAdapter"
 msgid "The machine contract is not supported"
 msgstr "Maskinkontraktet stöds inte"
 
-msgid "The simulated backend does not advertise Machine API Contract 1. The engine version is informational."
-msgstr "Den simulerade bakänden annonserar inte Machine API Contract 1. Motorversionen är endast informativ."
+#: src/backend/fakeadapter.cpp:122
+msgctxt "FakeSystemStateAdapter"
+msgid ""
+"The simulated backend does not advertise Machine API Contract 1. The engine "
+"version is informational."
+msgstr ""
+"Den simulerade bakänden annonserar inte Machine API Contract 1. "
+"Motorversionen är endast informativ."
 
-msgid "Updating read-only authentication wiring…"
-msgstr "Uppdaterar skrivskyddad autentiseringsinkoppling…"
+#: src/backend/fakeadapter.cpp:138
+msgctxt "FakeSystemStateAdapter"
+msgid "The irlume service needs attention"
+msgstr "irlume-tjänsten behöver åtgärdas"
 
-msgid "The read-only authentication wiring status is unavailable."
-msgstr "Status för den skrivskyddade autentiseringsinkopplingen är inte tillgänglig."
+#: src/backend/fakeadapter.cpp:140
+msgctxt "FakeSystemStateAdapter"
+msgid ""
+"The simulated engine is compatible, but its background service is not "
+"healthy."
+msgstr "Motorn är installerad, men dess bakgrundstjänst kan inte nås."
 
-msgid "The backend does not advertise read-only authentication wiring."
-msgstr "Bakänden annonserar inte skrivskyddad autentiseringsinkoppling."
+#: src/backend/fakeadapter.cpp:151
+msgctxt "FakeSystemStateAdapter"
+msgid "Authentication configuration has drifted"
+msgstr "Autentiseringskonfigurationen har avvikit"
 
-msgid "Updating read-only camera capability…"
-msgstr "Uppdaterar skrivskyddad kameraförmåga…"
+#: src/backend/fakeadapter.cpp:153
+msgctxt "FakeSystemStateAdapter"
+msgid ""
+"The observed PAM state no longer matches the simulated engine plan. This "
+"read-only phase makes no changes."
+msgstr ""
+"Det observerade PAM-tillståndet matchar inte längre den simulerade "
+"motorplanen. Den här skrivskyddade fasen gör inga ändringar."
 
-msgid "Camera capability is unknown because read-only status failed."
-msgstr "Kameraförmågan är okänd eftersom den skrivskyddade statuskontrollen misslyckades."
+#: src/backend/fakeadapter.cpp:161
+msgctxt "FakeSystemStateAdapter"
+msgid "Preview state is unavailable"
+msgstr "Förhandsvisningsstatus är inte tillgänglig"
 
-msgid "Updating the read-only profile list…"
-msgstr "Uppdaterar den skrivskyddade profillistan…"
+#: src/backend/fakeadapter.cpp:163
+msgctxt "FakeSystemStateAdapter"
+msgid "The requested fake-adapter scenario does not exist."
+msgstr "Det begärda scenariot för den simulerade adaptern finns inte."
 
-msgid "No compatible read capabilities are available"
-msgstr "Inga kompatibla läsförmågor är tillgängliga"
+#~ msgid "%1 of %2 profiles used"
+#~ msgstr "%1 av %2 profiler används"
 
-msgid "The backend completed Contract 1 negotiation but advertised no supported diagnostics."
-msgstr "Bakänden slutförde Contract 1-förhandlingen men annonserade ingen diagnostik som stöds."
+#~ msgid "%1 of %2 scans captured"
+#~ msgstr "%1 av %2 skanningar tagna"
 
-msgid "Partial read-only diagnostics are available. One or more sections could not be refreshed."
-msgstr "Delvis skrivskyddad diagnostik är tillgänglig. En eller flera sektioner kunde inte uppdateras."
+#~ msgid "A display-manager migration needs attention"
+#~ msgstr "En migrering av inloggningshanteraren behöver åtgärdas"
 
-msgid "Updating…"
-msgstr "Uppdaterar…"
+#~ msgid ""
+#~ "A usable camera must be available before enrollment or recognition "
+#~ "testing."
+#~ msgstr ""
+#~ "En användbar kamera måste vara tillgänglig före registrering eller "
+#~ "igenkänningstest."
 
-msgid "Read-only diagnostics are available"
-msgstr "Skrivskyddad diagnostik är tillgänglig"
+#~ msgid ""
+#~ "Add a scan for glasses, a beard change, or different lighting. This is "
+#~ "usually better than deleting and recreating the profile."
+#~ msgstr ""
+#~ "Lägg till en skanning för glasögon, förändrat skägg eller annan "
+#~ "belysning. Det är oftast bättre än att ta bort och skapa profilen på nytt."
 
-msgid "Infrared camera capability and simulated Contract 1 diagnostics are available. No authentication security level is inferred."
-msgstr "Infraröd kameraförmåga och simulerad Contract 1-diagnostik är tillgängliga. Ingen säkerhetsnivå för autentisering härleds."
+#~ msgid "Add another face profile"
+#~ msgstr "Ansiktsprofil"
 
-msgid "RGB camera capability is available"
-msgstr "RGB-kameraförmåga är tillgänglig"
+#~ msgid "Add appearance scan"
+#~ msgstr "Lägg till utseendeskanning"
 
-msgid "Camera type alone does not establish liveness or an authentication security level."
-msgstr "Enbart kameratyp fastställer inte livskontroll eller säkerhetsnivå för autentisering."
+#~ msgid "Adding an appearance scan…"
+#~ msgstr "Lägg till utseendeskanning"
+
+#~ msgctxt "FakeSystemStateAdapter"
+#~ msgid ""
+#~ "An RGB camera is available, but it does not meet the secure login-screen "
+#~ "tier."
+#~ msgstr ""
+#~ "En RGB-kamera är tillgänglig, men den uppfyller inte säkerhetsnivån för "
+#~ "inloggningsskärmen."
+
+#~ msgid "Appearance scan added."
+#~ msgstr "Lägg till utseendeskanning"
+
+#~ msgid "Authentication change preview"
+#~ msgstr "Autentisering"
+
+#~ msgid ""
+#~ "Available for Secure infrared and RGB Convenience hardware after a "
+#~ "healthy profile check."
+#~ msgstr ""
+#~ "Tillgängligt för säker infraröd maskinvara och RGB-bekvämlighet efter en "
+#~ "godkänd profilkontroll."
+
+#~ msgid "Camera and infrared test"
+#~ msgstr "Kamera- och infrarött test"
+
+#~ msgid "Camera release could not be confirmed. Refresh before trying again."
+#~ msgstr ""
+#~ "Det kunde inte bekräftas att kameran frigjordes. Uppdatera innan du "
+#~ "försöker igen."
+
+#~ msgid "Cancel"
+#~ msgstr "Avbryt"
+
+#~ msgid "Capture in %1"
+#~ msgstr "Bild tas om %1"
+
+#~ msgid "Capture quality: %1 percent"
+#~ msgstr "Bildkvalitet: %1 procent"
+
+#~ msgid "Capturing appearance"
+#~ msgstr "Tar utseendebild"
+
+#~ msgid "Centered"
+#~ msgstr "Centrerad"
+
+#~ msgid "Check again"
+#~ msgstr "Kontrollera igen"
+
+#~ msgid "Checking liveness"
+#~ msgstr "Kontrollerar närvaro"
+
+#~ msgid "Checking the irlume integration contract…"
+#~ msgstr "Kontrollerar irlumes integrationsavtal…"
+
+#~ msgid "Cleaning up"
+#~ msgstr "Rensar"
+
+#~ msgid "Comparing with the selected profile"
+#~ msgstr "Jämför med den valda profilen"
+
+#~ msgid "Complete"
+#~ msgstr "Klar"
+
+#~ msgid "Connect and test a supported camera"
+#~ msgstr "Anslut och testa en kamera som stöds"
+
+#~ msgid "Create a face profile"
+#~ msgstr "Ansiktsprofil"
+
+#~ msgid "Creating a face profile…"
+#~ msgstr "Ansiktsprofil"
+
+#~ msgid "Current protection"
+#~ msgstr "Aktuellt skydd"
+
+#~ msgid "Delete face profile?"
+#~ msgstr "Ansiktsprofil"
+
+#~ msgid "Delete profile"
+#~ msgstr "Ansiktsprofil"
+
+#~ msgid ""
+#~ "Delete “%1” and all of its appearance scans for the current account? Face "
+#~ "recognition will stop working until a new profile is enrolled."
+#~ msgstr ""
+#~ "Ta bort ”%1” och alla dess utseendeskanningar för det aktuella kontot? "
+#~ "Ansiktsigenkänning slutar fungera tills en ny profil har registrerats."
+
+#~ msgid "Disable"
+#~ msgstr "Inaktivera"
+
+#~ msgid ""
+#~ "Disable Face Login from this page, run authselect check, then refresh "
+#~ "before enabling it again."
+#~ msgstr ""
+#~ "Inaktivera ansiktsinloggning från den här sidan, kör authselect check och "
+#~ "uppdatera innan du aktiverar den igen."
+
+#~ msgid "Disable Face Login now"
+#~ msgstr "Ansiktsinloggning"
+
+#~ msgid "Disable integration"
+#~ msgstr "Inaktivera integration"
+
+#~ msgid ""
+#~ "Disable only the targets reported by irlume for the active display "
+#~ "manager."
+#~ msgstr ""
+#~ "Inaktivera endast målen som irlume rapporterar för den aktiva "
+#~ "inloggningshanteraren."
+
+#~ msgid ""
+#~ "Disable the old integration first, refresh diagnostics, and preview a new "
+#~ "plan for the active display manager."
+#~ msgstr ""
+#~ "Inaktivera endast målen som irlume rapporterar för den aktiva "
+#~ "inloggningshanteraren."
+
+#~ msgid "Disabling…"
+#~ msgstr "Inaktiverar…"
+
+#~ msgid "Distance"
+#~ msgstr "Avstånd"
+
+#~ msgid "Emergency disable"
+#~ msgstr "Nödinaktivering"
+
+#~ msgid "Enabled"
+#~ msgstr "Aktiverat"
+
+#~ msgid "Engine-owned targets in the dry-run plan:"
+#~ msgstr "Motorägda mål i testkörningsplanen:"
+
+#~ msgid "Enrollment completed and recognition was verified."
+#~ msgstr "Registreringen slutfördes och igenkänningen verifierades."
+
+#~ msgid "Enrollment could not be verified, so the new profile was removed."
+#~ msgstr ""
+#~ "Registreringen kunde inte verifieras, så den nya profilen togs bort."
+
+#~ msgid ""
+#~ "Enrollment ended without a confirmed terminal event. Refresh before "
+#~ "trying again."
+#~ msgstr ""
+#~ "Registreringen avslutades utan en bekräftad sluthändelse. Uppdatera innan "
+#~ "du försöker igen."
+
+#~ msgid ""
+#~ "Face Login detected wiring for the previous display manager and will not "
+#~ "rewrite it automatically."
+#~ msgstr ""
+#~ "Ansiktsinloggning hittade kopplingar för den tidigare "
+#~ "inloggningshanteraren och skriver inte om dem automatiskt."
+
+#~ msgid ""
+#~ "Face authentication for sudo, su, SSH, and Polkit is outside V2 and "
+#~ "cannot be enabled here."
+#~ msgstr ""
+#~ "Ansiktsautentisering för sudo, su, SSH och Polkit ingår inte i V2 och kan "
+#~ "inte aktiveras här."
+
+#~ msgid "Face detected"
+#~ msgstr "Ansikte hittat"
+
+#~ msgid "Face login supports Plasma Login Manager and SDDM on Fedora 44."
+#~ msgstr ""
+#~ "Ansiktsinloggning stöder Plasma Login Manager och SDDM på Fedora 44."
+
+#~ msgid "Face profile deleted."
+#~ msgstr "Ansiktsprofil"
+
+#~ msgid "Face profile registration"
+#~ msgstr "Ansiktsprofil"
+
+#~ msgid "Face profiles are ready."
+#~ msgstr "Ansiktsprofil"
+
+#~ msgid "Face unlock is limited to convenience use"
+#~ msgstr "Ansiktsupplåsning är begränsad till bekvämlighetsanvändning"
+
+#~ msgctxt "FakeSystemStateAdapter"
+#~ msgid "Face unlock is limited to convenience use"
+#~ msgstr "Ansiktsupplåsning är begränsad till bekvämlighetsanvändning"
+
+#~ msgid "I have read the TTY recovery command"
+#~ msgstr "Jag har läst TTY-kommandot för återställning"
+
+#~ msgid "IR · Secure"
+#~ msgstr "IR · Säker"
+
+#~ msgid ""
+#~ "If graphical login or unlock stops working, switch to a TTY, sign in with "
+#~ "your password, and run:"
+#~ msgstr ""
+#~ "Om grafisk inloggning eller upplåsning slutar fungera, växla till en TTY, "
+#~ "logga in med ditt lösenord och kör:"
+
+#~ msgctxt "FakeSystemStateAdapter"
+#~ msgid ""
+#~ "Infrared hardware and the simulated irlume service pass every read-only "
+#~ "readiness check."
+#~ msgstr ""
+#~ "Infraröd maskinvara och den simulerade irlume-tjänsten klarar alla "
+#~ "skrivskyddade beredskapskontroller."
+
+#~ msgid "Infrared ready"
+#~ msgstr "Infrarött redo"
+
+#~ msgid ""
+#~ "Install a reviewed compatible irlume release. Do not bypass the "
+#~ "structured-contract gate."
+#~ msgstr ""
+#~ "Installera en granskad kompatibel irlume-version. Kringgå inte grinden "
+#~ "för det strukturerade avtalet."
+
+#~ msgid ""
+#~ "Install irlume 0.6.x to run live face-authentication readiness checks."
+#~ msgstr ""
+#~ "Installera irlume 0.6.x för att köra beredskapskontroller för "
+#~ "ansiktsautentisering i realtid."
+
+#~ msgid "Lighting"
+#~ msgstr "Belysning"
+
+#~ msgid "Loading face profiles…"
+#~ msgstr "Ansiktsprofil"
+
+#~ msgid ""
+#~ "Look toward the camera and slowly vary your angle while irlume captures "
+#~ "encrypted recognition scans."
+#~ msgstr ""
+#~ "Titta mot kameran och ändra långsamt vinkeln medan irlume tar krypterade "
+#~ "igenkänningsskanningar."
+
+#~ msgid "No compatible face-login camera was found"
+#~ msgstr "Ingen kompatibel kamera för ansiktsinloggning hittades"
+
+#~ msgid "No verified change in this session"
+#~ msgstr "Ingen verifierad ändring i den här sessionen"
+
+#~ msgid ""
+#~ "Password authentication remains enabled and is verified after every "
+#~ "successful change."
+#~ msgstr ""
+#~ "Lösenordsautentisering förblir aktiverad och verifieras efter varje "
+#~ "lyckad ändring."
+
+#~ msgid "Pending"
+#~ msgstr "Väntar"
+
+#~ msgid "Position your face inside the guide."
+#~ msgstr "Placera ansiktet innanför guiden."
+
+#~ msgid ""
+#~ "Profile management requires an irlume release with the structured "
+#~ "integration contract."
+#~ msgstr ""
+#~ "Profilhantering kräver en irlume-version med det strukturerade "
+#~ "integrationsavtalet."
+
+#~ msgid "Profile operation status"
+#~ msgstr "Status för profilåtgärd"
+
+#~ msgid "RGB · Convenience"
+#~ msgstr "RGB · Bekvämlighet"
+
+#~ msgid "RGB-only hardware is restricted to lock-screen use."
+#~ msgstr "Maskinvara med endast RGB är begränsad till låsskärmen."
+
+#~ msgid "Recognition did not match. The test did not change the profile."
+#~ msgstr "Igenkänningen stämde inte. Testet ändrade inte profilen."
+
+#~ msgid "Recognition test"
+#~ msgstr "Igenkänningstest"
+
+#~ msgid "Recognition test passed."
+#~ msgstr "Igenkänningstest"
+
+#~ msgid "Recovery before enabling"
+#~ msgstr "Återställning före aktivering"
+
+#~ msgid "Recovery readiness"
+#~ msgstr "Återställningsberedskap"
+
+#~ msgid "Register your first face profile"
+#~ msgstr "Registrera din första ansiktsprofil"
+
+#~ msgid ""
+#~ "Register, test, and improve recognition. Preview frames stay in memory "
+#~ "and are cleared when the session ends."
+#~ msgstr ""
+#~ "Registrera, testa och förbättra igenkänningen. Förhandsvisningsbilder "
+#~ "stannar i minnet och rensas när sessionen avslutas."
+
+#~ msgid ""
+#~ "Removal of the unverified profile could not be confirmed. Refresh before "
+#~ "continuing."
+#~ msgstr ""
+#~ "Det kunde inte bekräftas att den overifierade profilen togs bort. "
+#~ "Uppdatera innan du fortsätter."
+
+#~ msgid "Removing an unverified partial profile…"
+#~ msgstr "Tar bort en overifierad ofullständig profil…"
+
+#~ msgid "Review and enable"
+#~ msgstr "Granska och aktivera"
+
+#~ msgid ""
+#~ "Review and enable Face Login for each supported scope. irlume plans every "
+#~ "change; the KCM never edits PAM files directly."
+#~ msgstr ""
+#~ "Granska och aktivera ansiktsinloggning för varje omfång som stöds. irlume "
+#~ "planerar varje ändring; KCM-modulen redigerar aldrig PAM-filer direkt."
+
+#~ msgid "Review plan"
+#~ msgstr "Granska plan"
+
+#~ msgid "Review recovery before enabling"
+#~ msgstr "Granska återställning före aktivering"
+
+#~ msgid "Runs the fixed verified disable operation immediately"
+#~ msgstr "Kör den fasta verifierade inaktiveringsåtgärden omedelbart"
+
+#~ msgid "Secure face login hardware is available"
+#~ msgstr "Säker maskinvara för ansiktsinloggning är tillgänglig"
+
+#~ msgctxt "FakeSystemStateAdapter"
+#~ msgid "Secure face login is available"
+#~ msgstr "Säker maskinvara för ansiktsinloggning är tillgänglig"
+
+#~ msgid "Secure infrared hardware and liveness checks are ready."
+#~ msgstr "Säker infraröd maskinvara och närvarokontroller är redo."
+
+#~ msgid "Security level"
+#~ msgstr "Säkerhet"
+
+#~ msgid "Set up face recognition"
+#~ msgstr "Konfigurera ansiktsigenkänning"
+
+#~ msgid "Start enrollment"
+#~ msgstr "Starta registrering"
+
+#~ msgid "TTY recovery command"
+#~ msgstr "TTY-kommando för återställning"
+
+#~ msgid "Test recognition"
+#~ msgstr "Testa igenkänning"
+
+#~ msgid "Testing recognition without changing the profile…"
+#~ msgstr "Testar igenkänning utan att ändra profilen…"
+
+#~ msgid "Testing the new profile before keeping it…"
+#~ msgstr "Testar den nya profilen innan den behålls…"
+
+#~ msgid "The active display manager is not supported"
+#~ msgstr "Den aktiva inloggningshanteraren stöds inte"
+
+#~ msgid "The camera is busy. Close other camera applications, then try again."
+#~ msgstr "Kameran är upptagen. Stäng andra kameraappar och försök igen."
+
+#~ msgid ""
+#~ "The engine is installed, but its background service is not reachable."
+#~ msgstr "Motorn är installerad, men dess bakgrundstjänst kan inte nås."
+
+#~ msgid "The face profile operation could not be completed."
+#~ msgstr "Åtgärden för ansiktsprofilen kunde inte slutföras."
+
+#~ msgctxt "FakeSystemStateAdapter"
+#~ msgid ""
+#~ "The installed engine version is outside the reviewed 0.6.x read-only "
+#~ "compatibility range."
+#~ msgstr "Den installerade irlume-versionen är inte kompatibel"
+
+#~ msgid "The installed irlume version is not compatible"
+#~ msgstr "Den installerade irlume-versionen är inte kompatibel"
+
+#~ msgid "The irlume service needs attention"
+#~ msgstr "irlume-tjänsten behöver åtgärdas"
+
+#~ msgid "The observed PAM state does not match the active display manager."
+#~ msgstr ""
+#~ "Inaktivera endast målen som irlume rapporterar för den aktiva "
+#~ "inloggningshanteraren."
+
+#~ msgid "The operation was cancelled and the camera was released."
+#~ msgstr "Åtgärden avbröts och kameran frigjordes."
+
+#~ msgid ""
+#~ "This irlume release does not provide the structured profile-management "
+#~ "contract."
+#~ msgstr ""
+#~ "Den här irlume-versionen tillhandahåller inte det strukturerade avtalet "
+#~ "för profilhantering."
+
+#~ msgid "This irlume version is not supported"
+#~ msgstr "Den här irlume-versionen stöds inte"
+
+#~ msgctxt "FakeSystemStateAdapter"
+#~ msgid "This irlume version is not supported"
+#~ msgstr "Den här irlume-versionen stöds inte"
+
+#~ msgid "This operating system is not supported"
+#~ msgstr "Det här operativsystemet stöds inte"
+
+#~ msgid "Try again"
+#~ msgstr "Försök igen"
+
+#~ msgid "Upgrade irlume to unlock guided setup"
+#~ msgstr "Uppgradera irlume för att låsa upp guidad konfiguration"
+
+#~ msgid "Version 2.0 supports Fedora 44 on mutable DNF-based installations."
+#~ msgstr ""
+#~ "Version 2.0 stöder Fedora 44 på ändringsbara DNF-baserade installationer."
+
+#~ msgid ""
+#~ "While this desktop session is open, ask irlume to disable all Face Login "
+#~ "integration and verify that password fallback remains available."
+#~ msgstr ""
+#~ "Medan skrivbordssessionen är öppen kan irlume inaktivera all integration "
+#~ "för ansiktsinloggning och verifiera att lösenordsreserven förblir "
+#~ "tillgänglig."
+
+#~ msgid "Working"
+#~ msgstr "Arbetar"
+
+#~ msgid ""
+#~ "irlume 0.6.x remains available for read-only diagnostics. Guided setup "
+#~ "requires the reviewed V2 engine contract."
+#~ msgstr ""
+#~ "irlume 0.6.x är fortsatt tillgänglig för skrivskyddad diagnostik. Guidad "
+#~ "konfiguration kräver det granskade V2-motoravtalet."
+
+#~ msgid "irlume did not finish in time."
+#~ msgstr "irlume slutförde inte åtgärden i tid."
+
+#~ msgid "irlume did not report usable RGB or infrared camera hardware."
+#~ msgstr ""
+#~ "irlume rapporterade ingen användbar RGB- eller infraröd kameramaskinvara."
+
+#~ msgid "irlume is not installed."
+#~ msgstr "irlume är inte installerat."
+
+#~ msgid "irlume reports infrared hardware and required liveness capability."
+#~ msgstr "Säker infraröd maskinvara och närvarokontroller är redo."
+
+#~ msgid ""
+#~ "plasma-irlume supports the read-only diagnostic output of irlume 0.6.x."
+#~ msgstr "plasma-irlume stöder skrivskyddad diagnostik från irlume 0.6.x."
+
+#~ msgid "Keep scans in the existing profile?"
+#~ msgstr "Behåll skanningarna i den befintliga profilen?"
+
+#~ msgid ""
+#~ "irlume recognized this face as “%2” and added %1 scan. Choose OK to keep "
+#~ "it and run a recognition test, or Cancel to remove only the new scan."
+#~ msgid_plural ""
+#~ "irlume recognized this face as “%2” and added %1 scans. Choose OK to keep "
+#~ "them and run a recognition test, or Cancel to remove only the new scans."
+#~ msgstr[0] ""
+#~ "irlume kände igen ansiktet som ”%2” och lade till %1 skanning. Välj OK "
+#~ "för att behålla den och köra ett igenkänningstest, eller Avbryt för att "
+#~ "bara ta bort den nya skanningen."
+#~ msgstr[1] ""
+#~ "irlume kände igen ansiktet som ”%2” och lade till %1 skanningar. Välj OK "
+#~ "för att behålla dem och köra ett igenkänningstest, eller Avbryt för att "
+#~ "bara ta bort de nya skanningarna."
+
+#~ msgid ""
+#~ "irlume matched an existing identity. Confirm whether to keep the added "
+#~ "scans."
+#~ msgstr ""
+#~ "irlume matchade en befintlig identitet. Bekräfta om de tillagda "
+#~ "skanningarna ska behållas."
+
+#~ msgid "The added scans were kept and recognition was verified."
+#~ msgstr "De tillagda skanningarna behölls och igenkänningen verifierades."
+
+#~ msgid ""
+#~ "The added scans were removed; the existing profile was left unchanged."
+#~ msgstr ""
+#~ "De tillagda skanningarna togs bort; den befintliga profilen lämnades "
+#~ "oförändrad."
+
+#~ msgid "Restoring the profile state from before enrollment…"
+#~ msgstr "Återställer profilens tillstånd från före registreringen…"
+
+#~ msgid "Rename scan"
+#~ msgstr "Byt namn på skanning"
+
+#~ msgid "Rename scan “%1”"
+#~ msgstr "Byt namn på skanningen ”%1”"
+
+#~ msgid "Delete scan"
+#~ msgstr "Ta bort skanning"
+
+#~ msgid "Delete scan “%1”"
+#~ msgstr "Ta bort skanningen ”%1”"
+
+#~ msgid "Rename profile"
+#~ msgstr "Byt namn på profil"
+
+#~ msgid "Rename appearance scan"
+#~ msgstr "Byt namn på utseendeskanning"
+
+#~ msgid "Rename"
+#~ msgstr "Byt namn"
+
+#~ msgid "Display name"
+#~ msgstr "Visningsnamn"
+
+#~ msgid "Delete appearance scan?"
+#~ msgstr "Ta bort utseendeskanning?"
+
+#~ msgid ""
+#~ "Delete “%1” only? The profile and its other appearance scans will be kept."
+#~ msgstr ""
+#~ "Ta bara bort ”%1”? Profilen och dess övriga utseendeskanningar behålls."
+
+#~ msgid "Appearance scan deleted."
+#~ msgstr "Utseendeskanningen togs bort."
+
+#~ msgid "Appearance scan renamed."
+#~ msgstr "Utseendeskanningen fick ett nytt namn."
+
+#~ msgid "Face profile renamed."
+#~ msgstr "Ansiktsprofilen fick ett nytt namn."
+
+#~ msgid "Deleting the selected appearance scan…"
+#~ msgstr "Tar bort den valda utseendeskanningen…"
+
+#~ msgid "Renaming the selected profile record…"
+#~ msgstr "Byter namn på den valda profilposten…"
+
+#~ msgid "Overview"
+#~ msgstr "Översikt"
+
+#~ msgid "Camera tuning completed with a conclusive capture mode."
+#~ msgstr "Kamerajustering slutfördes med ett entydigt bildtagningsläge."
+
+#~ msgid "Camera tuning completed; the measurement was not conclusive."
+#~ msgstr "Kamerajustering slutfördes, men mätningen var inte entydig."
+
+#~ msgid "Check the reviewed camera pair and infrared emitter."
+#~ msgstr "Kontrollera det granskade kameraparet och den infraröda sändaren."
+
+#~ msgid "Checking the camera configuration contract…"
+#~ msgstr "Kontrollerar kontraktet för kamerakonfiguration…"
+
+#~ msgid "Configuring and verifying the infrared emitter…"
+#~ msgstr "Konfigurerar och verifierar den infraröda sändaren…"
+
+#~ msgid "Measuring and selecting the bounded capture mode…"
+#~ msgstr "Mäter och väljer det avgränsade bildtagningsläget…"
+
+#~ msgid "Reading reviewed camera pairs…"
+#~ msgstr "Läser granskade kamerapar…"
+
+#~ msgid "Selecting and verifying the secure camera pair…"
+#~ msgstr "Väljer och verifierar det säkra kameraparet…"
+
+#~ msgid "Testing infrared emitter controls without changing them…"
+#~ msgstr "Testar styrning av den infraröda sändaren utan att ändra den…"
+
+#~ msgid "The active camera and infrared emitter controls are ready."
+#~ msgstr ""
+#~ "Den aktiva kameran och styrningen av den infraröda sändaren är klara."
+
+#~ msgid "The camera operation failed without a verified configuration change."
+#~ msgstr ""
+#~ "Kameraåtgärden misslyckades utan någon verifierad konfigurationsändring."
+
+#~ msgid ""
+#~ "The camera pair is available, but no infrared emitter control was found."
+#~ msgstr ""
+#~ "Kameraparet är tillgängligt, men ingen styrning av den infraröda sändaren "
+#~ "hittades."
+
+#~ msgid "The camera pair was selected and independently verified."
+#~ msgstr "Kameraparet valdes och verifierades oberoende."
+
+#~ msgid "The infrared emitter was configured and verified."
+#~ msgstr "Den infraröda sändaren konfigurerades och verifierades."
+
+#~ msgid ""
+#~ "The installed irlume release does not provide the reviewed camera "
+#~ "contract."
+#~ msgstr ""
+#~ "Den installerade irlume-versionen tillhandahåller inte det granskade "
+#~ "kamerakontraktet."
+
+#~ msgid "Active pair"
+#~ msgstr "Aktivt par"
+
+#~ msgid "Camera configuration"
+#~ msgstr "Kamerakonfiguration"
+
+#~ msgid "Camera management requires the reviewed irlume camera contract."
+#~ msgstr "Kamerahantering kräver det granskade kamerakontraktet i irlume."
+
+#~ msgid "Capture mode"
+#~ msgstr "Bildtagningsläge"
+
+#~ msgid "Infrared emitter"
+#~ msgstr "Infraröd sändare"
+
+#~ msgid "Not selected"
+#~ msgstr "Inte valt"
+
+#~ msgid "Secure camera pair"
+#~ msgstr "Säkert kamerapar"
+
+#~ msgid "Set up emitter"
+#~ msgstr "Konfigurera sändare"
+
+#~ msgid "Tune capture"
+#~ msgstr "Justera bildtagning"
+
+#~ msgid "Unavailable"
+#~ msgstr "Inte tillgänglig"
+
+#~ msgid "Use pair"
+#~ msgstr "Använd par"
+
+#~ msgid ""
+#~ "Review Face Login wiring. The installed Contract 1 backend is read-only, "
+#~ "so configuration changes are disabled."
+#~ msgstr ""
+#~ "Granska inkopplingen för Ansiktsinloggning. Den installerade Contract 1-"
+#~ "bakänden är skrivskyddad, så konfigurationsändringar är inaktiverade."
+
+#~ msgid ""
+#~ "Authentication changes require a future backend mutation capability. No "
+#~ "PAM command will be started."
+#~ msgstr ""
+#~ "Autentiseringsändringar kräver en framtida ändringsförmåga i bakänden. "
+#~ "Inget PAM-kommando kommer att startas."
+
+#~ msgid ""
+#~ "Contract 1 reports current wiring but cannot disable it through the KCM. "
+#~ "Use the documented TTY recovery command when a change is required."
+#~ msgstr ""
+#~ "Contract 1 rapporterar aktuell inkoppling men kan inte inaktivera den via "
+#~ "inställningsmodulen. Använd det dokumenterade TTY-återställningskommandot "
+#~ "när en ändring krävs."
+
+#~ msgid ""
+#~ "Profiles are read-only because the installed backend does not expose "
+#~ "mutation capabilities."
+#~ msgstr ""
+#~ "Profiler är skrivskyddade eftersom den installerade bakänden inte "
+#~ "erbjuder ändringsförmågor."
+
+#~ msgid "Install a Contract 1 compatible backend"
+#~ msgstr "Installera en bakände som är kompatibel med Contract 1"
+
+#~ msgid ""
+#~ "irlume Contract 1 is read-only. Enrollment and authentication changes "
+#~ "remain disabled."
+#~ msgstr ""
+#~ "irlume Contract 1 är skrivskyddat. Registrering och "
+#~ "autentiseringsändringar förblir inaktiverade."
+
+#~ msgid ""
+#~ "Contract 1 reports camera capability but does not support camera "
+#~ "configuration."
+#~ msgstr ""
+#~ "Contract 1 rapporterar kameraförmåga men stöder inte kamerakonfiguration."
+
+#~ msgid ""
+#~ "Camera capability is available read-only. Pair selection and tuning are "
+#~ "disabled."
+#~ msgstr ""
+#~ "Kameraförmågan är tillgänglig skrivskyddad. Parval och justering är "
+#~ "inaktiverade."
+
+#~ msgid ""
+#~ "Camera capability is unknown because read-only status is unavailable."
+#~ msgstr ""
+#~ "Kameraförmågan är okänd eftersom skrivskyddad status inte är tillgänglig."
+
+#~ msgid ""
+#~ "The installed backend exposes read-only Contract 1 but not camera "
+#~ "mutation capabilities."
+#~ msgstr ""
+#~ "Den installerade bakänden erbjuder skrivskyddat Contract 1 men inga "
+#~ "förmågor för kameraändringar."
+
+#~ msgid "Updating read-only camera capability…"
+#~ msgstr "Uppdaterar skrivskyddad kameraförmåga…"
+
+#~ msgid "Camera capability is unknown because read-only status failed."
+#~ msgstr ""
+#~ "Kameraförmågan är okänd eftersom den skrivskyddade statuskontrollen "
+#~ "misslyckades."

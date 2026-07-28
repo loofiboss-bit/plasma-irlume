@@ -1,10 +1,8 @@
 # Fedora packaging
 
-The spec builds plasma-irlume 2.2.0 for Fedora 44 and requires irlume 0.7.0 or
-newer. Compatibility uses Machine API Contract 1, so there is no upper engine
-version bound.
-
-Build locally:
+The spec builds plasma-irlume 3.0.0 for Fedora 44. It requires
+`irlume >= 0.7.0`, builds against Qt Multimedia and libudev (`systemd-devel`),
+and lets RPM generate the corresponding native runtime dependencies.
 
 ```bash
 packaging/fedora/create-source-archive.sh
@@ -15,13 +13,13 @@ rpmbuild -ba packaging/fedora/plasma-irlume.spec \
 Inspect and test the binary RPM:
 
 ```bash
-rpm -qlp "$HOME/rpmbuild/RPMS/$(uname -m)/plasma-irlume-2.2.0-1.fc44.$(uname -m).rpm"
-rpm -qp --requires "$HOME/rpmbuild/RPMS/$(uname -m)/plasma-irlume-2.2.0-1.fc44.$(uname -m).rpm"
+rpm -qlp "$HOME/rpmbuild/RPMS/$(uname -m)/plasma-irlume-3.0.0-1.fc44.$(uname -m).rpm"
+rpm -qp --requires "$HOME/rpmbuild/RPMS/$(uname -m)/plasma-irlume-3.0.0-1.fc44.$(uname -m).rpm"
 packaging/fedora/rpm-smoke-test.sh \
-  "$HOME/rpmbuild/RPMS/$(uname -m)/plasma-irlume-2.2.0-1.fc44.$(uname -m).rpm"
+  "$HOME/rpmbuild/RPMS/$(uname -m)/plasma-irlume-3.0.0-1.fc44.$(uname -m).rpm"
 ```
 
-The smoke test requires the KCM plugin and desktop file, forbids privileged
-helper, system D-Bus, and Polkit payloads, verifies the absence of
-authentication scriptlets, hashes a PAM sentinel before install, after
-install, and after removal, and confirms that engine and user data survive.
+The smoke test requires `/usr/libexec/plasma-irlume-camera-preview-worker`,
+rejects setuid/setgid bits and file capabilities, forbids privileged helpers,
+system D-Bus and Polkit payloads, rejects authentication scriptlets, hashes a
+PAM sentinel through install/remove, and confirms engine and user data survive.

@@ -6,6 +6,7 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import "components" as Components
 
 Kirigami.ScrollablePage {
     id: root
@@ -27,280 +28,63 @@ Kirigami.ScrollablePage {
             wrapMode: Text.Wrap
         }
 
-        QQC2.Label {
-            Layout.fillWidth: true
-            text: i18n("Review Face Login wiring. The installed Contract 1 backend is read-only, so configuration changes are disabled.")
-            color: Kirigami.Theme.disabledTextColor
-            wrapMode: Text.Wrap
-        }
-
-        Kirigami.InlineMessage {
-            Layout.fillWidth: true
-            visible: !authConfiguration.mutationSupported
-            type: Kirigami.MessageType.Information
-            text: i18n("Authentication changes require a future backend mutation capability. No PAM command will be started.")
-        }
-
-        Kirigami.InlineMessage {
-            Layout.fillWidth: true
-            visible: authConfiguration.errorCode.length > 0
-            type: authConfiguration.rollbackRestored
-                ? Kirigami.MessageType.Positive
-                : Kirigami.MessageType.Error
-            text: authConfiguration.statusText
-        }
-
-        Kirigami.AbstractCard {
-            Layout.fillWidth: true
-            Accessible.role: Accessible.Grouping
-            Accessible.name: i18n("Recovery before enabling")
-
-            contentItem: ColumnLayout {
-                spacing: Kirigami.Units.smallSpacing
-
-                Kirigami.Heading {
-                    Layout.fillWidth: true
-                    level: 2
-                    text: i18n("Recovery before enabling")
-                    wrapMode: Text.Wrap
-                }
-
-                QQC2.Label {
-                    Layout.fillWidth: true
-                    text: i18n("If graphical login or unlock stops working, switch to a TTY, sign in with your password, and run:")
-                    wrapMode: Text.Wrap
-                }
-
-                QQC2.TextField {
-                    Layout.fillWidth: true
-                    text: authConfiguration.recoveryCommand
-                    readOnly: true
-                    selectByMouse: true
-                    Accessible.name: i18n("TTY recovery command")
-                }
-
-                QQC2.CheckBox {
-                    Layout.fillWidth: true
-                    text: i18n("I have read the TTY recovery command")
-                    checked: authConfiguration.recoveryAcknowledged
-                    onToggled: authConfiguration.recoveryAcknowledged = checked
-                }
-
-                QQC2.Label {
-                    Layout.fillWidth: true
-                    text: i18n("Password authentication remains enabled and is verified after every successful change.")
-                    color: Kirigami.Theme.positiveTextColor
-                    wrapMode: Text.Wrap
-                }
-            }
-        }
-
-        Kirigami.AbstractCard {
-            Layout.fillWidth: true
-            Accessible.role: Accessible.Grouping
-            Accessible.name: i18n("Lock screen")
-
-            contentItem: ColumnLayout {
-                spacing: Kirigami.Units.smallSpacing
-
-                Kirigami.Heading {
-                    Layout.fillWidth: true
-                    level: 2
-                    text: i18n("Lock screen")
-                    wrapMode: Text.Wrap
-                }
-
-                QQC2.Label {
-                    Layout.fillWidth: true
-                    text: i18n("Available for Secure infrared and RGB Convenience hardware after a healthy profile check.")
-                    wrapMode: Text.Wrap
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-
-                    QQC2.Label {
-                        Layout.fillWidth: true
-                        text: authConfiguration.lockScreenEnabled ? i18n("Enabled") : i18n("No verified change in this session")
-                        color: authConfiguration.lockScreenEnabled
-                            ? Kirigami.Theme.positiveTextColor
-                            : Kirigami.Theme.disabledTextColor
-                        wrapMode: Text.Wrap
-                    }
-
-                    QQC2.Button {
-                        text: i18n("Review plan")
-                        icon.name: "document-preview"
-                        enabled: authConfiguration.canEnableLockScreen
-                        onClicked: authConfiguration.previewLockScreen()
-                    }
-
-                    QQC2.Button {
-                        text: i18n("Review and enable")
-                        icon.name: "security-high"
-                        enabled: authConfiguration.canApplyLockScreen
-                        onClicked: authConfiguration.enableLockScreen()
-                    }
-                }
-            }
-        }
-
-        Kirigami.AbstractCard {
-            Layout.fillWidth: true
-            Accessible.role: Accessible.Grouping
-            Accessible.name: i18n("Login screen")
-
-            contentItem: ColumnLayout {
-                spacing: Kirigami.Units.smallSpacing
-
-                Kirigami.Heading {
-                    Layout.fillWidth: true
-                    level: 2
-                    text: i18n("Login screen")
-                    wrapMode: Text.Wrap
-                }
-
-                QQC2.Label {
-                    Layout.fillWidth: true
-                    text: systemState.securityTier === 0
-                        ? i18n("Secure infrared hardware and liveness checks are ready.")
-                        : i18n("Login-screen activation requires the Secure infrared tier.")
-                    wrapMode: Text.Wrap
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-
-                    QQC2.Label {
-                        Layout.fillWidth: true
-                        text: authConfiguration.loginScreenEnabled ? i18n("Enabled") : i18n("No verified change in this session")
-                        color: authConfiguration.loginScreenEnabled
-                            ? Kirigami.Theme.positiveTextColor
-                            : Kirigami.Theme.disabledTextColor
-                        wrapMode: Text.Wrap
-                    }
-
-                    QQC2.Button {
-                        text: i18n("Review plan")
-                        icon.name: "document-preview"
-                        enabled: authConfiguration.canEnableLoginScreen
-                        onClicked: authConfiguration.previewLoginScreen()
-                    }
-
-                    QQC2.Button {
-                        text: i18n("Review and enable")
-                        icon.name: "security-high"
-                        enabled: authConfiguration.canApplyLoginScreen
-                        onClicked: authConfiguration.enableLoginScreen()
-                    }
-                }
-            }
-        }
-
-        Kirigami.AbstractCard {
-            Layout.fillWidth: true
-            visible: authConfiguration.previewAvailable
-            Accessible.role: Accessible.Grouping
-            Accessible.name: i18n("Authentication change preview")
-
-            contentItem: ColumnLayout {
-                spacing: Kirigami.Units.smallSpacing
-
-                Kirigami.Heading {
-                    Layout.fillWidth: true
-                    level: 2
-                    text: authConfiguration.previewTitle
-                    wrapMode: Text.Wrap
-                }
-
-                QQC2.Label {
-                    Layout.fillWidth: true
-                    text: i18n("Engine-owned targets in the dry-run plan:")
-                    wrapMode: Text.Wrap
-                }
-
-                Repeater {
-                    model: authConfiguration.previewChanges
-
-                    delegate: QQC2.Label {
-                        required property string modelData
-
-                        Layout.fillWidth: true
-                        text: i18n("• %1", modelData)
-                        font.family: "monospace"
-                        wrapMode: Text.WrapAnywhere
-                    }
-                }
-            }
-        }
-
-        Kirigami.AbstractCard {
-            Layout.fillWidth: true
-            Accessible.role: Accessible.Grouping
-            Accessible.name: i18n("Disable face authentication")
-
-            contentItem: ColumnLayout {
-                spacing: Kirigami.Units.smallSpacing
-
-                Kirigami.Heading {
-                    Layout.fillWidth: true
-                    level: 2
-                    text: i18n("Disable integration")
-                    wrapMode: Text.Wrap
-                }
-
-                QQC2.Label {
-                    Layout.fillWidth: true
-                    text: i18n("Disable only the targets reported by irlume for the active display manager.")
-                    wrapMode: Text.Wrap
-                }
-
-                Flow {
-                    Layout.fillWidth: true
-                    spacing: Kirigami.Units.smallSpacing
-
-                    QQC2.Button {
-                        text: i18n("Preview disable")
-                        icon.name: "document-preview"
-                        enabled: authConfiguration.canApplyDisable
-                        onClicked: authConfiguration.previewDisable()
-                    }
-
-                    QQC2.Button {
-                        text: i18n("Disable")
-                        icon.name: "security-low"
-                        enabled: authConfiguration.canDisable
-                        onClicked: authConfiguration.disable()
-                    }
-                }
-            }
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            visible: authConfiguration.busy || authConfiguration.statusText.length > 0
-
-            QQC2.BusyIndicator {
-                visible: authConfiguration.busy
-                running: visible
-                Accessible.ignored: true
-            }
-
-            QQC2.Label {
-                Layout.fillWidth: true
-                text: authConfiguration.statusText
-                color: authConfiguration.errorCode.length > 0
-                    ? Kirigami.Theme.negativeTextColor
-                    : Kirigami.Theme.textColor
-                wrapMode: Text.Wrap
-            }
-        }
-
         Kirigami.InlineMessage {
             Layout.fillWidth: true
             visible: true
             type: Kirigami.MessageType.Information
-            text: i18n("Face authentication for sudo, su, SSH, and Polkit is outside V2 and cannot be enabled here.")
+            text: i18n("Authentication wiring is read-only. v3 never edits PAM or starts a privileged helper.")
+        }
+
+        Kirigami.AbstractCard {
+            Layout.fillWidth: true
+            Accessible.role: Accessible.Grouping
+            Accessible.name: i18n("Authentication status")
+
+            contentItem: ColumnLayout {
+                spacing: Kirigami.Units.smallSpacing
+
+                Components.DetailRow {
+                    Layout.fillWidth: true
+                    label: i18n("Lock screen")
+                    value: authConfiguration.lockScreenEnabled ? i18n("Wired") : i18n("Not wired")
+                    tone: authConfiguration.lockScreenEnabled ? 1 : 0
+                }
+
+                Kirigami.Separator {
+                    Layout.fillWidth: true
+                }
+
+                Components.DetailRow {
+                    Layout.fillWidth: true
+                    label: i18n("Login screen")
+                    value: authConfiguration.loginScreenEnabled ? i18n("Wired") : i18n("Not wired")
+                    tone: authConfiguration.loginScreenEnabled ? 1 : 0
+                }
+
+                Kirigami.Separator {
+                    Layout.fillWidth: true
+                }
+
+                Components.DetailRow {
+                    Layout.fillWidth: true
+                    label: i18n("Password fallback")
+                    value: systemState.passwordFallbackStatus === 0
+                        ? i18n("Verified")
+                        : (systemState.passwordFallbackStatus === 1
+                            ? i18n("Not verified")
+                            : i18n("Unknown"))
+                    tone: systemState.passwordFallbackPreserved ? 1 : 0
+                }
+            }
+        }
+
+        QQC2.Label {
+            Layout.fillWidth: true
+            text: authConfiguration.statusText
+            color: authConfiguration.errorCode.length > 0
+                ? Kirigami.Theme.negativeTextColor
+                : Kirigami.Theme.disabledTextColor
+            wrapMode: Text.Wrap
         }
     }
 }

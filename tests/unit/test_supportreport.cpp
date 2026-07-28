@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "authconfiguration.h"
+#include "camerapreviewsession.h"
 #include "fakeadapter.h"
 #include "profilemodel.h"
 #include "supportreport.h"
@@ -71,7 +72,10 @@ void SupportReportTest::reportContainsOnlyRedactedTypedState()
     ProfileModel profileModel;
     NullAuthActionRunner runner;
     AuthConfiguration authConfiguration(&state, &runner);
-    SupportReport supportReport(&state, &profileModel, &authConfiguration);
+    CameraPreviewSession previewSession(QStringLiteral(IRLUME_FAKE_PREVIEW_WORKER_PATH), nullptr);
+    SupportReport supportReport(&state, &profileModel, &authConfiguration, &previewSession);
+    previewSession.refreshDevices();
+    QTRY_COMPARE(previewSession.state(), CameraPreviewSession::State::Ready);
 
     const QString report = supportReport.report();
     QVERIFY(!report.contains(QStringLiteral("private-user")));
@@ -80,6 +84,9 @@ void SupportReportTest::reportContainsOnlyRedactedTypedState()
     QVERIFY(!report.contains(QStringLiteral("biometric-payload")));
     QVERIFY(!report.contains(QStringLiteral("/home/")));
     QVERIFY(report.contains(QStringLiteral("[redacted]")));
+    QVERIFY(report.contains(QStringLiteral("Native cameras: total=10 rgb=1 ir=1 unknown=8")));
+    QVERIFY(!report.contains(QStringLiteral("RGB Test Camera")));
+    QVERIFY(!report.contains(QStringLiteral("rgb-token")));
     QCOMPARE(supportReport.issueCode(), QStringLiteral("pam-drift"));
 }
 

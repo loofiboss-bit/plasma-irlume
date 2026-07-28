@@ -14,9 +14,10 @@ Kirigami.ScrollablePage {
     required property QtObject systemState
     required property QtObject profileModel
     required property QtObject authConfiguration
-    required property QtObject cameraConfiguration
+    required property QtObject cameraPreviewSession
     required property bool refreshActive
     required property bool partialDiagnostics
+    property var openCamera: () => {}
     property var openProfiles: () => {}
     property var openAccess: () => {}
     property var refresh: () => {}
@@ -24,24 +25,18 @@ Kirigami.ScrollablePage {
     readonly property bool engineReady: systemState.engineStatus === 0
         && systemState.daemonStatus === 0
         && profileModel.readOnlyAvailable
-    readonly property bool cameraReady: cameraConfiguration.ready
-        && cameraConfiguration.emitterTested
-        && cameraConfiguration.emitterAvailable
-    readonly property bool profileReady: profileModel.profileCount > 0
-    readonly property bool recoveryReady: authConfiguration.recoveryAcknowledged
+    readonly property bool cameraFound: cameraPreviewSession.deviceCount > 0
+    readonly property bool profileFound: profileModel.profileCount > 0
     readonly property int currentStep: !engineReady ? 0
-        : (!cameraReady ? 1
-        : (!profileReady ? 2
-        : (!recoveryReady ? 4 : 5)))
+        : (!cameraFound ? 1
+        : (!profileFound ? 2 : 3))
     readonly property string nextAction: !engineReady
-        ? i18n("Install a Contract 1 compatible backend")
-        : (!cameraReady
-        ? i18n("Connect and test a supported camera")
-        : (!profileReady
-        ? i18n("Register your first face profile")
-        : (!recoveryReady
-        ? i18n("Review recovery before enabling")
-        : i18n("Review and enable Face Login"))))
+        ? i18n("Check the read-only irlume connection")
+        : (!cameraFound
+            ? i18n("Check the local camera")
+            : (!profileFound
+                ? i18n("Review face profiles")
+                : i18n("Review Face Login wiring")))
 
     title: i18n("Setup & Status")
     padding: Kirigami.Units.largeSpacing
@@ -58,16 +53,13 @@ Kirigami.ScrollablePage {
             contentItem: GridLayout {
                 columns: width < Kirigami.Units.gridUnit * 28 ? 1 : 2
                 columnSpacing: Kirigami.Units.largeSpacing
-                rowSpacing: Kirigami.Units.smallSpacing
 
                 ColumnLayout {
                     Layout.fillWidth: true
 
                     QQC2.Label {
-                        Layout.fillWidth: true
                         text: i18n("Next action")
                         color: Kirigami.Theme.disabledTextColor
-                        wrapMode: Text.Wrap
                     }
 
                     Kirigami.Heading {
@@ -79,20 +71,23 @@ Kirigami.ScrollablePage {
 
                     QQC2.Label {
                         Layout.fillWidth: true
-                        text: root.systemState.summary
+                        text: systemState.summary
                         wrapMode: Text.Wrap
                     }
                 }
 
                 QQC2.Button {
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                    text: root.currentStep < 2 ? i18n("Check again")
-                        : (root.currentStep === 2 ? i18n("Open Face Profiles") : i18n("Open Access"))
-                    icon.name: root.currentStep < 2 ? "view-refresh" : "go-next"
-                    enabled: root.currentStep >= 2 || !root.refreshActive
+                    text: root.currentStep === 0 ? i18n("Refresh status")
+                        : (root.currentStep === 1 ? i18n("Open Camera Check")
+                        : (root.currentStep === 2 ? i18n("Open Face Profiles") : i18n("Open Access")))
+                    icon.name: root.currentStep === 0 ? "view-refresh" : "go-next"
+                    enabled: root.currentStep !== 0 || !root.refreshActive
                     onClicked: {
-                        if (root.currentStep < 2) {
+                        if (root.currentStep === 0) {
                             root.refresh();
+                        } else if (root.currentStep === 1) {
+                            root.openCamera();
                         } else if (root.currentStep === 2) {
                             root.openProfiles();
                         } else {
@@ -105,160 +100,75 @@ Kirigami.ScrollablePage {
 
         Kirigami.InlineMessage {
             Layout.fillWidth: true
-            visible: !root.profileModel.mutationSupported && !root.profileModel.busy
+            visible: root.partialDiagnostics
             type: Kirigami.MessageType.Warning
-            text: i18n("irlume Contract 1 is read-only. Enrollment and authentication changes remain disabled.")
+            text: i18n("Some read-only irlume sections are unavailable. Available sections remain independent.")
         }
 
         Kirigami.InlineMessage {
             Layout.fillWidth: true
-            visible: root.partialDiagnostics
-            type: Kirigami.MessageType.Warning
-            text: i18n("Partial read-only diagnostics are available. One or more sections could not be refreshed.")
+            visible: true
+            type: Kirigami.MessageType.Information
+            text: i18n("Camera Check is local and separate from irlume. Finding a camera does not prove that Face Login is secure or enabled.")
         }
 
         Kirigami.AbstractCard {
             Layout.fillWidth: true
             Accessible.role: Accessible.Grouping
-            Accessible.name: i18n("Camera configuration")
+            Accessible.name: i18n("Readiness summary")
 
             contentItem: ColumnLayout {
                 spacing: Kirigami.Units.smallSpacing
 
-                RowLayout {
-                    Layout.fillWidth: true
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-
-                        QQC2.Label {
-                            text: i18n("Secure camera pair")
-                            font.weight: Font.DemiBold
-                        }
-
-                        QQC2.Label {
-                            Layout.fillWidth: true
-                            text: root.cameraConfiguration.statusText
-                            color: root.cameraConfiguration.errorCode.length > 0
-                                ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.disabledTextColor
-                            wrapMode: Text.Wrap
-                        }
-                    }
-
-                    QQC2.BusyIndicator {
-                        Layout.preferredWidth: Kirigami.Units.gridUnit
-                        Layout.preferredHeight: Kirigami.Units.gridUnit
-                        running: root.refreshActive
-                        opacity: running ? 1 : 0
-                    }
-                }
-
-                Kirigami.InlineMessage {
-                    Layout.fillWidth: true
-                    visible: !root.cameraConfiguration.mutationSupported
-                        && !root.cameraConfiguration.busy
-                    type: Kirigami.MessageType.Warning
-                    text: i18n("Contract 1 reports camera capability but does not support camera configuration.")
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    visible: true
-
-                    QQC2.ComboBox {
-                        id: cameraPair
-
-                        Layout.fillWidth: true
-                        model: root.cameraConfiguration.pairLabels
-                        currentIndex: root.cameraConfiguration.selectedPairIndex
-                        enabled: root.cameraConfiguration.mutationSupported
-                            && !root.cameraConfiguration.busy
-                            && root.cameraConfiguration.pairLabels.length > 0
-                        Accessible.name: i18n("Secure camera pair")
-                        onActivated: index => root.cameraConfiguration.selectedPairIndex = index
-                    }
-
-                    QQC2.Button {
-                        text: i18n("Use pair")
-                        icon.name: "dialog-ok-apply"
-                        enabled: root.cameraConfiguration.mutationSupported
-                            && !root.cameraConfiguration.busy
-                            && root.cameraConfiguration.selectedPairIndex >= 0
-                            && root.cameraConfiguration.selectedPairIndex
-                                !== root.cameraConfiguration.activePairIndex
-                        onClicked: root.cameraConfiguration.selectPair()
-                    }
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    visible: true
-
-                    QQC2.Button {
-                        text: i18n("Check again")
-                        icon.name: "view-refresh"
-                        enabled: !root.cameraConfiguration.busy
-                            && !root.refreshActive
-                        onClicked: root.cameraConfiguration.refresh()
-                    }
-
-                    QQC2.Button {
-                        text: i18n("Set up emitter")
-                        icon.name: "preferences-system-power-management"
-                        enabled: root.cameraConfiguration.mutationSupported
-                            && !root.cameraConfiguration.busy && root.cameraConfiguration.ready
-                        onClicked: root.cameraConfiguration.setupEmitter()
-                    }
-
-                    QQC2.Button {
-                        text: i18n("Tune capture")
-                        icon.name: "configure"
-                        enabled: root.cameraConfiguration.mutationSupported
-                            && !root.cameraConfiguration.busy && root.cameraConfiguration.ready
-                        onClicked: root.cameraConfiguration.tuneCamera()
-                    }
-
-                    Item {
-                        Layout.fillWidth: true
-                    }
-                }
-
                 Components.DetailRow {
                     Layout.fillWidth: true
-                    visible: true
-                    label: i18n("Active pair")
-                    value: root.cameraConfiguration.activePairIndex >= 0
-                        ? i18n("Verified") : i18n("Not selected")
-                    tone: root.cameraConfiguration.activePairIndex >= 0 ? 1 : 2
+                    label: i18n("irlume engine")
+                    value: systemState.engineStatusLabel
+                    tone: systemState.engineStatus === 0 ? 1 : 3
                 }
 
                 Kirigami.Separator {
                     Layout.fillWidth: true
-                    visible: true
                 }
 
                 Components.DetailRow {
                     Layout.fillWidth: true
-                    visible: true
-                    label: i18n("Infrared emitter")
-                    value: !root.cameraConfiguration.emitterTested ? i18n("Not tested")
-                        : (root.cameraConfiguration.emitterAvailable
-                        ? i18n("Available") : i18n("Unavailable"))
-                    tone: root.cameraConfiguration.emitterAvailable ? 1
-                        : (root.cameraConfiguration.emitterTested ? 3 : 0)
+                    label: i18n("Engine camera capability")
+                    value: systemState.cameraStatusLabel
+                    tone: systemState.cameraType === 0 || systemState.cameraType === 1 ? 1 : 0
                 }
 
                 Kirigami.Separator {
                     Layout.fillWidth: true
-                    visible: root.cameraConfiguration.captureMode.length > 0
                 }
 
                 Components.DetailRow {
                     Layout.fillWidth: true
-                    visible: root.cameraConfiguration.captureMode.length > 0
-                    label: i18n("Capture mode")
-                    value: root.cameraConfiguration.captureMode
-                    tone: root.cameraConfiguration.tuneConclusive ? 1 : 2
+                    label: i18n("Local cameras")
+                    value: i18np("%1 camera found", "%1 cameras found", cameraPreviewSession.deviceCount)
+                    tone: cameraPreviewSession.deviceCount > 0 ? 1 : 0
+                }
+
+                Kirigami.Separator {
+                    Layout.fillWidth: true
+                }
+
+                Components.DetailRow {
+                    Layout.fillWidth: true
+                    label: i18n("Face profiles")
+                    value: i18np("%1 profile", "%1 profiles", profileModel.profileCount)
+                    tone: profileModel.readOnlyAvailable ? 1 : 0
+                }
+
+                Kirigami.Separator {
+                    Layout.fillWidth: true
+                }
+
+                Components.DetailRow {
+                    Layout.fillWidth: true
+                    label: i18n("Authentication wiring")
+                    value: systemState.pamStatusLabel
+                    tone: systemState.pamStatus === 0 ? 1 : 0
                 }
             }
         }
@@ -267,17 +177,14 @@ Kirigami.ScrollablePage {
             Layout.fillWidth: true
             level: 2
             text: i18n("Setup path")
-            wrapMode: Text.Wrap
         }
 
         Repeater {
             model: [
-                { title: i18n("Engine compatibility"), icon: "system-software-update", done: root.engineReady },
-                { title: i18n("Camera and infrared test"), icon: "camera-photo", done: root.cameraReady },
-                { title: i18n("Face profile registration"), icon: "user-identity", done: root.profileReady },
-                { title: i18n("Recognition test"), icon: "security-high", done: root.profileReady },
-                { title: i18n("Recovery readiness"), icon: "tools-report-bug", done: root.recoveryReady },
-                { title: i18n("Review and enable"), icon: "preferences-system-login",
+                { title: i18n("Read-only engine diagnostics"), icon: "system-software-update", done: root.engineReady },
+                { title: i18n("Local camera discovery"), icon: "camera-photo", done: root.cameraFound },
+                { title: i18n("Read-only face profiles"), icon: "user-identity", done: root.profileFound },
+                { title: i18n("Read-only Face Login wiring"), icon: "preferences-system-login",
                   done: root.authConfiguration.lockScreenEnabled || root.authConfiguration.loginScreenEnabled }
             ]
 
@@ -287,8 +194,7 @@ Kirigami.ScrollablePage {
 
                 Layout.fillWidth: true
                 Accessible.role: Accessible.ListItem
-                Accessible.name: modelData.title + ", "
-                    + (modelData.done ? i18n("Complete") : (index === root.currentStep ? i18n("Current") : i18n("Pending")))
+                Accessible.name: modelData.title
 
                 contentItem: RowLayout {
                     Kirigami.Icon {
@@ -307,38 +213,10 @@ Kirigami.ScrollablePage {
                     }
 
                     Components.StatusPill {
-                        text: modelData.done ? i18n("Complete")
-                            : (index === root.currentStep ? i18n("Current") : i18n("Pending"))
+                        text: modelData.done ? i18n("Available")
+                            : (index === root.currentStep ? i18n("Current") : i18n("Not established"))
                         tone: modelData.done ? 1 : (index === root.currentStep ? 2 : 0)
                     }
-                }
-            }
-        }
-
-        Kirigami.AbstractCard {
-            Layout.fillWidth: true
-            Accessible.role: Accessible.Grouping
-            Accessible.name: i18n("Current protection")
-
-            contentItem: ColumnLayout {
-                Components.DetailRow {
-                    Layout.fillWidth: true
-                    label: i18n("Security level")
-                    value: root.systemState.securityTierLabel
-                    tone: root.systemState.securityTier === 0 ? 1
-                        : (root.systemState.securityTier === 1 ? 2
-                        : (root.systemState.securityTier === 3 ? 0 : 3))
-                }
-
-                Kirigami.Separator {
-                    Layout.fillWidth: true
-                }
-
-                Components.DetailRow {
-                    Layout.fillWidth: true
-                    label: i18n("Password fallback")
-                    value: root.systemState.passwordFallbackPreserved ? i18n("Available") : i18n("Not verified")
-                    tone: root.systemState.passwordFallbackPreserved ? 1 : 3
                 }
             }
         }

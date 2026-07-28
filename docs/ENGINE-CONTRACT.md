@@ -1,6 +1,6 @@
 # Engine contract
 
-Version 2.2.0 consumes irlume Machine API Contract 1 through exactly five
+Version 3.0.0 consumes irlume Machine API Contract 1 through exactly five
 fixed read commands:
 
 ```text

@@ -6,6 +6,7 @@
 #include <QString>
 
 class AuthConfiguration;
+class CameraPreviewSession;
 class ProfileModel;
 class SystemState;
 
@@ -24,7 +25,7 @@ class SupportReport final : public QObject
 
   public:
     explicit SupportReport(SystemState *systemState, ProfileModel *profileModel, AuthConfiguration *authConfiguration,
-                           QObject *parent = nullptr);
+                           CameraPreviewSession *cameraPreviewSession = nullptr, QObject *parent = nullptr);
 
     [[nodiscard]] QString report() const;
     [[nodiscard]] QString issueCode() const;
@@ -56,6 +57,7 @@ class SupportReport final : public QObject
     SystemState *m_systemState = nullptr;
     ProfileModel *m_profileModel = nullptr;
     AuthConfiguration *m_authConfiguration = nullptr;
+    CameraPreviewSession *m_cameraPreviewSession = nullptr;
     QString m_report;
     QString m_issueCode;
     QString m_issueTitle;

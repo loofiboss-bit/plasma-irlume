@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "authconfiguration.h"
-#include "cameraconfiguration.h"
-#include "enrollmentpreviewitem.h"
-#include "enrollmentsession.h"
+#include "camerapreviewitem.h"
+#include "camerapreviewsession.h"
 #include "fakeadapter.h"
 #include "profilemodel.h"
 #include "supportreport.h"
@@ -24,6 +23,7 @@ class QmlPagesTest final : public QObject
 
   private Q_SLOTS:
     void everyScenarioCreatesEveryPage();
+    void cameraPageStopsWhenHidden();
 };
 
 namespace
@@ -62,7 +62,7 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
 {
     FakeSystemStateAdapter adapter;
     ProfileModel profileModel;
-    EnrollmentSession enrollmentSession;
+    CameraPreviewSession cameraPreviewSession(QStringLiteral("/nonexistent/preview-worker"), nullptr);
     QQmlEngine engine;
     auto *localizedContext = KLocalization::setupLocalizedContext(&engine);
     localizedContext->setTranslationDomain(QStringLiteral("plasma_irlume"));
@@ -73,7 +73,6 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
         state.apply(adapter.stateForScenario(index));
         NullAuthActionRunner authRunner;
         AuthConfiguration authConfiguration(&state, &authRunner);
-        CameraConfiguration cameraConfiguration;
         SupportReport supportReport(&state, &profileModel, &authConfiguration);
 
         const QVariant stateValue = QVariant::fromValue(&state);
@@ -87,11 +86,14 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
 
         auto enrollment = createPage(engine, QStringLiteral("EnrollmentPage.qml"),
                                      {
-                                         {QStringLiteral("systemState"), stateValue},
                                          {QStringLiteral("profileModel"), QVariant::fromValue(&profileModel)},
-                                         {QStringLiteral("enrollmentSession"), QVariant::fromValue(&enrollmentSession)},
                                      });
         QVERIFY2(enrollment, qPrintable(QStringLiteral("Enrollment failed for scenario %1").arg(index)));
+
+        auto cameraCheck =
+            createPage(engine, QStringLiteral("CameraCheckPage.qml"),
+                       {{QStringLiteral("cameraPreviewSession"), QVariant::fromValue(&cameraPreviewSession)}});
+        QVERIFY2(cameraCheck, qPrintable(QStringLiteral("Camera Check failed for scenario %1").arg(index)));
 
         auto authentication =
             createPage(engine, QStringLiteral("AuthenticationPage.qml"),
@@ -101,15 +103,13 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
                        });
         QVERIFY2(authentication, qPrintable(QStringLiteral("Authentication failed for scenario %1").arg(index)));
 
-        auto diagnostics =
-            createPage(engine, QStringLiteral("DiagnosticsPage.qml"),
-                       {
-                           {QStringLiteral("systemState"), stateValue},
-                           {QStringLiteral("authConfiguration"), QVariant::fromValue(&authConfiguration)},
-                           {QStringLiteral("supportReport"), QVariant::fromValue(&supportReport)},
-                           {QStringLiteral("refreshActive"), false},
-                           {QStringLiteral("partialDiagnostics"), false},
-                       });
+        auto diagnostics = createPage(engine, QStringLiteral("DiagnosticsPage.qml"),
+                                      {
+                                          {QStringLiteral("systemState"), stateValue},
+                                          {QStringLiteral("supportReport"), QVariant::fromValue(&supportReport)},
+                                          {QStringLiteral("refreshActive"), false},
+                                          {QStringLiteral("partialDiagnostics"), false},
+                                      });
         QVERIFY2(diagnostics, qPrintable(QStringLiteral("Diagnostics failed for scenario %1").arg(index)));
 
         auto setupStatus =
@@ -118,7 +118,7 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
                            {QStringLiteral("systemState"), stateValue},
                            {QStringLiteral("profileModel"), QVariant::fromValue(&profileModel)},
                            {QStringLiteral("authConfiguration"), QVariant::fromValue(&authConfiguration)},
-                           {QStringLiteral("cameraConfiguration"), QVariant::fromValue(&cameraConfiguration)},
+                           {QStringLiteral("cameraPreviewSession"), QVariant::fromValue(&cameraPreviewSession)},
                            {QStringLiteral("refreshActive"), false},
                            {QStringLiteral("partialDiagnostics"), false},
                        });
@@ -130,12 +130,14 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
         auto *diagnosticsItem = qobject_cast<QQuickItem *>(diagnostics.get());
         auto *authenticationItem = qobject_cast<QQuickItem *>(authentication.get());
         auto *setupStatusItem = qobject_cast<QQuickItem *>(setupStatus.get());
+        auto *cameraCheckItem = qobject_cast<QQuickItem *>(cameraCheck.get());
         QVERIFY(overviewItem);
         QVERIFY(securityItem);
         QVERIFY(enrollmentItem);
         QVERIFY(diagnosticsItem);
         QVERIFY(authenticationItem);
         QVERIFY(setupStatusItem);
+        QVERIFY(cameraCheckItem);
         for (const int width : {320, 480, 960})
         {
             overviewItem->setSize(QSizeF(width, 720));
@@ -144,6 +146,7 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
             diagnosticsItem->setSize(QSizeF(width, 720));
             authenticationItem->setSize(QSizeF(width, 720));
             setupStatusItem->setSize(QSizeF(width, 720));
+            cameraCheckItem->setSize(QSizeF(width, 720));
             QCoreApplication::processEvents();
             QVERIFY(overviewItem->implicitHeight() > 0);
             QVERIFY(securityItem->implicitHeight() > 0);
@@ -151,14 +154,50 @@ void QmlPagesTest::everyScenarioCreatesEveryPage()
             QVERIFY(diagnosticsItem->implicitHeight() > 0);
             QVERIFY(authenticationItem->implicitHeight() > 0);
             QVERIFY(setupStatusItem->implicitHeight() > 0);
+            QVERIFY(cameraCheckItem->implicitHeight() > 0);
         }
     }
+}
+
+void QmlPagesTest::cameraPageStopsWhenHidden()
+{
+    CameraPreviewSession session(QStringLiteral(IRLUME_FAKE_PREVIEW_WORKER_PATH), nullptr);
+    QQmlEngine engine;
+    auto *localizedContext = KLocalization::setupLocalizedContext(&engine);
+    localizedContext->setTranslationDomain(QStringLiteral("plasma_irlume"));
+    auto page = createPage(engine, QStringLiteral("CameraCheckPage.qml"),
+                           {{QStringLiteral("cameraPreviewSession"), QVariant::fromValue(&session)}});
+    QVERIFY(page);
+    auto *item = qobject_cast<QQuickItem *>(page.get());
+    QVERIFY(item);
+    session.refreshDevices();
+    QTRY_COMPARE(session.state(), CameraPreviewSession::State::Ready);
+
+    auto *selector = page->findChild<QObject *>(QStringLiteral("cameraDeviceSelector"));
+    auto *refreshButton = page->findChild<QObject *>(QStringLiteral("cameraRefreshButton"));
+    auto *previewAction = page->findChild<QObject *>(QStringLiteral("cameraPreviewAction"));
+    QVERIFY(selector);
+    QVERIFY(refreshButton);
+    QVERIFY(previewAction);
+    QVERIFY(selector->property("activeFocusOnTab").toBool());
+    QVERIFY(refreshButton->property("activeFocusOnTab").toBool());
+    QVERIFY(previewAction->property("activeFocusOnTab").toBool());
+    QVERIFY(!selector->property("accessibilityLabel").toString().isEmpty());
+
+    session.startPreview();
+    QTRY_COMPARE(session.state(), CameraPreviewSession::State::Streaming);
+    QTRY_VERIFY(session.frameAvailable());
+    item->setVisible(false);
+    QTRY_COMPARE(session.state(), CameraPreviewSession::State::Ready);
+    QVERIFY(!session.frameAvailable());
 }
 
 int main(int argc, char **argv)
 {
     QGuiApplication application(argc, argv);
-    qmlRegisterType<EnrollmentPreviewItem>("org.kde.plasma.irlume", 2, 0, "EnrollmentPreview");
+    qmlRegisterType<CameraPreviewItem>("org.kde.plasma.irlume", 3, 0, "CameraPreview");
+    qmlRegisterUncreatableType<CameraPreviewSession>("org.kde.plasma.irlume", 3, 0, "CameraPreviewSession",
+                                                     QStringLiteral("provided by test"));
     QmlPagesTest test;
     return QTest::qExec(&test, argc, argv);
 }

@@ -40,7 +40,9 @@ jobs:
             python3-jsonschema \
             python3 \
             qt6-qtbase-devel \
-            qt6-qtdeclarative-devel
+            qt6-qtdeclarative-devel \
+            qt6-qtmultimedia-devel \
+            systemd-devel
 
       - name: Check C++ formatting
         run: |

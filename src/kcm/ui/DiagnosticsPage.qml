@@ -12,7 +12,6 @@ ColumnLayout {
     id: root
 
     required property var systemState
-    required property var authConfiguration
     required property var supportReport
     required property bool refreshActive
     required property bool partialDiagnostics
@@ -47,49 +46,6 @@ ColumnLayout {
         type: supportReport.issueCode === "rollback-failed" ? Kirigami.MessageType.Error : Kirigami.MessageType.Warning
         text: supportReport.issueTitle + "\n" + supportReport.recommendedAction
         Accessible.name: i18n("Recommended recovery action")
-    }
-
-    Kirigami.AbstractCard {
-        Layout.fillWidth: true
-        Accessible.role: Accessible.Grouping
-        Accessible.name: i18n("Emergency disable")
-
-        contentItem: ColumnLayout {
-            spacing: Kirigami.Units.smallSpacing
-
-            QQC2.Label {
-                Layout.fillWidth: true
-                text: i18n("Emergency disable")
-                font.weight: Font.DemiBold
-                wrapMode: Text.Wrap
-            }
-
-            QQC2.Label {
-                Layout.fillWidth: true
-                text: i18n("Contract 1 reports current wiring but cannot disable it through the KCM. Use the documented TTY recovery command when a change is required.")
-                color: Kirigami.Theme.disabledTextColor
-                wrapMode: Text.Wrap
-            }
-
-            QQC2.Button {
-                Layout.alignment: Qt.AlignRight
-                text: authConfiguration.busy ? i18n("Disabling…") : i18n("Disable Face Login now")
-                icon.name: "security-low"
-                enabled: authConfiguration.canDisable && !authConfiguration.busy
-                Accessible.name: text
-                Accessible.description: i18n("Runs the fixed verified disable operation immediately")
-                onClicked: authConfiguration.disableNow()
-            }
-
-            QQC2.Label {
-                Layout.fillWidth: true
-                visible: authConfiguration.statusText.length > 0
-                text: authConfiguration.statusText
-                color: authConfiguration.errorCode.length > 0 ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.disabledTextColor
-                wrapMode: Text.Wrap
-                Accessible.role: Accessible.StaticText
-            }
-        }
     }
 
     Kirigami.AbstractCard {

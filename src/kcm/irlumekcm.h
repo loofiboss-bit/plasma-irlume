@@ -3,8 +3,7 @@
 #pragma once
 
 #include "authconfiguration.h"
-#include "cameraconfiguration.h"
-#include "enrollmentsession.h"
+#include "camerapreviewsession.h"
 #include "faceauthbackend.h"
 #include "profilemodel.h"
 #include "refreshcoordinator.h"
@@ -22,9 +21,8 @@ class IrlumeKcm final : public KQuickConfigModule
 
     Q_PROPERTY(SystemState *systemState READ systemState CONSTANT)
     Q_PROPERTY(ProfileModel *profileModel READ profileModel CONSTANT)
-    Q_PROPERTY(EnrollmentSession *enrollmentSession READ enrollmentSession CONSTANT)
+    Q_PROPERTY(CameraPreviewSession *cameraPreviewSession READ cameraPreviewSession CONSTANT)
     Q_PROPERTY(AuthConfiguration *authConfiguration READ authConfiguration CONSTANT)
-    Q_PROPERTY(CameraConfiguration *cameraConfiguration READ cameraConfiguration CONSTANT)
     Q_PROPERTY(SupportReport *supportReport READ supportReport CONSTANT)
     Q_PROPERTY(bool refreshing READ refreshing NOTIFY refreshStateChanged)
     Q_PROPERTY(bool partialDiagnostics READ partialDiagnostics NOTIFY refreshStateChanged)
@@ -37,9 +35,8 @@ class IrlumeKcm final : public KQuickConfigModule
 
     [[nodiscard]] SystemState *systemState();
     [[nodiscard]] ProfileModel *profileModel();
-    [[nodiscard]] EnrollmentSession *enrollmentSession();
+    [[nodiscard]] CameraPreviewSession *cameraPreviewSession();
     [[nodiscard]] AuthConfiguration *authConfiguration();
-    [[nodiscard]] CameraConfiguration *cameraConfiguration();
     [[nodiscard]] SupportReport *supportReport();
     [[nodiscard]] bool refreshing() const;
     [[nodiscard]] bool partialDiagnostics() const;
@@ -52,10 +49,9 @@ class IrlumeKcm final : public KQuickConfigModule
   private:
     SystemProbe m_probe;
     SystemState m_systemState;
-    EnrollmentSession m_enrollmentSession;
+    CameraPreviewSession m_cameraPreviewSession;
     ProfileModel m_profileModel;
     AuthConfiguration m_authConfiguration;
-    CameraConfiguration m_cameraConfiguration;
     SupportReport m_supportReport;
     RefreshCoordinator m_refreshCoordinator;
     quint64 m_probeGeneration = 0;

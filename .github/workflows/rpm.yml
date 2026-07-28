@@ -43,8 +43,10 @@ jobs:
             python3 \
             qt6-qtbase-devel \
             qt6-qtdeclarative-devel \
+            qt6-qtmultimedia-devel \
             rpm-build \
-            rpmlint
+            rpmlint \
+            systemd-devel
 
       - name: Build source archive
         run: packaging/fedora/create-source-archive.sh

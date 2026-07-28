@@ -3,6 +3,7 @@
 #include "supportreport.h"
 
 #include "authconfiguration.h"
+#include "camerapreviewsession.h"
 #include "profilemodel.h"
 #include "systemstate.h"
 
@@ -40,8 +41,9 @@ QString securityTierToken(SystemState::SecurityTier tier)
 } // namespace
 
 SupportReport::SupportReport(SystemState *systemState, ProfileModel *profileModel, AuthConfiguration *authConfiguration,
-                             QObject *parent)
-    : QObject(parent), m_systemState(systemState), m_profileModel(profileModel), m_authConfiguration(authConfiguration)
+                             CameraPreviewSession *cameraPreviewSession, QObject *parent)
+    : QObject(parent), m_systemState(systemState), m_profileModel(profileModel), m_authConfiguration(authConfiguration),
+      m_cameraPreviewSession(cameraPreviewSession)
 {
     Q_ASSERT(m_systemState);
     Q_ASSERT(m_profileModel);
@@ -50,6 +52,11 @@ SupportReport::SupportReport(SystemState *systemState, ProfileModel *profileMode
     connect(m_systemState, &SystemState::stateChanged, this, &SupportReport::rebuild);
     connect(m_profileModel, &ProfileModel::stateChanged, this, &SupportReport::rebuild);
     connect(m_authConfiguration, &AuthConfiguration::stateChanged, this, &SupportReport::rebuild);
+    if (m_cameraPreviewSession)
+    {
+        connect(m_cameraPreviewSession, &CameraPreviewSession::devicesChanged, this, &SupportReport::rebuild);
+        connect(m_cameraPreviewSession, &CameraPreviewSession::stateChanged, this, &SupportReport::rebuild);
+    }
     rebuild();
 }
 
@@ -252,7 +259,10 @@ void SupportReport::rebuild()
                        "- TPM: %10\n"
                        "- Template protection: %11\n"
                        "- Secure Boot: %12\n"
-                       "- Diagnostic code: %13\n")
+                       "- Diagnostic code: %13\n"
+                       "- Native cameras: total=%14 rgb=%15 ir=%16 unknown=%17\n"
+                       "- Native preview error: %18\n"
+                       "- Native preview dropped frames: %19\n")
             .arg(redactedValue(m_systemState->dataSource()), redactedValue(m_systemState->fedoraVersion()),
                  redactedValue(m_systemState->plasmaVersion()), redactedValue(m_systemState->activeDisplayManager()),
                  redactedValue(m_systemState->engineVersion()), securityTierToken(m_systemState->securityTier()),
@@ -260,7 +270,15 @@ void SupportReport::rebuild()
                  redactedValue(m_systemState->pamStatusLabel()), redactedValue(m_systemState->tpmStatusLabel()),
                  redactedValue(m_systemState->templateProtectionStatusLabel()),
                  redactedValue(m_systemState->secureBootStatusLabel()),
-                 redactedValue(m_issueCode.isEmpty() ? QStringLiteral("none") : m_issueCode));
+                 redactedValue(m_issueCode.isEmpty() ? QStringLiteral("none") : m_issueCode))
+            .arg(m_cameraPreviewSession ? m_cameraPreviewSession->deviceCount() : 0)
+            .arg(m_cameraPreviewSession ? m_cameraPreviewSession->deviceCountForSpectrum(QStringLiteral("rgb")) : 0)
+            .arg(m_cameraPreviewSession ? m_cameraPreviewSession->deviceCountForSpectrum(QStringLiteral("ir")) : 0)
+            .arg(m_cameraPreviewSession ? m_cameraPreviewSession->deviceCountForSpectrum(QStringLiteral("unknown")) : 0)
+            .arg(m_cameraPreviewSession && !m_cameraPreviewSession->errorCode().isEmpty()
+                     ? m_cameraPreviewSession->errorCode()
+                     : QStringLiteral("none"))
+            .arg(m_cameraPreviewSession ? m_cameraPreviewSession->droppedFrames() : 0);
     Q_EMIT reportChanged();
 }
 

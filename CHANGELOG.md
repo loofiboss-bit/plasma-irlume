@@ -2,6 +2,29 @@
 
 All notable changes to plasma-irlume are documented in this file.
 
+## 3.0.0 - 2026-07-28
+
+- Add an unprivileged `/usr/libexec` Qt Multimedia worker for local RGB, IR,
+  and Unknown camera discovery and manually started ephemeral preview.
+- Add the length-framed CBOR protocol v1 with private pipes, session IDs,
+  monotonic sequences, fixed commands, bounded records, and latest-frame
+  backpressure.
+- Add `CameraPreviewSession` and the Camera Check page with explicit privacy
+  limits, 60-second countdown, stable errors, and automatic stop/clear on
+  hiding, application deactivation, timeout, stall, crash, or teardown.
+- Limit discovery to 16 devices and preview to 640×480, 8 fps, and 128 KiB
+  JPEG frames. Use reviewed udev properties without name-based IR claims.
+- Remove the unused enrollment/landmark implementation and v2 camera and
+  authentication mutation controls. Profiles and Access remain read-only.
+- Add provider, protocol, worker, lifecycle, QML, localization, packaging,
+  privilege-boundary, and RPM checks that require no physical camera in CI.
+- Preserve irlume Contract 1 diagnostics and the `irlume >= 0.7.0` boundary.
+
+The unpublished 2.1.0 and 2.2.0 development line is superseded by 3.0.0; no
+separate 2.1.0 or 2.2.0 tags are planned.
+
+## Unpublished development snapshots
+
 ## 2.2.0 - 2026-07-28
 
 - Convert `FaceAuthBackend` to a typed asynchronous interface and add a
@@ -20,8 +43,6 @@ All notable changes to plasma-irlume are documented in this file.
 - Strengthen asynchronous, generation, presentation, QML, localization, and
   RPM lifecycle coverage.
 
-## Historical releases
-
 ## 2.1.0 - 2026-07-28
 
 - Add a backend-neutral `FaceAuthBackend` boundary and an irlume adapter.
@@ -32,6 +53,8 @@ All notable changes to plasma-irlume are documented in this file.
   fail-closed without starting undocumented subprocesses.
 - Require `irlume >= 0.7.0` without an upper version bound.
 - Document the transitional dependency and future native-engine milestones.
+
+## Historical releases
 
 ## 2.0.0 - 2026-07-26
 

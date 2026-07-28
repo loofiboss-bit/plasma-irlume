@@ -1,16 +1,21 @@
 # Native engine roadmap
 
-## Current milestone: v2.2.0 read-only hardening
+## Current milestone: v3.0.0 Native Camera Check
 
-The KCM provides asynchronous Contract 1 diagnostics only. It does not access
-a camera, capture frames, process biometrics, modify profiles, configure PAM,
-or start a privileged component.
+The current native boundary is limited to local device discovery and an
+explicitly started, bounded, ephemeral preview in a separate unprivileged
+process. It does not use the irlume socket and does not perform face
+detection, landmarking, liveness analysis, embeddings, recognition,
+enrollment, profile mutation, PAM configuration, or authentication decisions.
 
-## Next milestone
+The v2 enrollment/landmark preview and dead camera/authentication mutation
+controls have been removed. Contract 1 diagnostics, Face Profiles, and Access
+remain read-only.
 
-The next milestone is exactly a separate, unprivileged native camera discovery
-and bounded ephemeral preview-process without face detection, embeddings,
-storage, daemon, PAM, or authentication decisions.
+## Future work
 
-That milestone requires a new explicit implementation plan and is not partly
-implemented by v2.2.0.
+Enrollment, biometric analysis, profile mutation, and PAM activation require
+a separate reviewed plan and machine contract. They must remain absent until
+that plan defines transactional mutation, verification, recovery, hardware
+qualification, privacy limits, and public release gates. Native Camera Check
+must not be treated as evidence that such functionality is safe or ready.

@@ -1,5 +1,5 @@
 Name:           plasma-irlume
-Version:        2.2.0
+Version:        3.0.0
 Release:        1%{?dist}
 Summary:        Experimental KDE integration for the irlume face-authentication engine
 
@@ -22,18 +22,22 @@ BuildRequires:  python3
 BuildRequires:  python3-jsonschema
 BuildRequires:  qt6-qtbase-devel >= 6.8.0
 BuildRequires:  qt6-qtdeclarative-devel >= 6.8.0
+BuildRequires:  qt6-qtmultimedia-devel >= 6.8.0
+BuildRequires:  systemd-devel
 
 Requires:       irlume >= 0.7.0
 Requires:       kf6-kcmutils >= 6.10.0
 Requires:       kf6-kirigami >= 6.10.0
 Requires:       plasma-systemsettings
 Requires:       qt6-qtdeclarative >= 6.8.0
+Requires:       qt6-qtmultimedia >= 6.8.0
 
 %description
 plasma-irlume is a Plasma 6 System Settings front-end for the separately
 packaged irlume face-authentication engine. It presents typed, read-only
 readiness, profile, and authentication-wiring information through irlume
-Machine API Contract 1.
+Machine API Contract 1. A separate unprivileged worker provides bounded,
+ephemeral local RGB and infrared camera previews without face analysis.
 
 The package does not contain biometric models, profiles, PAM modules, or the
 authentication engine. Removing it does not remove enrolled profiles or change
@@ -70,16 +74,13 @@ desktop-file-validate data/kcm_irlume.desktop
 %doc CHANGELOG.md README.md
 %doc docs/*.md
 %{_qt6_plugindir}/plasma/kcms/systemsettings/kcm_irlume.so
+%{_libexecdir}/plasma-irlume-camera-preview-worker
 %{_datadir}/applications/kcm_irlume.desktop
 
 %changelog
-* Tue Jul 28 2026 Loofi <noreply@example.invalid> - 2.2.0-1
-- Harden all diagnostics behind a generation-aware asynchronous backend
-- Remove the unsupported privileged helper and keep the package read-only
-
-* Tue Jul 28 2026 Loofi <noreply@example.invalid> - 2.1.0-1
-- Use irlume 0.7 Machine API Contract 1 through a backend-neutral boundary
-- Keep unsupported mutation operations disabled and fail-closed
+* Tue Jul 28 2026 Loofi <noreply@example.invalid> - 3.0.0-1
+- Add bounded native RGB and infrared Camera Check in an unprivileged worker
+- Keep enrollment, profiles, PAM, and authentication decisions read-only
 
 * Sun Jul 26 2026 Loofi <noreply@example.invalid> - 2.0.0-1
 - Release V2.0.0 with complete gated machine contract and preview workflows

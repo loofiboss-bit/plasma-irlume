@@ -2,7 +2,7 @@
 
 cmake_minimum_required(VERSION 3.22)
 
-project(plasma-irlume VERSION 2.2.0 LANGUAGES CXX)
+project(plasma-irlume VERSION 3.0.0 LANGUAGES CXX)
 
 set(QT_MIN_VERSION "6.8.0")
 set(KF_MIN_VERSION "6.10.0")
@@ -22,8 +22,10 @@ include(KDEInstallDirs)
 include(KDECMakeSettings)
 include(KDECompilerSettings NO_POLICY_SCOPE)
 
-find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Concurrent Core Qml Quick)
+find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Concurrent Core Multimedia Qml Quick)
 find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS CoreAddons I18n KCMUtils)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(UDev REQUIRED IMPORTED_TARGET libudev)
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/po")
     ki18n_install(po)

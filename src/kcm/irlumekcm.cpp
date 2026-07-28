@@ -3,7 +3,7 @@
 #include "irlumekcm.h"
 
 #include "backendfactory.h"
-#include "enrollmentpreviewitem.h"
+#include "camerapreviewitem.h"
 
 #include <KPluginFactory>
 #include <qqml.h>
@@ -14,17 +14,17 @@ IrlumeKcm::IrlumeKcm(QObject *parent, const KPluginMetaData &data)
 }
 
 IrlumeKcm::IrlumeKcm(QObject *parent, const KPluginMetaData &data, std::unique_ptr<FaceAuthBackend> backend)
-    : KQuickConfigModule(parent, data), m_probe(this), m_systemState(this), m_enrollmentSession(this),
-      m_profileModel(this), m_authConfiguration(&m_systemState, this), m_cameraConfiguration(this),
-      m_supportReport(&m_systemState, &m_profileModel, &m_authConfiguration, this),
+    : KQuickConfigModule(parent, data), m_probe(this), m_systemState(this), m_cameraPreviewSession(this),
+      m_profileModel(this), m_authConfiguration(&m_systemState, this),
+      m_supportReport(&m_systemState, &m_profileModel, &m_authConfiguration, &m_cameraPreviewSession, this),
       m_refreshCoordinator(std::move(backend), this)
 {
-    qmlRegisterType<EnrollmentPreviewItem>("org.kde.plasma.irlume", 2, 0, "EnrollmentPreview");
+    qmlRegisterType<CameraPreviewItem>("org.kde.plasma.irlume", 3, 0, "CameraPreview");
+    qmlRegisterUncreatableType<CameraPreviewSession>("org.kde.plasma.irlume", 3, 0, "CameraPreviewSession",
+                                                     QStringLiteral("CameraPreviewSession is provided by the KCM"));
     setButtons(NoAdditionalButton);
     connect(&m_authConfiguration, &AuthConfiguration::configurationChanged, this, &IrlumeKcm::refresh);
-    connect(&m_cameraConfiguration, &CameraConfiguration::configurationChanged, this, &IrlumeKcm::refresh);
     connect(&m_profileModel, &ProfileModel::refreshRequested, this, &IrlumeKcm::refresh);
-    connect(&m_cameraConfiguration, &CameraConfiguration::refreshRequested, this, &IrlumeKcm::refresh);
     connect(&m_refreshCoordinator, &RefreshCoordinator::snapshotChanged, this,
             [this](const EngineSnapshot &snapshot)
             {
@@ -34,7 +34,6 @@ IrlumeKcm::IrlumeKcm(QObject *parent, const KPluginMetaData &data, std::unique_p
                     !inProgress(snapshot.profiles) && !inProgress(snapshot.loginStatus))
                     m_probe.requestProbe(++m_probeGeneration, snapshot);
                 m_profileModel.applySnapshot(snapshot);
-                m_cameraConfiguration.applySnapshot(snapshot);
                 m_authConfiguration.applySnapshot(snapshot);
             });
     connect(&m_probe, &SystemProbe::probeCompleted, this,
@@ -59,19 +58,14 @@ ProfileModel *IrlumeKcm::profileModel()
     return &m_profileModel;
 }
 
-EnrollmentSession *IrlumeKcm::enrollmentSession()
+CameraPreviewSession *IrlumeKcm::cameraPreviewSession()
 {
-    return &m_enrollmentSession;
+    return &m_cameraPreviewSession;
 }
 
 AuthConfiguration *IrlumeKcm::authConfiguration()
 {
     return &m_authConfiguration;
-}
-
-CameraConfiguration *IrlumeKcm::cameraConfiguration()
-{
-    return &m_cameraConfiguration;
 }
 
 SupportReport *IrlumeKcm::supportReport()

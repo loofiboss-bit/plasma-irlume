@@ -41,6 +41,48 @@ class ReadOnlyHardeningTests(unittest.TestCase):
         self.assertIn('QStringLiteral("/usr/bin/irlume")', factory)
         self.assertIn("std::make_unique<IrlumeBackend>", factory)
 
+    def test_preview_worker_has_no_privileged_or_persistent_surface(self) -> None:
+        preview = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in sorted((ROOT / "src" / "preview").glob("*"))
+            if path.suffix in {".cpp", ".h", ".txt"}
+        )
+        for forbidden in (
+            "QSettings",
+            "QSaveFile",
+            "QNetworkAccessManager",
+            "QAudio",
+            "KAuth",
+            "Polkit",
+            "systemBus",
+            "/run/irlume",
+            "/usr/bin/irlume",
+        ):
+            self.assertNotIn(forbidden, preview)
+
+        self.assertNotIn("deviceNode", (ROOT / "src/backend/camerapreviewsession.h").read_text(encoding="utf-8"))
+        support = (ROOT / "src/backend/supportreport.cpp").read_text(encoding="utf-8")
+        for forbidden in ("frame()", "device.token", "device.label", "selectedDeviceIndex"):
+            self.assertNotIn(forbidden, support)
+
+    def test_v3_qml_exposes_no_mutation_control(self) -> None:
+        qml = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in sorted((ROOT / "src" / "kcm" / "ui").rglob("*.qml"))
+        )
+        for forbidden in (
+            ".enroll(",
+            ".deleteProfile(",
+            ".addAppearanceScan(",
+            ".enableLoginScreen(",
+            ".enableLockScreen(",
+            ".disableNow(",
+            ".selectPair(",
+            ".setupEmitter(",
+            ".tuneCamera(",
+        ):
+            self.assertNotIn(forbidden, qml)
+
 
 if __name__ == "__main__":
     unittest.main()
