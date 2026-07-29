@@ -53,6 +53,34 @@ target_link_libraries(test_visionanalysissession kfaceauth_core Qt6::Core Qt6::G
 add_dependencies(test_visionanalysissession fake_preview_worker fake_vision_worker)
 add_test(NAME visionanalysissession COMMAND test_visionanalysissession)
 
+add_executable(test_yunet_bridge_native
+    test_yunet_bridge_native.cpp
+    ${PROJECT_SOURCE_DIR}/engine/vision-opencv-sys/native/yunet_bridge.cpp
+)
+target_include_directories(test_yunet_bridge_native PRIVATE
+    ${PROJECT_SOURCE_DIR}/engine/vision-opencv-sys/native
+)
+target_compile_definitions(test_yunet_bridge_native PRIVATE
+    KFACEAUTH_YUNET_MODEL_PATH="${PROJECT_SOURCE_DIR}/models/files/face_detection_yunet_2023mar.onnx"
+)
+target_compile_options(test_yunet_bridge_native PRIVATE -fexceptions)
+target_link_libraries(test_yunet_bridge_native PRIVATE
+    opencv_core
+    opencv_dnn
+    opencv_imgproc
+    opencv_objdetect
+)
+if(KFACEAUTH_ENABLE_NATIVE_SANITIZERS AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(test_yunet_bridge_native PRIVATE
+        -fno-omit-frame-pointer
+        -fsanitize=address,undefined
+    )
+    target_link_options(test_yunet_bridge_native PRIVATE
+        -fsanitize=address,undefined
+    )
+endif()
+add_test(NAME yunet_bridge_native COMMAND test_yunet_bridge_native)
+
 add_executable(test_supportreport test_supportreport.cpp)
 target_compile_definitions(test_supportreport PRIVATE
     KFACEAUTH_FAKE_PREVIEW_WORKER_PATH="$<TARGET_FILE:fake_preview_worker>"

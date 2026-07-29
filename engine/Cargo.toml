@@ -1,5 +1,12 @@
 [workspace]
-members = ["protocol", "vision", "templates", "daemon", "cli"]
+members = [
+    "protocol",
+    "vision",
+    "vision-opencv-sys",
+    "templates",
+    "daemon",
+    "cli",
+]
 resolver = "2"
 
 [workspace.package]

@@ -1,0 +1,42 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+#pragma once
+
+#include <stddef.h>
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+    enum KFaceAuthYuNetStatus
+    {
+        KFACEAUTH_YUNET_OK = 0,
+        KFACEAUTH_YUNET_INVALID_ARGUMENT = 1,
+        KFACEAUTH_YUNET_RUNTIME_FAILURE = 2,
+        KFACEAUTH_YUNET_OUTPUT_TOO_LARGE = 3,
+        KFACEAUTH_YUNET_MALFORMED_OUTPUT = 4,
+        KFACEAUTH_YUNET_HARDENING_FAILURE = 5,
+    };
+
+    typedef struct KFaceAuthYuNetDetection
+    {
+        float values[15];
+    } KFaceAuthYuNetDetection;
+
+    int kfaceauth_yunet_disable_core_dumps(void);
+    const char *kfaceauth_yunet_opencv_version(void);
+
+    int kfaceauth_yunet_create(const uint8_t *model_bytes, size_t model_size, int32_t width, int32_t height,
+                               float score_threshold, float nms_threshold, int32_t top_k, void **detector_out);
+
+    int kfaceauth_yunet_detect(void *detector, const uint8_t *bgr_bytes, size_t bgr_size, int32_t width, int32_t height,
+                               size_t stride, KFaceAuthYuNetDetection *detections, size_t detection_capacity,
+                               size_t *detection_count);
+
+    void kfaceauth_yunet_destroy(void *detector);
+
+#ifdef __cplusplus
+}
+#endif

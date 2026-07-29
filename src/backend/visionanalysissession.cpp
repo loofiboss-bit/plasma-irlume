@@ -77,10 +77,6 @@ quint64 readU64(QByteArrayView bytes, qsizetype offset)
     return qFromBigEndian<quint64>(reinterpret_cast<const uchar *>(bytes.data() + offset));
 }
 
-VisionAnalysisSession::Quality qualityForLowMetric(quint8 value)
-{
-    return value < 80 ? VisionAnalysisSession::Quality::Low : VisionAnalysisSession::Quality::Suitable;
-}
 } // namespace
 
 VisionAnalysisSession::VisionAnalysisSession(CameraPreviewSession *previewSession, QObject *parent)
@@ -170,8 +166,8 @@ bool VisionAnalysisSession::busy() const
 
 bool VisionAnalysisSession::canAnalyze() const
 {
-    return m_previewSession && !busy() && !m_process &&
-           m_previewSession->state() == CameraPreviewSession::State::Streaming && m_previewSession->frameAvailable();
+    return m_previewSession && m_previewSession->state() == CameraPreviewSession::State::Streaming &&
+           m_previewSession->frameAvailable();
 }
 
 bool VisionAnalysisSession::resultAvailable() const
@@ -233,6 +229,11 @@ void VisionAnalysisSession::analyzeCurrentFrame()
 {
     if (!canAnalyze())
         return;
+    if (busy() || m_process)
+    {
+        stopAnalysis(true);
+        return;
+    }
 
     QImage frame;
     if (!m_previewSession->copyCurrentFrame(&frame))
@@ -295,7 +296,13 @@ void VisionAnalysisSession::analyzeCurrentFrame()
 
 void VisionAnalysisSession::cancelAnalysis()
 {
+    stopAnalysis(false);
+}
+
+void VisionAnalysisSession::stopAnalysis(bool replacementRequested)
+{
     ++m_generation;
+    m_replacementRequested = replacementRequested;
     m_startupTimer.stop();
     m_inferenceTimer.stop();
     m_shutdownTimer.stop();
@@ -304,7 +311,9 @@ void VisionAnalysisSession::cancelAnalysis()
         m_process->kill();
     clearSensitiveData();
     clearResult();
-    setState(State::Idle, translate("Analysis was cancelled and its in-memory data was cleared."));
+    setState(State::Idle, replacementRequested
+                              ? translate("Replacing the previous analysis with the current frame…")
+                              : translate("Analysis was cancelled and its in-memory data was cleared."));
 }
 
 void VisionAnalysisSession::startWorker(QByteArray request)
@@ -442,7 +451,10 @@ void VisionAnalysisSession::processFinished(int exitCode, QProcess::ExitStatus e
     if (m_ignoringProcessExit)
     {
         m_ignoringProcessExit = false;
+        const bool replacementRequested = std::exchange(m_replacementRequested, false);
         Q_EMIT availabilityChanged();
+        if (replacementRequested)
+            QTimer::singleShot(0, this, &VisionAnalysisSession::analyzeCurrentFrame);
         return;
     }
     if (!m_responseReceived || !m_pendingResult || exitStatus != QProcess::NormalExit || exitCode != 0)
@@ -465,6 +477,7 @@ void VisionAnalysisSession::fail(const QString &errorCode)
     m_inferenceTimer.stop();
     m_shutdownTimer.stop();
     m_ignoringProcessExit = true;
+    m_replacementRequested = false;
     if (m_process)
         m_process->kill();
     clearSensitiveData();
@@ -549,7 +562,7 @@ bool VisionAnalysisSession::parseResponse(QByteArrayView payload, Result *result
     result->contrast = static_cast<quint8>(payload.at(13));
     result->sharpness = static_cast<quint8>(payload.at(14));
     result->flags = static_cast<quint8>(payload.at(15));
-    if ((result->flags & ~KnownQualityFlags) != 0)
+    if ((result->flags & ~KnownQualityFlags) != 0 || (result->flags & 0x03) == 0x03)
         return false;
     if (m_requestWidth == 0 || m_requestHeight == 0)
         return false;
@@ -581,9 +594,9 @@ void VisionAnalysisSession::applyResult(const Result &result)
     m_faceFinding = result.faceCount == 0 ? FaceFinding::NoFace
                                           : (result.faceCount == 1 ? FaceFinding::OneFace : FaceFinding::MultipleFaces);
     m_brightness =
-        result.brightness < 70 ? Quality::Low : (result.brightness > 205 ? Quality::High : Quality::Suitable);
-    m_contrast = qualityForLowMetric(result.contrast);
-    m_sharpness = qualityForLowMetric(result.sharpness);
+        (result.flags & 0x01) != 0 ? Quality::Low : ((result.flags & 0x02) != 0 ? Quality::High : Quality::Suitable);
+    m_contrast = (result.flags & 0x04) != 0 ? Quality::Low : Quality::Suitable;
+    m_sharpness = (result.flags & 0x08) != 0 ? Quality::Low : Quality::Suitable;
     m_position = Position::Unknown;
     m_distance = Distance::Unknown;
 
@@ -617,6 +630,10 @@ QString VisionAnalysisSession::textForError(const QString &errorCode) const
         return translate("An outdated analysis response was rejected.");
     if (errorCode == QLatin1String("invalid-frame"))
         return translate("The current preview frame could not be analyzed.");
+    if (errorCode == QLatin1String("analysis-error-11"))
+        return translate("YuNet is unavailable or failed model verification. Reinstall KFaceAuth and try again.");
+    if (errorCode == QLatin1String("analysis-error-12"))
+        return translate("The local YuNet detector returned invalid data. Try another frame or reinstall OpenCV.");
     if (errorCode.startsWith(QLatin1String("analysis-error-")))
         return translate("Local vision analysis could not process this frame.");
     return translate("Local vision analysis returned invalid data.");

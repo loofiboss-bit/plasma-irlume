@@ -61,6 +61,15 @@ class PackagingContractTests(unittest.TestCase):
         self.assertIn("%{_libexecdir}/kfaceauth-camera-preview-worker", spec)
         self.assertIn("%{_libexecdir}/kfaceauth-vision-worker", spec)
         self.assertIn("face_detection_yunet_2023mar.onnx", spec)
+        self.assertNotIn("fake-provider-v1.cfg", spec)
+        for dependency in (
+            "BuildRequires:  opencv-devel",
+            "Requires:       opencv-core",
+            "Requires:       opencv-dnn",
+            "Requires:       opencv-imgproc",
+            "Requires:       opencv-objdetect",
+        ):
+            self.assertIn(dependency, spec)
         self.assertRegex(spec, r"(?m)^License:\s+GPL-3\.0-or-later AND MIT$")
         self.assertIn("kcm_kfaceauth.so", spec)
 
@@ -69,6 +78,7 @@ class PackagingContractTests(unittest.TestCase):
     ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "kfaceauth-4.0.0.tar.gz"
+            second = Path(directory) / "kfaceauth-4.0.0-second.tar.gz"
             subprocess.run(
                 [
                     str(ROOT / "packaging/fedora/create-source-archive.sh"),
@@ -79,7 +89,18 @@ class PackagingContractTests(unittest.TestCase):
                 capture_output=True,
                 text=True,
             )
+            subprocess.run(
+                [
+                    str(ROOT / "packaging/fedora/create-source-archive.sh"),
+                    str(second),
+                ],
+                cwd=ROOT,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
             self.assertTrue(output.is_file())
+            self.assertEqual(output.read_bytes(), second.read_bytes())
             self.assertEqual(output.stat().st_mode & 0o777, 0o644)
             with tarfile.open(output, "r:gz") as archive:
                 names = archive.getnames()

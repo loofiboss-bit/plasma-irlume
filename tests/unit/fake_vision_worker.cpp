@@ -169,6 +169,17 @@ class FakeVisionWorker final : public QObject
             writeAll(prefix);
             return;
         }
+        if (mode == QLatin1String("model-unavailable") || mode == QLatin1String("runtime-output"))
+        {
+            QByteArray response;
+            appendU16(&response, 1);
+            response.append(static_cast<char>(0xff));
+            response.append(mode == QLatin1String("model-unavailable") ? static_cast<char>(11) : static_cast<char>(12));
+            appendU64(&response, generation);
+            writeAll(framed(response));
+            QCoreApplication::quit();
+            return;
+        }
 
         const quint8 faceCount = mode == QLatin1String("zero") ? 0 : (mode == QLatin1String("multiple") ? 2 : 1);
         QByteArray response;
@@ -179,7 +190,9 @@ class FakeVisionWorker final : public QObject
         response.append(static_cast<char>(128));
         response.append(static_cast<char>(120));
         response.append(static_cast<char>(110));
-        response.append(mode == QLatin1String("unknown-flags") ? static_cast<char>(0x80) : '\0');
+        response.append(mode == QLatin1String("unknown-flags")
+                            ? static_cast<char>(0x80)
+                            : (mode == QLatin1String("contradictory-flags") ? static_cast<char>(0x03) : '\0'));
 
         for (quint8 index = 0; index < faceCount; ++index)
         {

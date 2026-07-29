@@ -1,6 +1,6 @@
 # Architecture
 
-Milestone 2 separates five unprivileged areas:
+Milestone 3 separates five unprivileged areas:
 
 ```text
 KDE System Settings
@@ -41,8 +41,8 @@ missing data is never interpreted as success.
 
 ## Camera path
 
-`CameraPreviewSession` owns a separate unprivileged worker process. This is the
-only runtime process started by the KCM, and it handles preview pixels only. It
+`CameraPreviewSession` owns a separate unprivileged worker process. It handles
+preview pixels only and
 does not share a transport, state, or implementation with the native engine.
 The existing framed CBOR protocol, session identifiers, monotonic sequences,
 bounds, timeouts, backpressure, cancellation, and frame clearing remain intact.
@@ -53,8 +53,9 @@ bounded `QImage`, normalizes it to an accepted packed pixel format, and sends it
 over private process pipes. It never exposes bytes to QML or uses a temporary
 file. Each request has a monotonic generation; stale responses are discarded.
 Page hiding, application deactivation, preview stop, cancellation, protocol
-failure, timeout, or teardown kills the short-lived worker and clears both the
-frame copy and result.
+failure, timeout, replacement request, or teardown kills the short-lived worker
+and clears both the frame copy and result. A replacement request starts only
+after the previous process has exited, so workers never overlap.
 
 ## Rust workspace
 
@@ -64,8 +65,10 @@ The workspace keeps the Milestone 1 status skeleton and adds bounded vision:
   4 KiB requests, 16 KiB responses, closed request/response enums, and typed
   stable errors;
 - `vision` owns model-manifest parsing, SHA-256 verification, checked frame
-  validation, backend-neutral detector/quality types, cancellation, and the
-  deterministic provider;
+  validation, backend-neutral detector/quality types, cancellation,
+  preprocessing, postprocessing, and the production YuNet provider;
+- `vision-opencv-sys` is the only unsafe Rust crate and exposes a narrow safe
+  wrapper over the project-owned OpenCV C ABI bridge;
 - `vision-worker` accepts one versioned length-framed analyze operation on
   stdin/stdout and never opens a socket or persistent store;
 - `templates` reports persistence unavailable;
@@ -73,17 +76,25 @@ The workspace keeps the Milestone 1 status skeleton and adds bounded vision:
   caller-provided local streams;
 - `cli` prints only the source skeleton's typed status and capabilities.
 
-All crates forbid unsafe Rust and have no third-party dependencies. Build and
-test are offline. The vision worker verifies the manifest and selected model
-directory before provider initialization, but it does not download anything,
-open sockets, access cameras, persist data, produce embeddings, or make
-authentication decisions. It is an executable owned by the source and package,
-not a daemon or system service.
+All other crates forbid unsafe Rust and the workspace has no registry
+dependencies. Build and test are offline. The vision worker verifies the
+complete inventory and exact model again before initializing Fedora OpenCV
+from in-memory bytes. It does not download anything, open sockets, access
+cameras, persist data, produce embeddings, or make authentication decisions.
+It is a one-request executable owned by the source and package, not a daemon or
+system service.
+
+`FaceDetectorYN` and its C++ ABI live only in the short-lived worker. The bridge
+accepts verified model bytes and a tightly packed BGR image, catches all native
+exceptions, and returns bounded 15-float rows. Rust treats the rows as hostile,
+validates every finite rectangle, landmark, and score, and discards landmarks
+and scores before encoding the existing neutral protocol result. See
+[runtime selection](RUNTIME-SELECTION.md) and [pipeline](YUNET-PIPELINE.md).
 
 ## Model supply chain
 
 `models/manifest.kfaceauth` is the machine-readable allow-list. It pins filename,
-version, immutable origin, size, SHA-256, role, provider state, and license.
+version, immutable origin, size, SHA-256, role, backend, and license.
 `models/files` contains only listed, license-reviewed artifacts.
 `tools/verify_models.py` and Rust initialization both reject missing, renamed,
 modified, duplicate, malformed, or unlisted files. Configure, build, test,

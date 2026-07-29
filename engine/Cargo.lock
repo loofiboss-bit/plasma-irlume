@@ -30,3 +30,10 @@ version = "0.1.0"
 [[package]]
 name = "kfaceauth-vision"
 version = "0.1.0"
+dependencies = [
+ "kfaceauth-vision-opencv-sys",
+]
+
+[[package]]
+name = "kfaceauth-vision-opencv-sys"
+version = "0.1.0"

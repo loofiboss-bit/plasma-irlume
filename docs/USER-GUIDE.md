@@ -14,9 +14,16 @@ Select **Refresh** to discover local cameras. Select a camera and choose
 **Start preview** to begin a private preview. It stops after 60 seconds; you can
 also stop it manually or leave the page.
 
-The preview is only a camera and privacy diagnostic. It does not detect a face,
-recognize a person, test liveness, enroll anything, or prove authentication
-readiness.
+The preview is only a camera and privacy diagnostic. To run detection, choose
+**Analyze current frame** separately. This starts one short-lived local YuNet
+worker for the current frame; it is not continuous. A new analysis replaces
+and cancels an active one.
+
+The result can report zero, one, or multiple detected faces plus neutral image
+or framing guidance. It does not recognize a person, test liveness, enroll
+anything, or prove authentication readiness. If the verified model or OpenCV
+runtime is unavailable, Camera Check shows an error and never substitutes a
+simulated result.
 
 ## Diagnostics
 

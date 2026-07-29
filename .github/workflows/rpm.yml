@@ -42,6 +42,7 @@ jobs:
             kf6-ki18n-devel \
             kf6-kirigami-devel \
             ninja-build \
+            opencv-devel \
             python3 \
             qt6-qtbase-devel \
             qt6-qtdeclarative-devel \
@@ -65,8 +66,16 @@ jobs:
 
       - name: Test install and uninstall lifecycle
         run: |
-          packaging/fedora/rpm-smoke-test.sh \
-            "$(find "$HOME/rpmbuild/RPMS" -type f -name 'kfaceauth-[0-9]*.rpm' -print -quit)"
+          rpm_path="$(find "$HOME/rpmbuild/RPMS" -type f -name 'kfaceauth-[0-9]*.rpm' -print -quit)"
+          rpm -qp --requires "$rpm_path"
+          if rpm -qlp "$rpm_path" | grep -Fq 'fake-provider'; then
+            echo "Production RPM contains a fake provider" >&2
+            exit 1
+          fi
+          dnf install -y "$rpm_path"
+          rpm -V kfaceauth
+          dnf remove -y kfaceauth
+          packaging/fedora/rpm-smoke-test.sh "$rpm_path"
 
       - name: Collect RPM artifacts
         run: |

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: kfaceauth 4.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-28 23:57+0200\n"
+"POT-Creation-Date: 2026-07-29 01:51+0200\n"
 "PO-Revision-Date: 2026-07-28 22:00+0200\n"
 "Last-Translator: KFaceAuth contributors\n"
 "Language-Team: Swedish\n"
@@ -13,15 +13,16 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: src/preview/cameraprovider.cpp:192
+msgctxt "CameraProvider"
 msgid "Camera"
 msgstr "Kamera"
 
-#: src/kcm/ui/CameraCheckPage.qml:18 src/kcm/ui/CameraCheckPage.qml:36
+#: src/kcm/ui/CameraCheckPage.qml:19 src/kcm/ui/CameraCheckPage.qml:38
 #: src/kcm/ui/main.qml:31
 msgid "Camera Check"
 msgstr "Kamerakontroll"
 
-#: src/kcm/ui/CameraCheckPage.qml:44
+#: src/kcm/ui/CameraCheckPage.qml:46
 msgid ""
 "Preview starts only when you ask. Frames remain in memory, stop after 60 "
 "seconds, and are never used for enrollment or recognition."
@@ -30,7 +31,7 @@ msgstr ""
 "minnet, stoppas efter 60 sekunder och används aldrig för registrering eller "
 "igenkänning."
 
-#: src/kcm/ui/CameraCheckPage.qml:51
+#: src/kcm/ui/CameraCheckPage.qml:53
 msgid ""
 "A visible RGB or infrared image does not verify liveness, identity, security "
 "level, or authentication readiness."
@@ -38,109 +39,111 @@ msgstr ""
 "En synlig RGB- eller infraröd bild verifierar inte livskontroll, identitet, "
 "säkerhetsnivå eller autentiseringsberedskap."
 
-#: src/kcm/ui/CameraCheckPage.qml:66
+#: src/kcm/ui/CameraCheckPage.qml:68
 msgid "Local camera"
 msgstr "Lokal kamera"
 
-#: src/kcm/ui/CameraCheckPage.qml:73
+#: src/kcm/ui/CameraCheckPage.qml:75
 msgid "Refresh"
 msgstr "Uppdatera"
 
-#: src/kcm/ui/CameraCheckPage.qml:86
+#: src/kcm/ui/CameraCheckPage.qml:88
 msgid "Private camera preview"
 msgstr "Privat kameraförhandsvisning"
 
-#: src/kcm/ui/CameraCheckPage.qml:100
+#: src/kcm/ui/CameraCheckPage.qml:102
 msgid "Infrared camera preview"
 msgstr "Förhandsvisning från infraröd kamera"
 
-#: src/kcm/ui/CameraCheckPage.qml:102
+#: src/kcm/ui/CameraCheckPage.qml:104
 msgid "RGB camera preview"
 msgstr "Förhandsvisning från RGB-kamera"
 
-#: src/kcm/ui/CameraCheckPage.qml:103
+#: src/kcm/ui/CameraCheckPage.qml:105
 msgid "Camera preview"
 msgstr "Kameraförhandsvisning"
 
-#: src/kcm/ui/CameraCheckPage.qml:110
+#: src/kcm/ui/CameraCheckPage.qml:112
 msgid "Starting camera…"
 msgstr "Startar kameran…"
 
-#: src/kcm/ui/CameraCheckPage.qml:111
+#: src/kcm/ui/CameraCheckPage.qml:113
 msgid "Preview is off"
 msgstr "Förhandsvisningen är avstängd"
 
-#: src/kcm/ui/CameraCheckPage.qml:124
+#: src/kcm/ui/CameraCheckPage.qml:126
 msgid "%1 s"
 msgstr "%1 s"
 
-#: src/kcm/ui/CameraCheckPage.qml:156
+#: src/kcm/ui/CameraCheckPage.qml:158
 msgid "Stop preview"
 msgstr "Stoppa förhandsvisning"
 
-#: src/kcm/ui/CameraCheckPage.qml:156
+#: src/kcm/ui/CameraCheckPage.qml:158
 msgid "Start preview"
 msgstr "Starta förhandsvisning"
 
-#: src/kcm/ui/CameraCheckPage.qml:174
+#: src/kcm/ui/CameraCheckPage.qml:176
 msgid "Dropped preview frames: %1"
 msgstr "Tappade bildrutor i förhandsvisningen: %1"
 
-#: src/kcm/ui/CameraCheckPage.qml
+#: src/kcm/ui/CameraCheckPage.qml:189
 msgid ""
-"Real face detection is not enabled. This development build validates only "
-"the bounded one-frame analysis path."
+"Analyze uses local YuNet face detection for one current frame. It does not "
+"identify a person, test liveness, or make an authentication decision."
 msgstr ""
-"Verklig ansiktsdetektering är inte aktiverad. Den här utvecklingsversionen "
-"validerar endast den begränsade analysvägen för en bildruta."
+"Analysen använder lokal YuNet-ansiktsdetektering för en aktuell bildruta. "
+"Den identifierar inte en person, testar inte livskontroll och fattar inget "
+"autentiseringsbeslut."
 
-#: src/kcm/ui/CameraCheckPage.qml
+#: src/kcm/ui/CameraCheckPage.qml:213
 msgid "Analyze current frame"
 msgstr "Analysera aktuell bildruta"
 
-#: src/kcm/ui/CameraCheckPage.qml
+#: src/kcm/ui/CameraCheckPage.qml:225
 msgid "No face was found in this frame."
 msgstr "Inget ansikte hittades i den här bildrutan."
 
-#: src/kcm/ui/CameraCheckPage.qml
+#: src/kcm/ui/CameraCheckPage.qml:227
 msgid "One face was found in this frame."
 msgstr "Ett ansikte hittades i den här bildrutan."
 
-#: src/kcm/ui/CameraCheckPage.qml
+#: src/kcm/ui/CameraCheckPage.qml:228
 msgid "Multiple faces were found in this frame."
 msgstr "Flera ansikten hittades i den här bildrutan."
 
-#: src/kcm/ui/CameraCheckPage.qml
+#: src/kcm/ui/CameraCheckPage.qml:240
 msgid "Center your face in the frame."
 msgstr "Centrera ansiktet i bildrutan."
 
-#: src/kcm/ui/CameraCheckPage.qml
+#: src/kcm/ui/CameraCheckPage.qml:247
 msgid "Move closer to the camera."
 msgstr "Flytta närmare kameran."
 
-#: src/kcm/ui/CameraCheckPage.qml
+#: src/kcm/ui/CameraCheckPage.qml:254
 msgid "Move farther from the camera."
 msgstr "Flytta längre bort från kameran."
 
-#: src/kcm/ui/CameraCheckPage.qml
+#: src/kcm/ui/CameraCheckPage.qml:261
 msgid "Add more even light."
 msgstr "Lägg till mer jämn belysning."
 
-#: src/kcm/ui/CameraCheckPage.qml
+#: src/kcm/ui/CameraCheckPage.qml:268
 msgid "Reduce bright light on your face."
 msgstr "Minska starkt ljus mot ansiktet."
 
-#: src/kcm/ui/CameraCheckPage.qml
+#: src/kcm/ui/CameraCheckPage.qml:275
 msgid "Use more even front lighting."
 msgstr "Använd jämnare belysning framifrån."
 
-#: src/kcm/ui/CameraCheckPage.qml
+#: src/kcm/ui/CameraCheckPage.qml:282
 msgid "Hold still and check that the camera lens is clear."
 msgstr "Håll stilla och kontrollera att kameralinsen är ren."
 
-#: src/kcm/ui/CameraCheckPage.qml
+#: src/kcm/ui/CameraCheckPage.qml:293
 msgid "Framing and image quality are suitable for this development check."
-msgstr "Inramning och bildkvalitet är lämpliga för den här utvecklingskontrollen."
+msgstr ""
+"Inramning och bildkvalitet är lämpliga för den här utvecklingskontrollen."
 
 #: src/kcm/ui/DiagnosticsPage.qml:19 src/kcm/ui/main.qml:37
 msgid "Diagnostics"
@@ -216,14 +219,14 @@ msgstr "Översikt"
 
 #: src/kcm/ui/SetupStatusPage.qml:31
 msgid ""
-"Milestone 1 provides local camera discovery and a bounded in-memory preview. "
-"It does not detect or recognize faces, test liveness, enroll profiles, store "
+"Milestone 3 adds explicit local YuNet face-presence detection to Camera "
+"Check. It does not recognize people, test liveness, enroll profiles, store "
 "biometric data, configure PAM, or authenticate users."
 msgstr ""
-"Milstolpe 1 tillhandahåller lokal kameraidentifiering och en begränsad "
-"förhandsvisning i minnet. Den identifierar eller känner inte igen ansikten, "
-"testar inte livskontroll, registrerar inte profiler, lagrar inte biometriska "
-"data, konfigurerar inte PAM och autentiserar inte användare."
+"Milstolpe 3 lägger till uttrycklig lokal YuNet-detektering av ansiktsnärvaro "
+"i kamerakontrollen. Den känner inte igen personer, testar inte livskontroll, "
+"registrerar inte profiler, lagrar inte biometriska data, konfigurerar inte "
+"PAM och autentiserar inte användare."
 
 #: src/kcm/ui/SetupStatusPage.qml:57
 msgid "Refresh status"
@@ -251,6 +254,10 @@ msgstr[1] "%1 kameror hittades"
 msgid "Vision processing"
 msgstr "Bildbehandling"
 
+#: src/kcm/ui/SetupStatusPage.qml:101
+msgid "Local Camera Check only"
+msgstr "Endast lokal kamerakontroll"
+
 #: src/kcm/ui/SetupStatusPage.qml:118
 msgid "Authentication and PAM"
 msgstr "Autentisering och PAM"
@@ -267,126 +274,66 @@ msgstr "KFaceAuth-avsnitt"
 msgid "CameraPreviewSession"
 msgstr "Kameraförhandsvisningssession"
 
-#: src/backend/camerapreviewsession.cpp:200
-#: src/backend/camerapreviewsession.cpp:300
+#: src/backend/camerapreviewsession.cpp:213
+#: src/backend/camerapreviewsession.cpp:313
 msgid "Looking for local cameras…"
 msgstr "Söker efter lokala kameror…"
 
-#: src/backend/camerapreviewsession.cpp:214
+#: src/backend/camerapreviewsession.cpp:227
 msgid "Starting the selected camera…"
 msgstr "Startar den valda kameran…"
 
-#: src/backend/camerapreviewsession.cpp:229
+#: src/backend/camerapreviewsession.cpp:242
 msgid "Stopping and releasing the camera…"
 msgstr "Stoppar och frigör kameran…"
 
-#: src/backend/camerapreviewsession.cpp:373
+#: src/backend/camerapreviewsession.cpp:386
 msgid "Preview is live and remains only in memory."
 msgstr "Förhandsvisningen är aktiv och stannar endast i minnet."
 
-#: src/backend/camerapreviewsession.cpp:388
+#: src/backend/camerapreviewsession.cpp:401
 msgid "The camera has been released."
 msgstr "Kameran har frigjorts."
 
-#: src/backend/camerapreviewsession.cpp:440
+#: src/backend/camerapreviewsession.cpp:453
 msgid "Select a camera and start a private preview."
 msgstr "Välj en kamera och starta en privat förhandsvisning."
 
-#: src/backend/camerapreviewsession.cpp:521
+#: src/backend/camerapreviewsession.cpp:534
 msgid "Camera permission was denied."
 msgstr "Kamerabehörighet nekades."
 
-#: src/backend/camerapreviewsession.cpp:523
+#: src/backend/camerapreviewsession.cpp:536
 msgid "No compatible local camera was found."
 msgstr "Ingen kompatibel lokal kamera hittades."
 
-#: src/backend/camerapreviewsession.cpp:525
+#: src/backend/camerapreviewsession.cpp:538
 msgid "The selected camera is already in use."
 msgstr "Den valda kameran används redan."
 
-#: src/backend/camerapreviewsession.cpp:527
+#: src/backend/camerapreviewsession.cpp:540
 msgid "The selected camera has no usable preview format."
 msgstr "Den valda kameran saknar ett användbart förhandsvisningsformat."
 
-#: src/backend/camerapreviewsession.cpp:529
+#: src/backend/camerapreviewsession.cpp:542
 msgid "The camera did not start in time."
 msgstr "Kameran startade inte i tid."
 
-#: src/backend/camerapreviewsession.cpp:531
+#: src/backend/camerapreviewsession.cpp:544
 msgid "The camera preview stopped delivering frames."
 msgstr "Kameraförhandsvisningen slutade leverera bildrutor."
 
-#: src/backend/camerapreviewsession.cpp:533
+#: src/backend/camerapreviewsession.cpp:546
 msgid "The camera worker returned invalid data."
 msgstr "Kameraprocessen returnerade ogiltiga data."
 
-#: src/backend/camerapreviewsession.cpp:535
+#: src/backend/camerapreviewsession.cpp:548
 msgid "The camera worker stopped unexpectedly."
 msgstr "Kameraprocessen stoppades oväntat."
 
-#: src/backend/camerapreviewsession.cpp:536
+#: src/backend/camerapreviewsession.cpp:549
 msgid "The local camera is unavailable."
 msgstr "Den lokala kameran är inte tillgänglig."
-
-#: src/backend/visionanalysissession.cpp
-msgid "Analyze one current preview frame when you choose."
-msgstr "Analysera en aktuell förhandsvisningsruta när du själv väljer."
-
-#: src/backend/visionanalysissession.cpp
-msgid "Analysis was cancelled and its in-memory data was cleared."
-msgstr "Analysen avbröts och dess data i minnet rensades."
-
-#: src/backend/visionanalysissession.cpp
-msgid "Analyzing one in-memory frame…"
-msgstr "Analyserar en bildruta i minnet…"
-
-#: src/backend/visionanalysissession.cpp
-msgid "Starting local vision analysis…"
-msgstr "Startar lokal bildanalys…"
-
-#: src/backend/visionanalysissession.cpp
-msgid "Finishing local analysis and clearing process data…"
-msgstr "Slutför lokal analys och rensar processdata…"
-
-#: src/backend/visionanalysissession.cpp
-msgid "One-frame analysis is complete. No image was saved."
-msgstr "Analysen av en bildruta är klar. Ingen bild sparades."
-
-#: src/backend/visionanalysissession.cpp
-msgid "Local vision analysis could not be started."
-msgstr "Den lokala bildanalysen kunde inte startas."
-
-#: src/backend/visionanalysissession.cpp
-msgid "Local vision analysis did not start in time."
-msgstr "Den lokala bildanalysen startade inte i tid."
-
-#: src/backend/visionanalysissession.cpp
-msgid "The one-frame analysis timed out."
-msgstr "Tidsgränsen för analysen av en bildruta överskreds."
-
-#: src/backend/visionanalysissession.cpp
-msgid "Local vision analysis did not stop cleanly."
-msgstr "Den lokala bildanalysen stoppades inte korrekt."
-
-#: src/backend/visionanalysissession.cpp
-msgid "Local vision analysis stopped unexpectedly."
-msgstr "Den lokala bildanalysen stoppades oväntat."
-
-#: src/backend/visionanalysissession.cpp
-msgid "An outdated analysis response was rejected."
-msgstr "Ett inaktuellt analyssvar avvisades."
-
-#: src/backend/visionanalysissession.cpp
-msgid "The current preview frame could not be analyzed."
-msgstr "Den aktuella förhandsvisningsrutan kunde inte analyseras."
-
-#: src/backend/visionanalysissession.cpp
-msgid "Local vision analysis could not process this frame."
-msgstr "Den lokala bildanalysen kunde inte bearbeta den här bildrutan."
-
-#: src/backend/visionanalysissession.cpp
-msgid "Local vision analysis returned invalid data."
-msgstr "Den lokala bildanalysen returnerade ogiltiga data."
 
 #: src/backend/supportreport.cpp:25
 msgid "SupportReport"
@@ -400,46 +347,46 @@ msgstr "Den maskerade supportrapporten kopierades."
 msgid "The text could not be copied."
 msgstr "Texten kunde inte kopieras."
 
-#: src/backend/supportreport.cpp:103 src/backend/supportreport.cpp:114
+#: src/backend/supportreport.cpp:103 src/backend/supportreport.cpp:113
 msgid "The support report could not be exported."
 msgstr "Supportrapporten kunde inte exporteras."
 
-#: src/backend/supportreport.cpp:120
+#: src/backend/supportreport.cpp:119
 msgid "The redacted support report was exported to Documents."
 msgstr "Den maskerade supportrapporten exporterades till Dokument."
 
-#: src/backend/supportreport.cpp:145
+#: src/backend/supportreport.cpp:144
 msgid "The camera is in use"
 msgstr "Kameran används"
 
-#: src/backend/supportreport.cpp:147
+#: src/backend/supportreport.cpp:146
 msgid "The camera is unavailable"
 msgstr "Kameran är inte tillgänglig"
 
-#: src/backend/supportreport.cpp:149
+#: src/backend/supportreport.cpp:148
 msgid "The native engine is unavailable"
 msgstr "Native-motorn är inte tillgänglig"
 
-#: src/backend/supportreport.cpp:151
+#: src/backend/supportreport.cpp:150
 msgid "The native protocol is unavailable"
 msgstr "Native-protokollet är inte tillgängligt"
 
-#: src/backend/supportreport.cpp:152
+#: src/backend/supportreport.cpp:151
 msgid "KFaceAuth needs attention"
 msgstr "KFaceAuth behöver åtgärdas"
 
-#: src/backend/supportreport.cpp:158
+#: src/backend/supportreport.cpp:157
 msgid "Close applications using the camera, then retry the preview."
 msgstr ""
 "Stäng program som använder kameran och försök sedan med förhandsvisningen "
 "igen."
 
-#: src/backend/supportreport.cpp:160
+#: src/backend/supportreport.cpp:159
 msgid "Reconnect or re-enable the camera, then refresh camera discovery."
 msgstr ""
 "Anslut eller aktivera kameran igen och uppdatera sedan kameraidentifieringen."
 
-#: src/backend/supportreport.cpp:163
+#: src/backend/supportreport.cpp:161
 msgid ""
 "No action is required in Milestone 1. Biometric and PAM operations remain "
 "disabled."
@@ -447,11 +394,11 @@ msgstr ""
 "Ingen åtgärd krävs i milstolpe 1. Biometriska åtgärder och PAM-åtgärder "
 "förblir inaktiverade."
 
-#: src/backend/supportreport.cpp:165
+#: src/backend/supportreport.cpp:163
 msgid "No known issue is currently reported."
 msgstr "Inget känt problem rapporteras just nu."
 
-#: src/backend/supportreport.cpp:166
+#: src/backend/supportreport.cpp:164
 msgid ""
 "Keep unsupported operations disabled and export the redacted report for "
 "development support."
@@ -502,6 +449,101 @@ msgstr ""
 "Statusrapportering är tillgänglig. Igenkänning, registrering, mallagring och "
 "PAM förblir inaktiverade."
 
+#: src/backend/visionanalysissession.cpp:44
+msgid "VisionAnalysisSession"
+msgstr "VisionAnalysisSession"
+
+#: src/backend/visionanalysissession.cpp:96
+msgid "Analyze one current preview frame when you choose."
+msgstr "Analysera en aktuell förhandsvisningsruta när du själv väljer."
+
+#: src/backend/visionanalysissession.cpp:315
+msgid "Replacing the previous analysis with the current frame…"
+msgstr "Ersätter den föregående analysen med den aktuella bildrutan…"
+
+#: src/backend/visionanalysissession.cpp:316
+msgid "Analysis was cancelled and its in-memory data was cleared."
+msgstr "Analysen avbröts och dess data i minnet rensades."
+
+#: src/backend/visionanalysissession.cpp:341
+msgid "Analyzing one in-memory frame…"
+msgstr "Analyserar en bildruta i minnet…"
+
+#: src/backend/visionanalysissession.cpp:388
+msgid "Starting local vision analysis…"
+msgstr "Startar lokal bildanalys…"
+
+#: src/backend/visionanalysissession.cpp:436
+msgid "Finishing local analysis and clearing process data…"
+msgstr "Slutför lokal analys och rensar processdata…"
+
+#: src/backend/visionanalysissession.cpp:471
+msgid "One-frame analysis is complete. No image was saved."
+msgstr "Analysen av en bildruta är klar. Ingen bild sparades."
+
+#: src/backend/visionanalysissession.cpp:621
+msgid "Local vision analysis could not be started."
+msgstr "Den lokala bildanalysen kunde inte startas."
+
+#: src/backend/visionanalysissession.cpp:623
+msgid "Local vision analysis did not start in time."
+msgstr "Den lokala bildanalysen startade inte i tid."
+
+#: src/backend/visionanalysissession.cpp:625
+msgid "The one-frame analysis timed out."
+msgstr "Tidsgränsen för analysen av en bildruta överskreds."
+
+#: src/backend/visionanalysissession.cpp:627
+msgid "Local vision analysis did not stop cleanly."
+msgstr "Den lokala bildanalysen stoppades inte korrekt."
+
+#: src/backend/visionanalysissession.cpp:629
+msgid "Local vision analysis stopped unexpectedly."
+msgstr "Den lokala bildanalysen stoppades oväntat."
+
+#: src/backend/visionanalysissession.cpp:631
+msgid "An outdated analysis response was rejected."
+msgstr "Ett inaktuellt analyssvar avvisades."
+
+#: src/backend/visionanalysissession.cpp:633
+msgid "The current preview frame could not be analyzed."
+msgstr "Den aktuella förhandsvisningsrutan kunde inte analyseras."
+
+#: src/backend/visionanalysissession.cpp:635
+msgid ""
+"YuNet is unavailable or failed model verification. Reinstall KFaceAuth and "
+"try again."
+msgstr ""
+"YuNet är inte tillgängligt eller klarade inte modellverifieringen. Installera "
+"om KFaceAuth och försök igen."
+
+#: src/backend/visionanalysissession.cpp:637
+msgid ""
+"The local YuNet detector returned invalid data. Try another frame or "
+"reinstall OpenCV."
+msgstr ""
+"Den lokala YuNet-detektorn returnerade ogiltiga data. Försök med en annan "
+"bildruta eller installera om OpenCV."
+
+#: src/backend/visionanalysissession.cpp:639
+msgid "Local vision analysis could not process this frame."
+msgstr "Den lokala bildanalysen kunde inte bearbeta den här bildrutan."
+
+#: src/backend/visionanalysissession.cpp:640
+msgid "Local vision analysis returned invalid data."
+msgstr "Den lokala bildanalysen returnerade ogiltiga data."
+
 #: src/preview/cameraprovider.cpp:192
 msgid "CameraProvider"
 msgstr "Kameravägledning"
+
+#~ msgid "Camera"
+#~ msgstr "Kamera"
+
+#~ msgid ""
+#~ "Real face detection is not enabled. This development build validates only "
+#~ "the bounded one-frame analysis path."
+#~ msgstr ""
+#~ "Verklig ansiktsdetektering är inte aktiverad. Den här "
+#~ "utvecklingsversionen validerar endast den begränsade analysvägen för en "
+#~ "bildruta."

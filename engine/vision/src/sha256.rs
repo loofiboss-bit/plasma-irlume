@@ -166,7 +166,7 @@ fn compress(state: &mut [u32; 8], block: &[u8; 64]) {
         a = temporary1.wrapping_add(temporary2);
     }
 
-    for (destination, value) in state.iter_mut().zip([a, b, c, d, e, f, g, h].into_iter()) {
+    for (destination, value) in state.iter_mut().zip([a, b, c, d, e, f, g, h]) {
         *destination = destination.wrapping_add(value);
     }
 }

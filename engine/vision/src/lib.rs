@@ -5,14 +5,11 @@
 pub mod model;
 mod sha256;
 pub mod worker;
+pub mod yunet;
 
 use std::fmt;
-use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
-
-use model::{ModelError, load_verified_artifact, verify_model_root};
-use sha256::digest_hex;
 
 pub const MAX_WIDTH: u32 = 640;
 pub const MAX_HEIGHT: u32 = 480;
@@ -23,11 +20,6 @@ pub const QUALITY_TOO_DARK: u8 = 1 << 0;
 pub const QUALITY_TOO_BRIGHT: u8 = 1 << 1;
 pub const QUALITY_LOW_CONTRAST: u8 = 1 << 2;
 pub const QUALITY_LOW_SHARPNESS: u8 = 1 << 3;
-
-const FAKE_CONFIG_ID: &str = "fake-provider-config-v1";
-const EMBEDDED_FAKE_CONFIG: &[u8] = include_bytes!("../../../models/files/fake-provider-v1.cfg");
-const EMBEDDED_FAKE_CONFIG_SHA256: &str =
-    "3904333a4e996eb34d09b7ddfe7d803567c5664f38e75df5c46c4cf55bbd775f";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[repr(u8)]
@@ -232,6 +224,8 @@ pub struct VisionAnalysis {
 pub enum VisionError {
     Cancelled,
     DeadlineExceeded,
+    RuntimeFailure,
+    InvalidRuntimeOutput,
 }
 
 impl fmt::Display for VisionError {
@@ -239,6 +233,8 @@ impl fmt::Display for VisionError {
         formatter.write_str(match self {
             Self::Cancelled => "vision processing was cancelled",
             Self::DeadlineExceeded => "vision processing deadline was exceeded",
+            Self::RuntimeFailure => "vision runtime failed",
+            Self::InvalidRuntimeOutput => "vision runtime returned invalid output",
         })
     }
 }
@@ -259,61 +255,20 @@ pub trait VisionProvider {
     ) -> Result<VisionAnalysis, VisionError>;
 }
 
+#[cfg(test)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct FakeDeterministicProvider {
     max_faces: u8,
 }
 
+#[cfg(test)]
 impl FakeDeterministicProvider {
-    /// Creates the deterministic provider from the embedded repo-authored
-    /// config, verifying its SHA-256 before parsing it.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`ProviderLoadError`] if integrity or syntax validation fails.
-    pub fn from_embedded_config() -> Result<Self, ProviderLoadError> {
-        if digest_hex(EMBEDDED_FAKE_CONFIG) != EMBEDDED_FAKE_CONFIG_SHA256 {
-            return Err(ProviderLoadError::DigestMismatch);
-        }
-        Self::parse_config(EMBEDDED_FAKE_CONFIG)
-    }
-
-    /// Loads the deterministic provider config through the strict manifest.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`ProviderLoadError`] for supply-chain or config failures.
-    pub fn from_model_root(root: &Path) -> Result<Self, ProviderLoadError> {
-        verify_model_root(root)?;
-        let artifact = load_verified_artifact(root, FAKE_CONFIG_ID)?;
-        Self::parse_config(artifact.bytes())
-    }
-
-    fn parse_config(bytes: &[u8]) -> Result<Self, ProviderLoadError> {
-        let text = std::str::from_utf8(bytes).map_err(|_| ProviderLoadError::InvalidConfig)?;
-        let mut lines = text.lines();
-        if lines.next() != Some("schema=kfaceauth-fake-provider-v1") {
-            return Err(ProviderLoadError::InvalidConfig);
-        }
-        let Some(max_faces) = lines
-            .next()
-            .and_then(|line| line.strip_prefix("max_faces="))
-        else {
-            return Err(ProviderLoadError::InvalidConfig);
-        };
-        if lines.next().is_some() || !text.ends_with('\n') {
-            return Err(ProviderLoadError::InvalidConfig);
-        }
-        let max_faces = max_faces
-            .parse::<u8>()
-            .map_err(|_| ProviderLoadError::InvalidConfig)?;
-        if max_faces == 0 || usize::from(max_faces) > MAX_FACES {
-            return Err(ProviderLoadError::InvalidConfig);
-        }
-        Ok(Self { max_faces })
+    fn new() -> Self {
+        Self { max_faces: 2 }
     }
 }
 
+#[cfg(test)]
 impl VisionProvider for FakeDeterministicProvider {
     fn analyze(
         &self,
@@ -327,95 +282,28 @@ impl VisionProvider for FakeDeterministicProvider {
         let bytes_per_pixel =
             usize::try_from(image.format.bytes_per_pixel()).expect("pixel size fits usize");
 
-        let mut sum = 0_u64;
-        let mut minimum = u8::MAX;
-        let mut maximum = u8::MIN;
-        let mut difference_sum = 0_u64;
-        let mut difference_count = 0_u64;
         let mut first_luma = None;
         for y in 0..height {
             control.check()?;
             let row = y * stride;
-            let mut previous = None;
             for x in 0..width {
                 let offset = row + x * bytes_per_pixel;
                 let luma = pixel_luma(image.format, &image.bytes[offset..]);
                 first_luma.get_or_insert(luma);
-                sum += u64::from(luma);
-                minimum = minimum.min(luma);
-                maximum = maximum.max(luma);
-                if let Some(previous) = previous {
-                    difference_sum += u64::from(luma.abs_diff(previous));
-                    difference_count += 1;
-                }
-                previous = Some(luma);
             }
         }
         control.check()?;
-
-        let pixels = u64::try_from(width * height).expect("bounded pixel count fits u64");
-        let brightness = u8::try_from(sum / pixels).expect("average luma is at most 255");
-        let contrast = maximum - minimum;
-        let sharpness = if difference_count == 0 {
-            0
-        } else {
-            u8::try_from(difference_sum / difference_count)
-                .expect("average difference is at most 255")
-        };
-        let mut flags = 0;
-        if brightness < 40 {
-            flags |= QUALITY_TOO_DARK;
-        }
-        if brightness > 215 {
-            flags |= QUALITY_TOO_BRIGHT;
-        }
-        if contrast < 16 {
-            flags |= QUALITY_LOW_CONTRAST;
-        }
-        if sharpness < 4 {
-            flags |= QUALITY_LOW_SHARPNESS;
-        }
 
         let face_count = first_luma.unwrap_or(0) % (self.max_faces + 1);
         let faces = fake_rectangles(face_count, image.width, image.height);
         Ok(VisionAnalysis {
             faces,
-            quality: QualityMetrics {
-                brightness,
-                contrast,
-                sharpness,
-                flags,
-            },
+            quality: calculate_quality(image, control)?,
         })
     }
 }
 
-#[derive(Debug)]
-pub enum ProviderLoadError {
-    Model(ModelError),
-    DigestMismatch,
-    InvalidConfig,
-}
-
-impl fmt::Display for ProviderLoadError {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Model(error) => write!(formatter, "provider model load failed: {error}"),
-            Self::DigestMismatch => formatter.write_str("provider config digest mismatch"),
-            Self::InvalidConfig => formatter.write_str("provider config is invalid"),
-        }
-    }
-}
-
-impl std::error::Error for ProviderLoadError {}
-
-impl From<ModelError> for ProviderLoadError {
-    fn from(error: ModelError) -> Self {
-        Self::Model(error)
-    }
-}
-
-fn pixel_luma(format: PixelFormat, bytes: &[u8]) -> u8 {
+pub(crate) fn pixel_luma(format: PixelFormat, bytes: &[u8]) -> u8 {
     match format {
         PixelFormat::Rgb8 | PixelFormat::Rgba8 => {
             let weighted =
@@ -426,6 +314,69 @@ fn pixel_luma(format: PixelFormat, bytes: &[u8]) -> u8 {
     }
 }
 
+pub(crate) fn calculate_quality(
+    image: ImageView<'_>,
+    control: ProcessingControl<'_>,
+) -> Result<QualityMetrics, VisionError> {
+    let stride = usize::try_from(image.stride).expect("validated stride fits usize");
+    let width = usize::try_from(image.width).expect("bounded width fits usize");
+    let height = usize::try_from(image.height).expect("bounded height fits usize");
+    let bytes_per_pixel =
+        usize::try_from(image.format.bytes_per_pixel()).expect("pixel size fits usize");
+    let mut sum = 0_u64;
+    let mut minimum = u8::MAX;
+    let mut maximum = u8::MIN;
+    let mut difference_sum = 0_u64;
+    let mut difference_count = 0_u64;
+    for y in 0..height {
+        control.check()?;
+        let row = y * stride;
+        let mut previous = None;
+        for x in 0..width {
+            let offset = row + x * bytes_per_pixel;
+            let luma = pixel_luma(image.format, &image.bytes[offset..]);
+            sum += u64::from(luma);
+            minimum = minimum.min(luma);
+            maximum = maximum.max(luma);
+            if let Some(previous) = previous {
+                difference_sum += u64::from(luma.abs_diff(previous));
+                difference_count += 1;
+            }
+            previous = Some(luma);
+        }
+    }
+    control.check()?;
+
+    let pixels = u64::try_from(width * height).expect("bounded pixel count fits u64");
+    let brightness = u8::try_from(sum / pixels).expect("average luma is at most 255");
+    let contrast = maximum - minimum;
+    let sharpness = difference_sum
+        .checked_div(difference_count)
+        .map_or(0, |average| {
+            u8::try_from(average).expect("average difference is at most 255")
+        });
+    let mut flags = 0;
+    if brightness < 40 {
+        flags |= QUALITY_TOO_DARK;
+    }
+    if brightness > 215 {
+        flags |= QUALITY_TOO_BRIGHT;
+    }
+    if contrast < 16 {
+        flags |= QUALITY_LOW_CONTRAST;
+    }
+    if sharpness < 4 {
+        flags |= QUALITY_LOW_SHARPNESS;
+    }
+    Ok(QualityMetrics {
+        brightness,
+        contrast,
+        sharpness,
+        flags,
+    })
+}
+
+#[cfg(test)]
 fn fake_rectangles(count: u8, width: u32, height: u32) -> Vec<FaceObservation> {
     let rectangle_width = (width / 5).max(1);
     let rectangle_height = (height / 3).max(1);
@@ -494,7 +445,7 @@ mod tests {
 
     #[test]
     fn fake_provider_returns_zero_one_and_multiple_without_identity() {
-        let provider = FakeDeterministicProvider::from_embedded_config().unwrap();
+        let provider = FakeDeterministicProvider::new();
         let cancellation = CancellationToken::default();
         for (marker, expected) in [(0_u8, 0_usize), (1, 1), (2, 2)] {
             let bytes = [marker, marker.wrapping_add(32)];
@@ -504,11 +455,5 @@ mod tests {
             let result = provider.analyze(image, control).unwrap();
             assert_eq!(result.faces.len(), expected);
         }
-    }
-
-    #[test]
-    fn production_provider_loads_only_through_verified_manifest() {
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../models");
-        assert!(FakeDeterministicProvider::from_model_root(&root).is_ok());
     }
 }

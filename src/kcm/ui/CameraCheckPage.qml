@@ -186,7 +186,7 @@ Kirigami.ScrollablePage {
                     Layout.fillWidth: true
                     visible: true
                     type: Kirigami.MessageType.Information
-                    text: i18n("Real face detection is not enabled. This development build validates only the bounded one-frame analysis path.")
+                    text: i18n("Analyze uses local YuNet face detection for one current frame. It does not identify a person, test liveness, or make an authentication decision.")
                 }
 
                 RowLayout {

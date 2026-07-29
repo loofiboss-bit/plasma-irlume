@@ -25,9 +25,16 @@ include(KDECompilerSettings NO_POLICY_SCOPE)
 
 find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Concurrent Core Multimedia Qml Quick)
 find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS CoreAddons I18n KCMUtils)
+find_package(OpenCV 4.13 REQUIRED COMPONENTS core dnn imgproc objdetect)
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(UDev REQUIRED IMPORTED_TARGET libudev)
+
+if(NOT OpenCV_VERSION MATCHES "^4\\.13\\.")
+    message(FATAL_ERROR "KFaceAuth Milestone 3 requires OpenCV 4.13.x")
+endif()
+
+option(KFACEAUTH_ENABLE_NATIVE_SANITIZERS "Enable ASan/UBSan for the native YuNet bridge test" OFF)
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/po")
     ki18n_install(po)

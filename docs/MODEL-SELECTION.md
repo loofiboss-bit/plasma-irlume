@@ -1,6 +1,6 @@
 # Model selection
 
-Status: Milestone 2 decision gate, reviewed 2026-07-29.
+Status: Milestone 3 production decision, reviewed 2026-07-29.
 
 This document treats source-code and model-weight licensing as separate
 questions. A repository license is not used as evidence for a weight unless the
@@ -47,12 +47,11 @@ CPU support in Fedora's OpenCV stack, and output that maps directly to bounded
 face-presence results. The FP32 artifact is preferred over the smaller
 quantized variant until target-hardware accuracy has been measured.
 
-Packaging a verified weight does not enable real inference by itself. Milestone
-2 currently uses the deterministic fake provider because no reviewed,
-offline-buildable Rust ONNX Runtime binding has passed the project's process,
-memory, dependency-license, and Fedora packaging gates. There is no silent
-fallback: the provider is reported explicitly. The packaged YuNet weight is
-verified now so the future backend cannot introduce an unpinned download.
+Milestone 3 enables the verified weight through Fedora OpenCV 4.13 and a narrow
+reviewed C ABI bridge. There is no silent fallback: production always attempts
+the real provider, and any inventory or runtime failure is a stable error.
+Deterministic inference is compiled only for Rust tests and injected fake worker
+tests.
 
 ## Detector candidates
 
@@ -72,7 +71,7 @@ verified now so the future backend cannot introduce an unpinned download.
   produce neutral guidance only. They must never become an authentication
   decision.
 
-### OpenCV Zoo YuNet INT8 — rejected for Milestone 2
+### OpenCV Zoo YuNet INT8 — rejected for Milestone 3
 
 - Exact source: the quantized YuNet artifacts in the same immutable model
   directory and revision.
@@ -147,15 +146,16 @@ are explicit Milestone 2 non-goals. No embedding weight is installed.
 
 ## Remaining qualification
 
-Before real YuNet inference is enabled, the project still needs:
+Before detector evidence can support a later embedding-model decision, the
+project still needs:
 
-1. a reviewed Rust-to-system-runtime integration that builds and tests with all
-   network access disabled;
-2. dependency licenses and Fedora availability recorded independently of the
-   model license;
-3. deterministic preprocessing and output validation;
-4. CPU latency and memory measurements on supported Fedora hardware;
-5. real-camera accuracy, pose, lighting, RGB/IR, and failure-mode evidence.
+1. a verified, redistributable positive fixture for automated real detections;
+2. real-camera latency and error behavior across the supported RGB/IR matrix;
+3. pose, scale, occlusion, lighting, glasses, and ordinary appearance
+   qualification;
+4. documented crop/alignment requirements for candidate embedding models;
+5. a separate licensing, privacy, bias, threshold, and template-security
+   review.
 
 None of those gates may be interpreted as identity, liveness, anti-spoofing, or
 authentication qualification.

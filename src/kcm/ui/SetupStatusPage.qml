@@ -28,7 +28,7 @@ Kirigami.ScrollablePage {
             Layout.fillWidth: true
             visible: true
             type: Kirigami.MessageType.Information
-            text: i18n("Milestone 1 provides local camera discovery and a bounded in-memory preview. It does not detect or recognize faces, test liveness, enroll profiles, store biometric data, configure PAM, or authenticate users.")
+            text: i18n("Milestone 3 adds explicit local YuNet face-presence detection to Camera Check. It does not recognize people, test liveness, enroll profiles, store biometric data, configure PAM, or authenticate users.")
         }
 
         Kirigami.AbstractCard {
@@ -98,8 +98,8 @@ Kirigami.ScrollablePage {
                 Components.DetailRow {
                     Layout.fillWidth: true
                     label: i18n("Vision processing")
-                    value: systemState.visionStatusLabel
-                    tone: 2
+                    value: i18n("Local Camera Check only")
+                    tone: 1
                 }
 
                 Kirigami.Separator { Layout.fillWidth: true }

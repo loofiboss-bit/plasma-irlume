@@ -44,8 +44,9 @@ overflowing, or unsupported input is rejected.
 | 16 | 8 each | face rectangles | `x, y, width, height` as `u16` |
 
 Every rectangle must be non-empty and contained by the request dimensions.
-Optional landmarks are part of the backend-neutral Rust result type but are
-not emitted by the deterministic Milestone 2 provider.
+YuNet returns five landmarks and a detector score internally. Production
+validates them against the original frame, then discards both before this
+response is encoded.
 
 `face_count` is interpreted only as zero, one, or multiple faces. Quality
 values provide neutral camera guidance. Neither is identity, liveness,
@@ -64,9 +65,10 @@ An error response is exactly 12 bytes:
 
 Stable errors distinguish invalid framing, unsupported version/operation/pixel
 format, invalid dimensions/stride/payload, cancellation, timeout, provider
-unavailability, and internal failure. Model-manifest and artifact-integrity
-failures abort worker initialization before a request is read and expose only a
-generic initialization failure. Error messages never contain model bytes,
+unavailability, invalid native detector output, and internal failure.
+Model-manifest, artifact-integrity, and provider initialization failures expose
+only stable error `11` after the request generation has been decoded. Invalid
+runtime output exposes stable error `12`. Error messages never contain model bytes,
 pixels, embeddings, paths supplied by the request, or biometric output.
 
 ## Parent lifecycle

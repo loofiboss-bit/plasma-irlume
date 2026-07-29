@@ -36,21 +36,21 @@ class ModelSupplyChainTest(unittest.TestCase):
             set(verify_models.REQUIRED_ARTIFACTS),
         )
         yunet = next(entry for entry in entries if entry.artifact_id == "yunet-2023mar")
-        self.assertEqual(yunet.backend, "not-enabled")
+        self.assertEqual(yunet.backend, "opencv-facedetectoryn")
         self.assertEqual(yunet.size, 232589)
 
     def test_missing_file_is_rejected(self) -> None:
-        (self.root / "files" / "fake-provider-v1.cfg").unlink()
+        (self.root / "files" / "face_detection_yunet_2023mar.onnx").unlink()
         self.assert_rejected()
 
     def test_renamed_file_is_rejected(self) -> None:
-        source = self.root / "files" / "fake-provider-v1.cfg"
-        source.rename(source.with_name("renamed.cfg"))
+        source = self.root / "files" / "face_detection_yunet_2023mar.onnx"
+        source.rename(source.with_name("renamed.onnx"))
         self.assert_rejected()
 
     def test_modified_file_is_rejected(self) -> None:
-        path = self.root / "files" / "fake-provider-v1.cfg"
-        path.write_bytes(path.read_bytes() + b"changed=true\n")
+        path = self.root / "files" / "face_detection_yunet_2023mar.onnx"
+        path.write_bytes(path.read_bytes() + b"modified")
         self.assert_rejected()
 
     def test_unlisted_file_is_rejected(self) -> None:
@@ -62,10 +62,13 @@ class ModelSupplyChainTest(unittest.TestCase):
         manifest.rename(self.root / "manifest.old")
         self.assert_rejected()
 
-    def test_manifest_metadata_cannot_enable_yunet_runtime(self) -> None:
+    def test_manifest_metadata_cannot_substitute_runtime(self) -> None:
         manifest = self.root / verify_models.MANIFEST_NAME
         data = manifest.read_text(encoding="utf-8")
-        manifest.write_text(data.replace("not-enabled", "fake-deterministic"), encoding="utf-8")
+        manifest.write_text(
+            data.replace("opencv-facedetectoryn", "other-runtime"),
+            encoding="utf-8",
+        )
         self.assert_rejected()
 
 

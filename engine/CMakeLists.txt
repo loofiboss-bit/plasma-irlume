@@ -14,10 +14,18 @@ set(KFACEAUTH_CARGO_TARGET_DIR "${CMAKE_CURRENT_BINARY_DIR}/target")
 set(KFACEAUTH_VISION_WORKER_BINARY
     "${KFACEAUTH_CARGO_TARGET_DIR}/${KFACEAUTH_CARGO_PROFILE}/${KFACEAUTH_VISION_WORKER}"
 )
+set(KFACEAUTH_REPRODUCIBLE_RUSTFLAGS
+    "$ENV{RUSTFLAGS} --remap-path-prefix=${PROJECT_SOURCE_DIR}=."
+)
+set(KFACEAUTH_REPRODUCIBLE_CXXFLAGS
+    "$ENV{CXXFLAGS} -ffile-prefix-map=${PROJECT_SOURCE_DIR}=. -fdebug-prefix-map=${PROJECT_SOURCE_DIR}=. -gno-record-gcc-switches"
+)
 
 file(GLOB_RECURSE KFACEAUTH_RUST_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/*.rs"
     "${CMAKE_CURRENT_SOURCE_DIR}/*.toml"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
 )
 
 add_custom_command(
@@ -25,6 +33,8 @@ add_custom_command(
     COMMAND
         "${CMAKE_COMMAND}" -E env
         "CARGO_TARGET_DIR=${KFACEAUTH_CARGO_TARGET_DIR}"
+        "RUSTFLAGS=${KFACEAUTH_REPRODUCIBLE_RUSTFLAGS}"
+        "CXXFLAGS=${KFACEAUTH_REPRODUCIBLE_CXXFLAGS}"
         "${CARGO_EXECUTABLE}" build
         --manifest-path "${CMAKE_CURRENT_SOURCE_DIR}/Cargo.toml"
         --package kfaceauth-vision
@@ -36,7 +46,7 @@ add_custom_command(
         ${KFACEAUTH_RUST_SOURCES}
         "${CMAKE_CURRENT_SOURCE_DIR}/Cargo.lock"
         "${PROJECT_SOURCE_DIR}/models/manifest.kfaceauth"
-        "${PROJECT_SOURCE_DIR}/models/files/fake-provider-v1.cfg"
+        "${PROJECT_SOURCE_DIR}/models/files/face_detection_yunet_2023mar.onnx"
     VERBATIM
     COMMENT "Building the offline Rust vision worker"
 )

@@ -102,6 +102,42 @@ pub fn serve_once_with_provider<R: Read, W: Write, P: VisionProvider>(
     write_frame(writer, &response)
 }
 
+/// Reads one request and initializes the production provider only after the
+/// request has passed framing and protocol validation.
+///
+/// This permits model/runtime initialization failures to be returned as a
+/// stable framed error instead of looking like an unexplained worker crash.
+///
+/// # Errors
+///
+/// Returns [`WorkerIoError`] for invalid framing or stream I/O.
+pub fn serve_once_with_provider_factory<R, W, P, F>(
+    reader: &mut R,
+    writer: &mut W,
+    factory: F,
+) -> Result<(), WorkerIoError>
+where
+    R: Read,
+    W: Write,
+    P: VisionProvider,
+    F: FnOnce() -> Result<P, WorkerErrorCode>,
+{
+    let mut payload = read_frame(reader)?;
+    if let Err(error) = require_eof(reader) {
+        payload.fill(0);
+        return Err(error);
+    }
+    let response = match parse_request(&payload) {
+        Ok(request) => match factory() {
+            Ok(provider) => process_request(&provider, request),
+            Err(code) => encode_error(code, request.generation),
+        },
+        Err(error) => encode_error(error.code, error.generation),
+    };
+    payload.fill(0);
+    write_frame(writer, &response)
+}
+
 fn process_request(provider: &dyn VisionProvider, request: AnalyzeRequest<'_>) -> Vec<u8> {
     let cancellation = CancellationToken::default();
     let control = match ProcessingControl::with_timeout(
@@ -114,9 +150,38 @@ fn process_request(provider: &dyn VisionProvider, request: AnalyzeRequest<'_>) -
         }
     };
     match provider.analyze(request.image, control) {
-        Ok(analysis) => encode_analysis(request.generation, &analysis),
+        Ok(analysis) if valid_analysis(&analysis, request.image) => {
+            encode_analysis(request.generation, &analysis)
+        }
+        Ok(_) => encode_error(WorkerErrorCode::InternalError, request.generation),
         Err(error) => encode_error(map_vision_error(error), request.generation),
     }
+}
+
+fn valid_analysis(analysis: &VisionAnalysis, image: ImageView<'_>) -> bool {
+    if analysis.faces.len() > MAX_FACES
+        || analysis.quality.flags
+            & !(crate::QUALITY_TOO_DARK
+                | crate::QUALITY_TOO_BRIGHT
+                | crate::QUALITY_LOW_CONTRAST
+                | crate::QUALITY_LOW_SHARPNESS)
+            != 0
+        || analysis.quality.flags & crate::QUALITY_TOO_DARK != 0
+            && analysis.quality.flags & crate::QUALITY_TOO_BRIGHT != 0
+    {
+        return false;
+    }
+    analysis.faces.iter().all(|face| {
+        let rectangle = face.rectangle;
+        rectangle.width > 0
+            && rectangle.height > 0
+            && u32::from(rectangle.x)
+                .checked_add(u32::from(rectangle.width))
+                .is_some_and(|right| right <= image.width)
+            && u32::from(rectangle.y)
+                .checked_add(u32::from(rectangle.height))
+                .is_some_and(|bottom| bottom <= image.height)
+    })
 }
 
 fn parse_request(payload: &[u8]) -> Result<AnalyzeRequest<'_>, RequestError> {
@@ -201,6 +266,9 @@ const fn map_vision_error(error: VisionError) -> WorkerErrorCode {
     match error {
         VisionError::Cancelled => WorkerErrorCode::Cancelled,
         VisionError::DeadlineExceeded => WorkerErrorCode::DeadlineExceeded,
+        VisionError::RuntimeFailure | VisionError::InvalidRuntimeOutput => {
+            WorkerErrorCode::InternalError
+        }
     }
 }
 
@@ -284,11 +352,11 @@ fn write_frame<W: Write>(writer: &mut W, payload: &[u8]) -> Result<(), WorkerIoE
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::FakeDeterministicProvider;
+    use crate::{FakeDeterministicProvider, VisionAnalysis};
     use std::io::Cursor;
 
     fn provider() -> FakeDeterministicProvider {
-        FakeDeterministicProvider::from_embedded_config().unwrap()
+        FakeDeterministicProvider::new()
     }
 
     fn framed(payload: &[u8]) -> Vec<u8> {
@@ -396,5 +464,46 @@ mod tests {
         );
         let error = serve_once_with_provider(&mut input, &mut Vec::new(), &provider()).unwrap_err();
         assert!(matches!(error, WorkerIoError::FrameTooLarge));
+    }
+
+    #[test]
+    fn provider_initialization_failure_is_a_framed_model_error() {
+        let request = analyze_request(PixelFormat::Gray8, &[1, 33]);
+        let mut output = Vec::new();
+        serve_once_with_provider_factory::<_, _, FakeDeterministicProvider, _>(
+            &mut Cursor::new(framed(&request)),
+            &mut output,
+            || Err(WorkerErrorCode::ModelUnavailable),
+        )
+        .unwrap();
+        assert_eq!(output[6], RESPONSE_ERROR);
+        assert_eq!(output[7], WorkerErrorCode::ModelUnavailable as u8);
+        assert_eq!(u64::from_be_bytes(output[8..16].try_into().unwrap()), 42);
+    }
+
+    struct InvalidOutputProvider;
+
+    impl VisionProvider for InvalidOutputProvider {
+        fn analyze(
+            &self,
+            _image: ImageView<'_>,
+            _control: ProcessingControl<'_>,
+        ) -> Result<VisionAnalysis, VisionError> {
+            Err(VisionError::InvalidRuntimeOutput)
+        }
+    }
+
+    #[test]
+    fn invalid_runtime_output_maps_to_internal_error() {
+        let request = analyze_request(PixelFormat::Gray8, &[1, 33]);
+        let mut output = Vec::new();
+        serve_once_with_provider(
+            &mut Cursor::new(framed(&request)),
+            &mut output,
+            &InvalidOutputProvider,
+        )
+        .unwrap();
+        assert_eq!(output[6], RESPONSE_ERROR);
+        assert_eq!(output[7], WorkerErrorCode::InternalError as u8);
     }
 }

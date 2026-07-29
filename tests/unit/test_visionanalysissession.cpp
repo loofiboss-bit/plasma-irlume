@@ -17,6 +17,7 @@ class VisionAnalysisSessionTest final : public QObject
     void workerFailures_data();
     void workerFailures();
     void cancellationAndCleanup();
+    void repeatedAnalyzeReplacesActiveRequest();
 
   private:
     static QProcessEnvironment environmentFor(const QString &mode);
@@ -99,8 +100,13 @@ void VisionAnalysisSessionTest::workerFailures_data()
     QTest::newRow("crash") << QStringLiteral("crash") << QStringLiteral("worker-crashed") << 2000;
     QTest::newRow("malformed") << QStringLiteral("malformed") << QStringLiteral("protocol-error") << 2000;
     QTest::newRow("unknown flags") << QStringLiteral("unknown-flags") << QStringLiteral("protocol-error") << 2000;
+    QTest::newRow("contradictory flags") << QStringLiteral("contradictory-flags") << QStringLiteral("protocol-error")
+                                         << 2000;
     QTest::newRow("oversized") << QStringLiteral("oversized") << QStringLiteral("protocol-error") << 2000;
     QTest::newRow("stale") << QStringLiteral("stale") << QStringLiteral("stale-response") << 2000;
+    QTest::newRow("model unavailable") << QStringLiteral("model-unavailable") << QStringLiteral("analysis-error-11")
+                                       << 2000;
+    QTest::newRow("runtime output") << QStringLiteral("runtime-output") << QStringLiteral("analysis-error-12") << 2000;
     QTest::newRow("shutdown timeout") << QStringLiteral("shutdown-timeout") << QStringLiteral("shutdown-timeout")
                                       << 2500;
 }
@@ -141,6 +147,28 @@ void VisionAnalysisSessionTest::cancellationAndCleanup()
     QTRY_COMPARE(analysis.state(), VisionAnalysisSession::State::Idle);
     QVERIFY(!analysis.resultAvailable());
     QTRY_COMPARE(preview.state(), CameraPreviewSession::State::Ready);
+}
+
+void VisionAnalysisSessionTest::repeatedAnalyzeReplacesActiveRequest()
+{
+    CameraPreviewSession preview(QStringLiteral(KFACEAUTH_FAKE_PREVIEW_WORKER_PATH), nullptr);
+    startPreview(&preview);
+    VisionAnalysisSession analysis(&preview, QStringLiteral(KFACEAUTH_FAKE_VISION_WORKER_PATH),
+                                   environmentFor(QStringLiteral("timeout")), nullptr);
+    analysis.analyzeCurrentFrame();
+    QTRY_COMPARE(analysis.state(), VisionAnalysisSession::State::Analyzing);
+    const quint64 firstGeneration = analysis.generation();
+
+    QVERIFY(analysis.canAnalyze());
+    analysis.analyzeCurrentFrame();
+    QVERIFY(analysis.generation() > firstGeneration);
+    QTRY_COMPARE(analysis.state(), VisionAnalysisSession::State::Analyzing);
+    QVERIFY(analysis.generation() > firstGeneration + 1);
+    QVERIFY(!analysis.resultAvailable());
+
+    analysis.cancelAnalysis();
+    QCOMPARE(analysis.state(), VisionAnalysisSession::State::Idle);
+    QVERIFY(!analysis.resultAvailable());
 }
 
 QTEST_GUILESS_MAIN(VisionAnalysisSessionTest)

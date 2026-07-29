@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Verify the closed KFaceAuth Milestone 2 model supply chain."""
+"""Verify the closed KFaceAuth Milestone 3 model supply chain."""
 
 from __future__ import annotations
 
@@ -22,19 +22,10 @@ TOKEN = re.compile(r"[A-Za-z0-9._+:-]{1,96}\Z")
 DIGEST = re.compile(r"[0-9a-f]{64}\Z")
 
 REQUIRED_ARTIFACTS = {
-    "fake-provider-config-v1": {
-        "path": "files/fake-provider-v1.cfg",
-        "role": "test-config",
-        "backend": "fake-deterministic",
-        "license": "GPL-3.0-or-later",
-        "provenance": "repo-authored",
-        "size": 46,
-        "sha256": "3904333a4e996eb34d09b7ddfe7d803567c5664f38e75df5c46c4cf55bbd775f",
-    },
     "yunet-2023mar": {
         "path": "files/face_detection_yunet_2023mar.onnx",
         "role": "detector",
-        "backend": "not-enabled",
+        "backend": "opencv-facedetectoryn",
         "license": "MIT",
         "provenance": "opencv-zoo-47534e27",
         "size": 232589,

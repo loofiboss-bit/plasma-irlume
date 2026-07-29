@@ -1,7 +1,7 @@
 # KFaceAuth
 
 KFaceAuth is a temporary neutral name for a standalone native KDE
-face-authentication project. Milestone 2 adds bounded local vision analysis and
+face-authentication project. Milestone 3 adds real bounded local YuNet analysis and
 does **not** authenticate users.
 
 The current KCM provides:
@@ -14,13 +14,15 @@ The current KCM provides:
   in-memory preview;
 - a second explicit action that copies one current frame through private pipes
   to a short-lived, unprivileged Rust vision worker;
+- real local CPU inference through Fedora OpenCV 4.13 and the hash-pinned YuNet
+  detector;
 - typed zero, one, or multiple-face presence and neutral image-quality results;
 - a selected, hash-pinned YuNet detector with offline verification and complete
   model provenance.
 
-Vision analysis is local and experimental. The packaged YuNet weight is not yet
-used for real inference: the worker reports its deterministic fake provider
-explicitly until a reviewed Rust ONNX Runtime integration is available. Face
+Vision analysis is local and experimental. Production uses the real YuNet
+provider; deterministic inference exists only in test code and cannot be
+selected by a production flag, environment variable, or configuration. Face
 detection is not identification, image-quality guidance is not liveness, and no
 security tier is claimed.
 
@@ -66,6 +68,9 @@ python3 tools/verify_models.py --root models
 See [architecture](docs/ARCHITECTURE.md),
 [threat boundary](docs/THREAT-BOUNDARY.md),
 [build guide](docs/BUILDING.md),
+[runtime decision](docs/RUNTIME-SELECTION.md),
+[YuNet pipeline](docs/YUNET-PIPELINE.md),
+[hardware qualification](docs/HARDWARE-QUALIFICATION.md),
 [camera protocol](docs/CAMERA-PREVIEW-PROTOCOL.md),
 [vision protocol](docs/VISION-PROTOCOL.md),
 [model decision](docs/MODEL-SELECTION.md), and the

@@ -18,18 +18,22 @@ fn main() {
         eprintln!("vision worker initialization failed");
         std::process::exit(2);
     }
-    let Ok(provider) = kfaceauth_vision::FakeDeterministicProvider::from_model_root(&model_root)
-    else {
-        eprintln!("vision worker initialization failed");
-        std::process::exit(1);
-    };
+    let hardening = kfaceauth_vision_opencv_sys::disable_core_dumps();
 
     let mut input = io::stdin().lock();
     let mut output = io::stdout().lock();
-    if let Err(error) =
-        kfaceauth_vision::worker::serve_once_with_provider(&mut input, &mut output, &provider)
+    if kfaceauth_vision::worker::serve_once_with_provider_factory(
+        &mut input,
+        &mut output,
+        move || {
+            hardening.map_err(|_| kfaceauth_vision::worker::WorkerErrorCode::InternalError)?;
+            kfaceauth_vision::yunet::YuNetProvider::from_model_root(&model_root)
+                .map_err(|_| kfaceauth_vision::worker::WorkerErrorCode::ModelUnavailable)
+        },
+    )
+    .is_err()
     {
-        eprintln!("vision worker terminated: {error}");
+        eprintln!("vision worker terminated after invalid local protocol I/O");
         std::process::exit(1);
     }
 }

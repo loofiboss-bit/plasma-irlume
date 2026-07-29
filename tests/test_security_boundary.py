@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 import unittest
 
 
@@ -159,6 +160,7 @@ class SecurityBoundaryTests(unittest.TestCase):
         rust = "\n".join(
             path.read_text(encoding="utf-8").split("#[cfg(test)]", 1)[0]
             for path in sorted((ROOT / "engine").rglob("*.rs"))
+            if "vision-opencv-sys" not in path.parts
         )
         for forbidden in (
             "std::net::",
@@ -174,6 +176,19 @@ class SecurityBoundaryTests(unittest.TestCase):
             self.assertNotIn(forbidden, rust)
         self.assertIn("MAX_REQUEST_BYTES", rust)
         self.assertIn("MAX_RESPONSE_BYTES", rust)
+
+    def test_unsafe_rust_is_isolated_to_reviewed_ffi_crate(self) -> None:
+        offenders: list[str] = []
+        allowed = ROOT / "engine" / "vision-opencv-sys" / "src" / "lib.rs"
+        for path in sorted((ROOT / "engine").rglob("*.rs")):
+            source = path.read_text(encoding="utf-8").split("#[cfg(test)]", 1)[0]
+            if re.search(r"\bunsafe(?:\s+extern|\s*\{|\s+fn|\s+trait|\s+impl)", source) and path != allowed:
+                offenders.append(str(path.relative_to(ROOT)))
+        self.assertEqual(offenders, [])
+        ffi = allowed.read_text(encoding="utf-8")
+        self.assertIn("#![deny(unsafe_op_in_unsafe_fn)]", ffi)
+        self.assertIn("unsafe extern", ffi)
+        self.assertNotIn("cv::", ffi)
 
     def test_vision_worker_has_no_network_auth_or_disk_write_surface(self) -> None:
         vision_rust = "\n".join(
@@ -200,6 +215,58 @@ class SecurityBoundaryTests(unittest.TestCase):
             self.assertNotIn(forbidden, vision_rust)
         self.assertIn("MAX_WIDTH", vision_rust)
         self.assertIn("MAX_HEIGHT", vision_rust)
+
+    def test_native_vision_bridge_has_no_io_network_auth_or_logging_surface(self) -> None:
+        native_root = ROOT / "engine" / "vision-opencv-sys"
+        native = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in sorted(native_root.rglob("*"))
+            if path.suffix in {".cpp", ".h", ".rs"}
+        )
+        for forbidden in (
+            "imwrite",
+            "imencode",
+            "VideoCapture",
+            "FileStorage",
+            "std::filesystem",
+            "std::ofstream",
+            "fopen(",
+            "socket(",
+            "connect(",
+            "QNetwork",
+            "curl",
+            "pam_",
+            "authselect",
+            "systemd",
+            "printf(",
+            "std::cout",
+            "std::cerr",
+        ):
+            self.assertNotIn(forbidden, native)
+        self.assertIn("PR_SET_DUMPABLE", native)
+        self.assertIn("RLIMIT_CORE", native)
+        self.assertIn('FaceDetectorYN::create("ONNX", model', native)
+
+    def test_fake_provider_is_test_only_and_not_packaged(self) -> None:
+        manifest = (ROOT / "models" / "manifest.kfaceauth").read_text(
+            encoding="utf-8"
+        )
+        spec = (ROOT / "packaging" / "fedora" / "kfaceauth.spec").read_text(
+            encoding="utf-8"
+        )
+        production_main = (
+            ROOT / "engine" / "vision" / "src" / "main.rs"
+        ).read_text(encoding="utf-8")
+        production_lib = (
+            ROOT / "engine" / "vision" / "src" / "lib.rs"
+        ).read_text(encoding="utf-8").split("#[cfg(test)]", 1)[0]
+        self.assertNotIn("fake", manifest.lower())
+        self.assertNotIn("fake-provider", spec.lower())
+        self.assertNotIn("FakeDeterministicProvider", production_main)
+        self.assertNotIn("FakeDeterministicProvider", production_lib)
+        self.assertFalse(
+            (ROOT / "models" / "files" / "fake-provider-v1.cfg").exists()
+        )
 
 
 if __name__ == "__main__":

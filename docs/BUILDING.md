@@ -7,11 +7,12 @@ sudo dnf install \
   cargo clang-tools-extra cmake extra-cmake-modules gcc-c++ ninja-build rust \
   kf6-kcmutils-devel kf6-kcoreaddons-devel kf6-ki18n-devel \
   kf6-kirigami-devel qt6-qtbase-devel qt6-qtdeclarative-devel \
-  qt6-qtmultimedia-devel systemd-devel
+  qt6-qtmultimedia-devel opencv-devel systemd-devel
 ```
 
-No external face-authentication package or inference runtime is required while
-the deterministic provider is active.
+Production inference uses Fedora's OpenCV 4.13 packages. `systemd-devel` remains
+an existing build-only dependency for local udev camera discovery; KFaceAuth
+does not add a systemd runtime API, unit, service, or activation path.
 
 ## CMake and Qt tests
 
@@ -21,6 +22,16 @@ cmake --build build --parallel
 QT_QPA_PLATFORM=offscreen ctest --test-dir build --output-on-failure
 python3 -m unittest discover -s tests -p 'test_*.py'
 /usr/lib64/qt6/bin/qmllint src/kcm/ui/*.qml src/kcm/ui/components/*.qml
+```
+
+For native bridge sanitizer coverage:
+
+```bash
+cmake --fresh -S . -B build-sanitized -G Ninja \
+  -DCMAKE_BUILD_TYPE=Debug -DKFACEAUTH_ENABLE_NATIVE_SANITIZERS=ON
+cmake --build build-sanitized --parallel
+ctest --test-dir build-sanitized --output-on-failure \
+  -R kfaceauth_yunet_bridge_native_test
 ```
 
 ## Rust checks
@@ -40,6 +51,9 @@ python3 tools/verify_models.py --root models
 The commands must also pass with network access disabled. Cargo has no
 third-party dependencies, and the model verifier reads only the source tree.
 No configure, build, test, installation, or runtime step downloads a model.
+
+The non-installed benchmark is documented in
+[hardware qualification](HARDWARE-QUALIFICATION.md).
 
 ## Staged installation
 

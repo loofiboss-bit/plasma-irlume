@@ -1,5 +1,18 @@
 # Changelog
 
+## Milestone 3 development
+
+- Enable real local YuNet face detection through Fedora OpenCV 4.13 and a
+  narrow reviewed C ABI bridge.
+- Make production Camera Check use the verified real provider with stable
+  fail-closed model/runtime errors and replacement cancellation.
+- Add explicit preprocessing/postprocessing contracts, native sanitizers,
+  adversarial tests, a machine-readable benchmark, and hardware qualification
+  procedure.
+- Keep deterministic inference test-only and retain all embedding, identity,
+  enrollment, persistence, liveness, PAM, service, networking, and
+  authentication non-goals.
+
 ## Milestone 2 development
 
 - Add explicit bounded one-frame Camera Check analysis through a separate

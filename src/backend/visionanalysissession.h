@@ -130,6 +130,7 @@ class VisionAnalysisSession final : public QObject
     void clearSensitiveData();
     void clearResult();
     void cancelForLifecycle();
+    void stopAnalysis(bool replacementRequested);
     [[nodiscard]] bool parseResponse(QByteArrayView payload, Result *result, QString *errorCode) const;
     void applyResult(const Result &result);
     [[nodiscard]] QString textForError(const QString &errorCode) const;
@@ -154,6 +155,7 @@ class VisionAnalysisSession final : public QObject
     std::optional<Result> m_pendingResult;
     bool m_ignoringProcessExit = false;
     bool m_responseReceived = false;
+    bool m_replacementRequested = false;
     quint16 m_requestWidth = 0;
     quint16 m_requestHeight = 0;
     qsizetype m_stderrBytes = 0;
