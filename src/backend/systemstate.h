@@ -7,59 +7,17 @@
 
 struct SystemStateSnapshot
 {
-    enum class SecurityTier
-    {
-        Secure,
-        Convenience,
-        Unsupported,
-        Unknown,
-    };
-
-    enum class CameraType
-    {
-        Infrared,
-        Rgb,
-        None,
-        Unknown,
-    };
-
     enum class EngineStatus
     {
-        Ready,
-        Missing,
-        UnsupportedContract,
+        LocalIdentityAvailable,
         Unavailable,
-        PartialDiagnostics,
-        NoCompatibleCapabilities,
-    };
-
-    enum class DaemonStatus
-    {
-        Running,
-        Missing,
-        Broken,
-        Unknown,
-    };
-
-    enum class PamStatus
-    {
-        Clean,
-        NotConfigured,
-        Drift,
-        Unknown,
+        ProtocolError,
     };
 
     enum class CapabilityStatus
     {
-        Available,
-        Unavailable,
-        Unknown,
-    };
-
-    enum class ProfileStatus
-    {
-        Enrolled,
-        NotEnrolled,
+        Supported,
+        Unsupported,
         Unknown,
     };
 
@@ -67,13 +25,6 @@ struct SystemStateSnapshot
     {
         Enabled,
         Disabled,
-        Unknown,
-    };
-
-    enum class PasswordFallbackStatus
-    {
-        Verified,
-        Unverified,
         Unknown,
     };
 
@@ -86,19 +37,13 @@ struct SystemStateSnapshot
     QString plasmaVersion;
     QString engineVersion;
     QString activeDisplayManager;
-    QString supportReport;
-    SecurityTier securityTier = SecurityTier::Unknown;
-    CameraType cameraType = CameraType::Unknown;
     EngineStatus engineStatus = EngineStatus::Unavailable;
-    DaemonStatus daemonStatus = DaemonStatus::Unknown;
-    PamStatus pamStatus = PamStatus::Unknown;
-    CapabilityStatus tpmStatus = CapabilityStatus::Unknown;
-    CapabilityStatus templateProtectionStatus = CapabilityStatus::Unknown;
-    CapabilityStatus emitterStatus = CapabilityStatus::Unknown;
-    CapabilityStatus livenessStatus = CapabilityStatus::Unknown;
-    ProfileStatus profileStatus = ProfileStatus::Unknown;
+    CapabilityStatus visionStatus = CapabilityStatus::Unsupported;
+    CapabilityStatus enrollmentStatus = CapabilityStatus::Unsupported;
+    CapabilityStatus authenticationStatus = CapabilityStatus::Unsupported;
+    CapabilityStatus pamStatus = CapabilityStatus::Unsupported;
+    CapabilityStatus templatePersistenceStatus = CapabilityStatus::Unsupported;
     SecureBootStatus secureBootStatus = SecureBootStatus::Unknown;
-    PasswordFallbackStatus passwordFallbackStatus = PasswordFallbackStatus::Unknown;
     bool liveData = false;
 };
 
@@ -115,97 +60,38 @@ class SystemState final : public QObject
     Q_PROPERTY(QString plasmaVersion READ plasmaVersion NOTIFY stateChanged)
     Q_PROPERTY(QString engineVersion READ engineVersion NOTIFY stateChanged)
     Q_PROPERTY(QString activeDisplayManager READ activeDisplayManager NOTIFY stateChanged)
-    Q_PROPERTY(QString supportReport READ supportReport NOTIFY stateChanged)
-    Q_PROPERTY(SecurityTier securityTier READ securityTier NOTIFY stateChanged)
-    Q_PROPERTY(CameraType cameraType READ cameraType NOTIFY stateChanged)
     Q_PROPERTY(EngineStatus engineStatus READ engineStatus NOTIFY stateChanged)
-    Q_PROPERTY(DaemonStatus daemonStatus READ daemonStatus NOTIFY stateChanged)
-    Q_PROPERTY(PamStatus pamStatus READ pamStatus NOTIFY stateChanged)
-    Q_PROPERTY(CapabilityStatus tpmStatus READ tpmStatus NOTIFY stateChanged)
-    Q_PROPERTY(CapabilityStatus templateProtectionStatus READ templateProtectionStatus NOTIFY stateChanged)
-    Q_PROPERTY(CapabilityStatus emitterStatus READ emitterStatus NOTIFY stateChanged)
-    Q_PROPERTY(CapabilityStatus livenessStatus READ livenessStatus NOTIFY stateChanged)
-    Q_PROPERTY(ProfileStatus profileStatus READ profileStatus NOTIFY stateChanged)
+    Q_PROPERTY(CapabilityStatus visionStatus READ visionStatus NOTIFY stateChanged)
+    Q_PROPERTY(CapabilityStatus enrollmentStatus READ enrollmentStatus NOTIFY stateChanged)
+    Q_PROPERTY(CapabilityStatus authenticationStatus READ authenticationStatus NOTIFY stateChanged)
+    Q_PROPERTY(CapabilityStatus pamStatus READ pamStatus NOTIFY stateChanged)
+    Q_PROPERTY(CapabilityStatus templatePersistenceStatus READ templatePersistenceStatus NOTIFY stateChanged)
     Q_PROPERTY(SecureBootStatus secureBootStatus READ secureBootStatus NOTIFY stateChanged)
-    Q_PROPERTY(bool passwordFallbackPreserved READ passwordFallbackPreserved NOTIFY stateChanged)
-    Q_PROPERTY(PasswordFallbackStatus passwordFallbackStatus READ passwordFallbackStatus NOTIFY stateChanged)
     Q_PROPERTY(bool liveData READ liveData NOTIFY stateChanged)
-    Q_PROPERTY(QString securityTierLabel READ securityTierLabel NOTIFY stateChanged)
-    Q_PROPERTY(QString cameraLabel READ cameraLabel NOTIFY stateChanged)
-    Q_PROPERTY(QString cameraStatusLabel READ cameraStatusLabel NOTIFY stateChanged)
     Q_PROPERTY(QString engineStatusLabel READ engineStatusLabel NOTIFY stateChanged)
-    Q_PROPERTY(QString daemonStatusLabel READ daemonStatusLabel NOTIFY stateChanged)
+    Q_PROPERTY(QString visionStatusLabel READ visionStatusLabel NOTIFY stateChanged)
+    Q_PROPERTY(QString enrollmentStatusLabel READ enrollmentStatusLabel NOTIFY stateChanged)
+    Q_PROPERTY(QString authenticationStatusLabel READ authenticationStatusLabel NOTIFY stateChanged)
     Q_PROPERTY(QString pamStatusLabel READ pamStatusLabel NOTIFY stateChanged)
-    Q_PROPERTY(QString profileStatusLabel READ profileStatusLabel NOTIFY stateChanged)
-    Q_PROPERTY(QString tpmStatusLabel READ tpmStatusLabel NOTIFY stateChanged)
-    Q_PROPERTY(QString templateProtectionStatusLabel READ templateProtectionStatusLabel NOTIFY stateChanged)
-    Q_PROPERTY(QString emitterStatusLabel READ emitterStatusLabel NOTIFY stateChanged)
-    Q_PROPERTY(QString livenessStatusLabel READ livenessStatusLabel NOTIFY stateChanged)
+    Q_PROPERTY(QString templatePersistenceStatusLabel READ templatePersistenceStatusLabel NOTIFY stateChanged)
     Q_PROPERTY(QString secureBootStatusLabel READ secureBootStatusLabel NOTIFY stateChanged)
 
   public:
-    enum class SecurityTier
-    {
-        Secure,
-        Convenience,
-        Unsupported,
-        Unknown,
-    };
-    Q_ENUM(SecurityTier)
-
-    enum class CameraType
-    {
-        Infrared,
-        Rgb,
-        None,
-        Unknown,
-    };
-    Q_ENUM(CameraType)
-
     enum class EngineStatus
     {
-        Ready,
-        Missing,
-        UnsupportedContract,
+        LocalIdentityAvailable,
         Unavailable,
-        PartialDiagnostics,
-        NoCompatibleCapabilities,
+        ProtocolError,
     };
     Q_ENUM(EngineStatus)
 
-    enum class DaemonStatus
-    {
-        Running,
-        Missing,
-        Broken,
-        Unknown,
-    };
-    Q_ENUM(DaemonStatus)
-
-    enum class PamStatus
-    {
-        Clean,
-        NotConfigured,
-        Drift,
-        Unknown,
-    };
-    Q_ENUM(PamStatus)
-
     enum class CapabilityStatus
     {
-        Available,
-        Unavailable,
+        Supported,
+        Unsupported,
         Unknown,
     };
     Q_ENUM(CapabilityStatus)
-
-    enum class ProfileStatus
-    {
-        Enrolled,
-        NotEnrolled,
-        Unknown,
-    };
-    Q_ENUM(ProfileStatus)
 
     enum class SecureBootStatus
     {
@@ -215,16 +101,7 @@ class SystemState final : public QObject
     };
     Q_ENUM(SecureBootStatus)
 
-    enum class PasswordFallbackStatus
-    {
-        Verified,
-        Unverified,
-        Unknown,
-    };
-    Q_ENUM(PasswordFallbackStatus)
-
     explicit SystemState(QObject *parent = nullptr);
-
     void apply(const SystemStateSnapshot &snapshot);
 
     [[nodiscard]] QString scenarioId() const;
@@ -236,38 +113,29 @@ class SystemState final : public QObject
     [[nodiscard]] QString plasmaVersion() const;
     [[nodiscard]] QString engineVersion() const;
     [[nodiscard]] QString activeDisplayManager() const;
-    [[nodiscard]] QString supportReport() const;
-    [[nodiscard]] SecurityTier securityTier() const;
-    [[nodiscard]] CameraType cameraType() const;
     [[nodiscard]] EngineStatus engineStatus() const;
-    [[nodiscard]] DaemonStatus daemonStatus() const;
-    [[nodiscard]] PamStatus pamStatus() const;
-    [[nodiscard]] CapabilityStatus tpmStatus() const;
-    [[nodiscard]] CapabilityStatus templateProtectionStatus() const;
-    [[nodiscard]] CapabilityStatus emitterStatus() const;
-    [[nodiscard]] CapabilityStatus livenessStatus() const;
-    [[nodiscard]] ProfileStatus profileStatus() const;
+    [[nodiscard]] CapabilityStatus visionStatus() const;
+    [[nodiscard]] CapabilityStatus enrollmentStatus() const;
+    [[nodiscard]] CapabilityStatus authenticationStatus() const;
+    [[nodiscard]] CapabilityStatus pamStatus() const;
+    [[nodiscard]] CapabilityStatus templatePersistenceStatus() const;
     [[nodiscard]] SecureBootStatus secureBootStatus() const;
-    [[nodiscard]] bool passwordFallbackPreserved() const;
-    [[nodiscard]] PasswordFallbackStatus passwordFallbackStatus() const;
     [[nodiscard]] bool liveData() const;
 
-    [[nodiscard]] QString securityTierLabel() const;
-    [[nodiscard]] QString cameraLabel() const;
-    [[nodiscard]] QString cameraStatusLabel() const;
     [[nodiscard]] QString engineStatusLabel() const;
-    [[nodiscard]] QString daemonStatusLabel() const;
+    [[nodiscard]] QString visionStatusLabel() const;
+    [[nodiscard]] QString enrollmentStatusLabel() const;
+    [[nodiscard]] QString authenticationStatusLabel() const;
     [[nodiscard]] QString pamStatusLabel() const;
-    [[nodiscard]] QString profileStatusLabel() const;
-    [[nodiscard]] QString tpmStatusLabel() const;
-    [[nodiscard]] QString templateProtectionStatusLabel() const;
-    [[nodiscard]] QString emitterStatusLabel() const;
-    [[nodiscard]] QString livenessStatusLabel() const;
+    [[nodiscard]] QString templatePersistenceStatusLabel() const;
     [[nodiscard]] QString secureBootStatusLabel() const;
 
   Q_SIGNALS:
     void stateChanged();
 
   private:
+    [[nodiscard]] static QString capabilityLabel(SystemStateSnapshot::CapabilityStatus status);
     SystemStateSnapshot m_snapshot;
 };
+
+Q_DECLARE_METATYPE(SystemStateSnapshot)

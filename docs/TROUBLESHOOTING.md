@@ -1,31 +1,49 @@
 # Troubleshooting
 
-## Native Camera Check
+## Local identity unavailable
 
-| Error | Meaning and action |
-| --- | --- |
-| `permission-denied` | Camera access was denied. Grant access in the desktop prompt and refresh. |
-| `no-camera` | No compatible local capture node remains available. Reconnect the camera and refresh. |
-| `camera-busy` | Another application owns the selected camera. Stop that application and retry. |
-| `camera-unavailable` | The selected local node could not be opened. Refresh discovery. |
-| `format-unavailable` | The device advertises no usable preview format. Try another device. |
-| `startup-timeout` | Capture did not start within five seconds. |
-| `stream-stalled` | An active preview delivered no frame for three seconds. |
-| `protocol-error` | The private worker returned malformed, oversized, or out-of-sequence data. |
-| `worker-crashed` | The worker exited or did not acknowledge stop within one second. |
+Verify every installed package-owned file, including the exact model
+inventory:
 
-Every preview error clears the frame. Refresh starts a new private worker when
-the previous worker was terminated.
+```bash
+rpm -V kfaceauth
+```
 
-## irlume diagnostics
+No output means RPM verification found no difference. Then open KFaceAuth,
+choose **Diagnostics**, refresh status, and inspect or export the bounded
+redacted report. Do not copy, rename, or download an ONNX file manually. The
+worker requires the exact closed YuNet/SFace inventory and never substitutes a
+model.
 
-| Error | Meaning |
-| --- | --- |
-| `engine-not-installed` | `/usr/bin/irlume` is not executable. Install `irlume >= 0.7.0`. |
-| `unsupported-contract` | The advertised contract range does not include Contract 1. |
-| `invalid-handshake` | Required contract, capability, or public-limit data is malformed or missing. |
-| `invalid-json-document` | The engine did not return one valid JSON object. |
-| `engine-timeout` | A fixed read-only command exceeded its timeout. |
-| `engine-output-too-large` | A response exceeded the accepted output bound. |
+## KWallet locked, cancelled, or unavailable
 
-Native preview errors do not erase otherwise valid irlume diagnostic data.
+Unlock your normal KDE wallet and retry. Cancelling access safely leaves the
+profile unchanged. KFaceAuth never falls back to a key file. If the wallet key
+is permanently lost, use **Reset unreadable data** and re-enroll; recovery or
+export is not implemented.
+
+## Profile unreadable or model mismatch
+
+KFaceAuth preserves unreadable data and will not overwrite it automatically.
+First verify/reinstall the RPM. If the profile cannot be recovered with the
+original KWallet key and exact model version, explicitly reset it and enroll
+again.
+
+## Enrollment sample rejected
+
+Keep exactly one face visible, use even lighting, center the face away from the
+edge, move closer if it is small, and vary ordinary pose or appearance between
+samples. Each frame requires an explicit Capture click. Quality guidance is not
+liveness evidence.
+
+## Preview stops or verification is rate-limited
+
+Preview stops after 60 seconds and on page hide, app deactivation, failure, or
+teardown. Restart it explicitly. Verification intentionally permits no faster
+than one request every two seconds.
+
+## Build dependencies
+
+`opencv-devel` must provide OpenCV 4.13, `openssl-devel` OpenSSL 3, and
+`kf6-kwallet-devel` KF6 Wallet. KFaceAuth rejects another OpenCV minor until
+reviewed.

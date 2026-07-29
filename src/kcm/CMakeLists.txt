@@ -1,16 +1,28 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
-kcmutils_add_qml_kcm(kcm_irlume
+configure_file(
+    kcm_kfaceauth.json.in
+    "${CMAKE_CURRENT_BINARY_DIR}/${KFACEAUTH_KCM_ID}.json"
+    @ONLY
+)
+
+kcmutils_add_qml_kcm(${KFACEAUTH_KCM_ID}
     DISABLE_DESKTOP_FILE_GENERATION
     SOURCES
         camerapreviewitem.cpp
         camerapreviewitem.h
-        irlumekcm.cpp
-        irlumekcm.h
+        kfaceauthkcm.cpp
+        kfaceauthkcm.h
+        "${CMAKE_CURRENT_BINARY_DIR}/${KFACEAUTH_KCM_ID}.json"
 )
 
-target_link_libraries(kcm_irlume
-    irlume_backend
+target_compile_definitions(${KFACEAUTH_KCM_ID} PRIVATE
+    KFACEAUTH_PLUGIN_METADATA="${CMAKE_CURRENT_BINARY_DIR}/${KFACEAUTH_KCM_ID}.json"
+    KFACEAUTH_QML_URI="${KFACEAUTH_QML_URI}"
+)
+
+target_link_libraries(${KFACEAUTH_KCM_ID}
+    kfaceauth_core
     Qt6::Core
     Qt6::Qml
     Qt6::Quick

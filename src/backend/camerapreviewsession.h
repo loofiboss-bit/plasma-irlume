@@ -65,6 +65,7 @@ class CameraPreviewSession final : public QAbstractListModel
     [[nodiscard]] QString statusText() const;
     [[nodiscard]] QString errorCode() const;
     [[nodiscard]] QImage frame() const;
+    [[nodiscard]] bool copyCurrentFrame(QImage *destination) const;
     [[nodiscard]] int deviceCountForSpectrum(const QString &spectrum) const;
 
     Q_INVOKABLE void refreshDevices();

@@ -1,3 +1,0 @@
-{"contract_version":1,"engine_version":"0.6.2","command":"enroll","operation_id":"operation-example-merge","sequence":0,"event":"started","terminal":false}
-{"contract_version":1,"engine_version":"0.6.2","command":"enroll","operation_id":"operation-example-merge","sequence":1,"event":"stage","terminal":false,"data":{"stage":"camera-ready"}}
-{"contract_version":1,"engine_version":"0.6.2","command":"enroll","operation_id":"operation-example-merge","sequence":2,"event":"completed","terminal":true,"data":{"profile_id":"profile-example-001","created":false,"added_scans":2,"total_scans":3,"added_scan_ids":["scan-example-002","scan-example-003"]}}

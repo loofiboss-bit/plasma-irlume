@@ -11,8 +11,8 @@
 
 #include <algorithm>
 
-#ifndef PLASMA_IRLUME_PREVIEW_WORKER_PATH
-#define PLASMA_IRLUME_PREVIEW_WORKER_PATH "/usr/libexec/plasma-irlume-camera-preview-worker"
+#ifndef KFACEAUTH_PREVIEW_WORKER_PATH
+#define KFACEAUTH_PREVIEW_WORKER_PATH "/usr/libexec/kfaceauth-camera-preview-worker"
 #endif
 
 namespace
@@ -24,7 +24,7 @@ QString translate(const char *text)
 } // namespace
 
 CameraPreviewSession::CameraPreviewSession(QObject *parent)
-    : CameraPreviewSession(QStringLiteral(PLASMA_IRLUME_PREVIEW_WORKER_PATH), parent)
+    : CameraPreviewSession(QStringLiteral(KFACEAUTH_PREVIEW_WORKER_PATH), parent)
 {
 }
 
@@ -179,6 +179,19 @@ QString CameraPreviewSession::errorCode() const
 QImage CameraPreviewSession::frame() const
 {
     return m_frame;
+}
+
+bool CameraPreviewSession::copyCurrentFrame(QImage *destination) const
+{
+    if (!destination)
+        return false;
+    *destination = {};
+    if (m_state != State::Streaming || m_frame.isNull() || m_frame.width() <= 0 ||
+        m_frame.width() > PreviewProtocol::MaxWidth || m_frame.height() <= 0 ||
+        m_frame.height() > PreviewProtocol::MaxHeight)
+        return false;
+    *destination = m_frame.copy();
+    return !destination->isNull();
 }
 
 int CameraPreviewSession::deviceCountForSpectrum(const QString &spectrum) const

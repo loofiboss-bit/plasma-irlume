@@ -75,15 +75,15 @@ void RefreshCoordinatorTest::latestGenerationWins()
     QCOMPARE(controlled->requests, (QList<quint64>{1, 2}));
 
     EngineSnapshot stale;
-    stale.executablePresent = false;
+    stale.engineAvailable = false;
     controlled->complete(1, stale);
     QVERIFY(coordinator.refreshing());
     QCOMPARE(snapshotSpy.size(), 0);
 
     EngineSnapshot current;
-    current.executablePresent = true;
-    current.handshake.state = ResultState::Available;
-    current.handshake.data = EngineHandshakeSnapshot{1, QStringLiteral("0.7.0")};
+    current.engineAvailable = true;
+    current.protocol.state = ResultState::Available;
+    current.protocol.data = EngineProtocolSnapshot{1, QStringLiteral("0.1.0")};
     controlled->progress(2, current);
     QCOMPARE(snapshotSpy.size(), 1);
     controlled->complete(2, current);

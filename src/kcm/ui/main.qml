@@ -10,52 +10,57 @@ import org.kde.kcmutils as KCMUtils
 KCMUtils.SimpleKCM {
     id: root
 
-    title: i18n("Face Login")
+    title: i18n("KFaceAuth (Experimental Local Identity Preview)")
     KCMUtils.ConfigModule.buttons: KCMUtils.ConfigModule.NoAdditionalButton
 
     header: QQC2.TabBar {
         id: tabs
 
         width: parent.width
-        Accessible.name: i18n("Face Login sections")
-        KeyNavigation.down: currentIndex === 0 ? setupStatus
+        Accessible.name: i18n("KFaceAuth sections")
+        KeyNavigation.down: currentIndex === 0 ? overview
             : (currentIndex === 1 ? cameraCheck
-            : (currentIndex === 2 ? enrollment
-            : (currentIndex === 3 ? authentication : diagnostics)))
+                : (currentIndex === 2 ? faceProfile
+                    : (currentIndex === 3 ? testRecognition : diagnostics)))
 
         QQC2.TabButton {
-            text: i18n("Setup & Status")
+            objectName: "overviewTab"
+            text: i18n("Overview")
             icon.name: "view-dashboard"
-            display: tabs.width < 520 ? QQC2.AbstractButton.IconOnly : QQC2.AbstractButton.TextOnly
             Accessible.name: text
+            activeFocusOnTab: true
         }
 
         QQC2.TabButton {
+            objectName: "cameraCheckTab"
             text: i18n("Camera Check")
             icon.name: "camera-photo"
-            display: tabs.width < 640 ? QQC2.AbstractButton.IconOnly : QQC2.AbstractButton.TextOnly
             Accessible.name: text
+            activeFocusOnTab: true
         }
 
         QQC2.TabButton {
-            text: i18n("Face Profiles")
+            objectName: "faceProfileTab"
+            text: i18n("Face Profile")
             icon.name: "user-identity"
-            display: tabs.width < 640 ? QQC2.AbstractButton.IconOnly : QQC2.AbstractButton.TextOnly
             Accessible.name: text
+            activeFocusOnTab: true
         }
 
         QQC2.TabButton {
-            text: i18n("Access")
-            icon.name: "preferences-system-login"
-            display: tabs.width < 640 ? QQC2.AbstractButton.IconOnly : QQC2.AbstractButton.TextOnly
+            objectName: "testRecognitionTab"
+            text: i18n("Test Recognition")
+            icon.name: "view-preview"
             Accessible.name: text
+            activeFocusOnTab: true
         }
 
         QQC2.TabButton {
-            text: i18n("Support")
+            objectName: "diagnosticsTab"
+            text: i18n("Diagnostics")
             icon.name: "tools-report-bug"
-            display: tabs.width < 640 ? QQC2.AbstractButton.IconOnly : QQC2.AbstractButton.TextOnly
             Accessible.name: text
+            activeFocusOnTab: true
         }
     }
 
@@ -64,23 +69,16 @@ KCMUtils.SimpleKCM {
         spacing: 0
 
         SetupStatusPage {
-            id: setupStatus
+            id: overview
 
             Layout.fillWidth: true
             visible: tabs.currentIndex === 0
             enabled: visible
             systemState: kcm.systemState
-            profileModel: kcm.profileModel
-            authConfiguration: kcm.authConfiguration
             cameraPreviewSession: kcm.cameraPreviewSession
             refreshActive: kcm.refreshing
-            partialDiagnostics: kcm.partialDiagnostics
             openCamera: () => tabs.currentIndex = 1
-            openProfiles: () => tabs.currentIndex = 2
-            openAccess: () => tabs.currentIndex = 3
-            refresh: () => {
-                kcm.refresh();
-            }
+            refresh: () => kcm.refresh()
         }
 
         CameraCheckPage {
@@ -90,25 +88,27 @@ KCMUtils.SimpleKCM {
             visible: tabs.currentIndex === 1
             enabled: visible
             cameraPreviewSession: kcm.cameraPreviewSession
+            visionAnalysisSession: kcm.visionAnalysisSession
         }
 
-        EnrollmentPage {
-            id: enrollment
+        FaceProfilePage {
+            id: faceProfile
 
             Layout.fillWidth: true
             visible: tabs.currentIndex === 2
             enabled: visible
-            profileModel: kcm.profileModel
+            cameraPreviewSession: kcm.cameraPreviewSession
+            enrollmentSession: kcm.enrollmentSession
         }
 
-        AuthenticationPage {
-            id: authentication
+        TestRecognitionPage {
+            id: testRecognition
 
             Layout.fillWidth: true
             visible: tabs.currentIndex === 3
             enabled: visible
-            systemState: kcm.systemState
-            authConfiguration: kcm.authConfiguration
+            cameraPreviewSession: kcm.cameraPreviewSession
+            localVerificationSession: kcm.localVerificationSession
         }
 
         DiagnosticsPage {
@@ -120,7 +120,6 @@ KCMUtils.SimpleKCM {
             systemState: kcm.systemState
             supportReport: kcm.supportReport
             refreshActive: kcm.refreshing
-            partialDiagnostics: kcm.partialDiagnostics
             refresh: () => kcm.refresh()
         }
     }

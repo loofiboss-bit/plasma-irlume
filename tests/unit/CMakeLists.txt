@@ -1,43 +1,52 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 add_executable(test_systemstate test_systemstate.cpp)
-
-target_link_libraries(test_systemstate
-    irlume_backend
-    Qt6::Core
-    Qt6::Test
-)
-
+target_link_libraries(test_systemstate kfaceauth_core Qt6::Core Qt6::Test)
 add_test(NAME systemstate COMMAND test_systemstate)
 set_tests_properties(systemstate PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
-add_executable(test_irlumebackend test_irlumebackend.cpp)
-
-target_link_libraries(test_irlumebackend
-    irlume_adapter
-    Qt6::Core
-    Qt6::Test
-)
-
-add_test(NAME irlumebackend COMMAND test_irlumebackend)
-set_tests_properties(irlumebackend PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+add_executable(test_nativefaceauthbackend test_nativefaceauthbackend.cpp)
+target_link_libraries(test_nativefaceauthbackend kfaceauth_core Qt6::Core Qt6::Test)
+add_test(NAME nativefaceauthbackend COMMAND test_nativefaceauthbackend)
 
 add_executable(test_refreshcoordinator test_refreshcoordinator.cpp)
-
-target_link_libraries(test_refreshcoordinator
-    irlume_backend
-    Qt6::Core
-    Qt6::Test
-)
-
+target_link_libraries(test_refreshcoordinator kfaceauth_core Qt6::Core Qt6::Test)
 add_test(NAME refreshcoordinator COMMAND test_refreshcoordinator)
 
 add_executable(fake_preview_worker fake_preview_worker.cpp)
 target_link_libraries(fake_preview_worker preview_protocol Qt6::Core Qt6::Gui)
 
+add_executable(fake_vision_worker fake_vision_worker.cpp)
+target_link_libraries(fake_vision_worker Qt6::Core)
+
+add_executable(fake_identity_worker fake_identity_worker.cpp)
+target_link_libraries(fake_identity_worker Qt6::Core)
+
 add_executable(test_previewprotocol test_previewprotocol.cpp)
 target_link_libraries(test_previewprotocol preview_protocol Qt6::Core Qt6::Test)
 add_test(NAME previewprotocol COMMAND test_previewprotocol)
+
+add_executable(test_identityprotocol test_identityprotocol.cpp)
+target_link_libraries(test_identityprotocol kfaceauth_core Qt6::Core Qt6::Gui Qt6::Test)
+add_test(NAME identityprotocol COMMAND test_identityprotocol)
+
+add_executable(test_identityworkerclient test_identityworkerclient.cpp)
+target_compile_definitions(test_identityworkerclient PRIVATE
+    KFACEAUTH_FAKE_IDENTITY_WORKER_PATH="$<TARGET_FILE:fake_identity_worker>"
+)
+target_link_libraries(test_identityworkerclient kfaceauth_core Qt6::Core Qt6::Test)
+add_dependencies(test_identityworkerclient fake_identity_worker)
+add_test(NAME identityworkerclient COMMAND test_identityworkerclient)
+
+add_executable(test_identitysessions test_identitysessions.cpp)
+target_compile_definitions(test_identitysessions PRIVATE
+    KFACEAUTH_FAKE_IDENTITY_WORKER_PATH="$<TARGET_FILE:fake_identity_worker>"
+    KFACEAUTH_FAKE_PREVIEW_WORKER_PATH="$<TARGET_FILE:fake_preview_worker>"
+)
+target_link_libraries(test_identitysessions kfaceauth_core Qt6::Core Qt6::Gui Qt6::Test)
+add_dependencies(test_identitysessions fake_identity_worker fake_preview_worker)
+add_test(NAME identitysessions COMMAND test_identitysessions)
+set_tests_properties(identitysessions PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
 add_executable(test_cameraprovider test_cameraprovider.cpp)
 target_link_libraries(test_cameraprovider camera_provider Qt6::Core Qt6::Gui Qt6::Test)
@@ -45,55 +54,65 @@ add_test(NAME cameraprovider COMMAND test_cameraprovider)
 
 add_executable(test_previewworker test_previewworker.cpp)
 target_compile_definitions(test_previewworker PRIVATE
-    IRLUME_PREVIEW_WORKER_PATH="$<TARGET_FILE:plasma-irlume-camera-preview-worker>"
+    KFACEAUTH_PREVIEW_WORKER_PATH="$<TARGET_FILE:${KFACEAUTH_PREVIEW_WORKER}>"
 )
 target_link_libraries(test_previewworker preview_protocol Qt6::Core Qt6::Test)
-add_dependencies(test_previewworker plasma-irlume-camera-preview-worker)
+add_dependencies(test_previewworker ${KFACEAUTH_PREVIEW_WORKER})
 add_test(NAME previewworker COMMAND test_previewworker)
 set_tests_properties(previewworker PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
 add_executable(test_camerapreviewsession test_camerapreviewsession.cpp)
 target_compile_definitions(test_camerapreviewsession PRIVATE
-    IRLUME_FAKE_PREVIEW_WORKER_PATH="$<TARGET_FILE:fake_preview_worker>"
+    KFACEAUTH_FAKE_PREVIEW_WORKER_PATH="$<TARGET_FILE:fake_preview_worker>"
 )
-target_link_libraries(test_camerapreviewsession irlume_backend Qt6::Core Qt6::Gui Qt6::Test)
+target_link_libraries(test_camerapreviewsession kfaceauth_core Qt6::Core Qt6::Gui Qt6::Test)
 add_dependencies(test_camerapreviewsession fake_preview_worker)
 add_test(NAME camerapreviewsession COMMAND test_camerapreviewsession)
 
-add_executable(test_profilemodel test_profilemodel.cpp)
-
-target_link_libraries(test_profilemodel
-    irlume_backend
-    Qt6::Core
-    Qt6::Test
+add_executable(test_visionanalysissession test_visionanalysissession.cpp)
+target_compile_definitions(test_visionanalysissession PRIVATE
+    KFACEAUTH_FAKE_PREVIEW_WORKER_PATH="$<TARGET_FILE:fake_preview_worker>"
+    KFACEAUTH_FAKE_VISION_WORKER_PATH="$<TARGET_FILE:fake_vision_worker>"
 )
+target_link_libraries(test_visionanalysissession kfaceauth_core Qt6::Core Qt6::Gui Qt6::Test)
+add_dependencies(test_visionanalysissession fake_preview_worker fake_vision_worker)
+add_test(NAME visionanalysissession COMMAND test_visionanalysissession)
 
-add_test(NAME profilemodel COMMAND test_profilemodel)
-set_tests_properties(profilemodel PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
-
-add_executable(test_authconfiguration test_authconfiguration.cpp)
-
-target_link_libraries(test_authconfiguration
-    irlume_backend
-    Qt6::Core
-    Qt6::Test
+add_executable(test_yunet_bridge_native
+    test_yunet_bridge_native.cpp
+    ${PROJECT_SOURCE_DIR}/engine/vision-opencv-sys/native/yunet_bridge.cpp
 )
-
-add_test(NAME authconfiguration COMMAND test_authconfiguration)
+target_include_directories(test_yunet_bridge_native PRIVATE
+    ${PROJECT_SOURCE_DIR}/engine/vision-opencv-sys/native
+)
+target_compile_definitions(test_yunet_bridge_native PRIVATE
+    KFACEAUTH_YUNET_MODEL_PATH="${PROJECT_SOURCE_DIR}/models/files/face_detection_yunet_2023mar.onnx"
+    KFACEAUTH_SFACE_MODEL_PATH="${PROJECT_SOURCE_DIR}/models/files/face_recognition_sface_2021dec.onnx"
+)
+target_compile_options(test_yunet_bridge_native PRIVATE -fexceptions)
+target_link_libraries(test_yunet_bridge_native PRIVATE
+    opencv_core
+    opencv_dnn
+    opencv_imgproc
+    opencv_objdetect
+)
+if(KFACEAUTH_ENABLE_NATIVE_SANITIZERS AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(test_yunet_bridge_native PRIVATE
+        -fno-omit-frame-pointer
+        -fsanitize=address,undefined
+    )
+    target_link_options(test_yunet_bridge_native PRIVATE
+        -fsanitize=address,undefined
+    )
+endif()
+add_test(NAME yunet_bridge_native COMMAND test_yunet_bridge_native)
 
 add_executable(test_supportreport test_supportreport.cpp)
-
 target_compile_definitions(test_supportreport PRIVATE
-    IRLUME_FAKE_PREVIEW_WORKER_PATH="$<TARGET_FILE:fake_preview_worker>"
+    KFACEAUTH_FAKE_PREVIEW_WORKER_PATH="$<TARGET_FILE:fake_preview_worker>"
 )
-target_link_libraries(test_supportreport
-    irlume_backend
-    Qt6::Core
-    Qt6::Gui
-    Qt6::Test
-)
+target_link_libraries(test_supportreport kfaceauth_core Qt6::Core Qt6::Gui Qt6::Test)
 add_dependencies(test_supportreport fake_preview_worker)
-
 add_test(NAME supportreport COMMAND test_supportreport)
 set_tests_properties(supportreport PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
@@ -102,18 +121,14 @@ add_executable(test_qmlpages
     ${PROJECT_SOURCE_DIR}/src/kcm/camerapreviewitem.cpp
     ${PROJECT_SOURCE_DIR}/src/kcm/camerapreviewitem.h
 )
-
-target_include_directories(test_qmlpages PRIVATE
-    ${PROJECT_SOURCE_DIR}/src/kcm
-)
-
+target_include_directories(test_qmlpages PRIVATE ${PROJECT_SOURCE_DIR}/src/kcm)
 target_compile_definitions(test_qmlpages PRIVATE
-    IRLUME_SOURCE_DIR="${PROJECT_SOURCE_DIR}"
-    IRLUME_FAKE_PREVIEW_WORKER_PATH="$<TARGET_FILE:fake_preview_worker>"
+    KFACEAUTH_SOURCE_DIR="${PROJECT_SOURCE_DIR}"
+    KFACEAUTH_FAKE_PREVIEW_WORKER_PATH="$<TARGET_FILE:fake_preview_worker>"
+    KFACEAUTH_FAKE_VISION_WORKER_PATH="$<TARGET_FILE:fake_vision_worker>"
 )
-
 target_link_libraries(test_qmlpages
-    irlume_backend
+    kfaceauth_core
     Qt6::Core
     Qt6::Gui
     Qt6::Qml
@@ -121,25 +136,24 @@ target_link_libraries(test_qmlpages
     Qt6::Test
     KF6::I18nQml
 )
-add_dependencies(test_qmlpages fake_preview_worker)
-
+add_dependencies(test_qmlpages fake_preview_worker fake_vision_worker)
 add_test(NAME qmlpages COMMAND test_qmlpages)
 set_tests_properties(qmlpages PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
-add_executable(test_irlumekcm
-    test_irlumekcm.cpp
+add_executable(test_kfaceauthkcm
+    test_kfaceauthkcm.cpp
     ${PROJECT_SOURCE_DIR}/src/kcm/camerapreviewitem.cpp
     ${PROJECT_SOURCE_DIR}/src/kcm/camerapreviewitem.h
-    ${PROJECT_SOURCE_DIR}/src/kcm/irlumekcm.cpp
-    ${PROJECT_SOURCE_DIR}/src/kcm/irlumekcm.h
+    ${PROJECT_SOURCE_DIR}/src/kcm/kfaceauthkcm.cpp
+    ${PROJECT_SOURCE_DIR}/src/kcm/kfaceauthkcm.h
 )
-
-target_include_directories(test_irlumekcm PRIVATE
-    ${PROJECT_SOURCE_DIR}/src/kcm
+target_include_directories(test_kfaceauthkcm PRIVATE ${PROJECT_SOURCE_DIR}/src/kcm)
+target_compile_definitions(test_kfaceauthkcm PRIVATE
+    KFACEAUTH_PLUGIN_METADATA="${PROJECT_BINARY_DIR}/src/kcm/${KFACEAUTH_KCM_ID}.json"
+    KFACEAUTH_QML_URI="${KFACEAUTH_QML_URI}"
 )
-
-target_link_libraries(test_irlumekcm
-    irlume_backend
+target_link_libraries(test_kfaceauthkcm
+    kfaceauth_core
     Qt6::Core
     Qt6::Qml
     Qt6::Quick
@@ -148,10 +162,9 @@ target_link_libraries(test_irlumekcm
     KF6::I18n
     KF6::KCMUtilsQuick
 )
-
-add_test(NAME irlumekcm COMMAND test_irlumekcm)
-set_tests_properties(irlumekcm PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+add_test(NAME kfaceauthkcm COMMAND test_kfaceauthkcm)
+set_tests_properties(kfaceauthkcm PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
 add_executable(camera_hardware_check camera_hardware_check.cpp)
-target_link_libraries(camera_hardware_check irlume_backend Qt6::Core Qt6::Gui)
-add_dependencies(camera_hardware_check plasma-irlume-camera-preview-worker)
+target_link_libraries(camera_hardware_check kfaceauth_core Qt6::Core Qt6::Gui)
+add_dependencies(camera_hardware_check ${KFACEAUTH_PREVIEW_WORKER})

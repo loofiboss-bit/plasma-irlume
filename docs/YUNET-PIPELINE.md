@@ -1,0 +1,107 @@
+# YuNet pipeline
+
+This document defines the Milestone 3 production pipeline. The authoritative
+constants are in `engine/vision/src/yunet.rs` and the native detector setup is
+in `engine/vision-opencv-sys/native/yunet_bridge.cpp`.
+
+## Input and conversion
+
+The worker accepts exactly one bounded frame in `RGB8`, `RGBA8`, or `Gray8`
+format. Width is `1..640`, height is `1..480`, and stride may contain padding
+but must cover every packed row. Protocol parsing validates the exact payload
+length and all multiplication and addition before preprocessing.
+
+Rust converts the original frame into a tightly packed three-channel BGR
+buffer:
+
+- `RGB8`: `(R, G, B)` becomes `(B, G, R)`;
+- `RGBA8`: alpha is discarded and `(R, G, B, A)` becomes `(B, G, R)`;
+- `Gray8`: the value is copied into B, G, and R.
+
+Row padding is ignored. If either dimension is below 64 pixels, Rust
+zero-pads only the right or bottom of the BGR buffer to a 64-pixel minimum.
+This avoids the degenerate single-feature-cell output observed at smaller
+YuNet runtime sizes while preserving the protocol's existing `1x1` minimum.
+The original frame is not mutated. There is no normalization, mean
+subtraction, scale factor, alpha blending, or color-space heuristic.
+
+## OpenCV inference
+
+The bridge initializes OpenCV 4.13 `FaceDetectorYN` directly from the verified
+FP32 ONNX bytes. Immediately before detection, the detector input size is set
+to the BGR buffer size: the original frame size unless the documented
+64-pixel minimum padding applies.
+
+OpenCV's YuNet implementation creates its DNN blob with scale `1.0`, zero mean,
+no channel swap, and no crop. Internally it pads only the right and bottom
+edges to the next multiple of 32 using zeros. It does not resize or letterbox
+the image. Consequently KFaceAuth applies no coordinate rescaling. Every
+rectangle and landmark is still validated against the original, unpadded
+frame; output in either padding region fails closed.
+
+The fixed production parameters are:
+
+| Parameter | Value |
+|---|---:|
+| score threshold | `0.9` |
+| NMS threshold | `0.3` |
+| OpenCV `topK` | `5000` |
+| emitted face limit | `8` |
+| backend/target | OpenCV CPU |
+
+OpenCV performs score filtering and non-maximum suppression. Thresholds are
+finite, compiled constants; the benchmark and user configuration cannot
+change them.
+
+## Output validation
+
+OpenCV must return a two-dimensional float matrix with exactly 15 columns per
+row: rectangle `(x, y, width, height)`, five landmark pairs, and a score.
+The bridge rejects another element type, shape, negative row count, or more
+than 5,000 rows.
+
+Rust then validates every returned row, including rows beyond the eight that
+can be emitted:
+
+- every value must be finite;
+- width and height must be positive;
+- the rectangle must remain inside the original image;
+- all five landmarks must remain inside the original image;
+- the score must satisfy the configured threshold within an explicit
+  `1e-5` floating-point tolerance and must not exceed one beyond that tolerance.
+
+Validated rectangles are conservatively rounded outward and converted to the
+existing bounded integer result. Landmarks and detector scores are discarded;
+they are not placed on the worker protocol, in the UI, in logs, or in support
+reports. At most eight rectangles are returned.
+
+## Quality and result semantics
+
+Brightness, contrast, and sharpness are calculated from the original accepted
+pixel format, not from a detector tensor. Quality calculation is independent
+of whether detection returns zero, one, or multiple faces. Quality flags are
+neutral framing guidance and are checked for contradictory values before the
+KCM displays them.
+
+- zero faces means that this frame produced no detector result;
+- one face means that one rectangle passed validation;
+- multiple faces means that two to eight rectangles passed validation.
+
+No result identifies a person. Detector score is not identity confidence,
+liveness confidence, anti-spoof evidence, or authentication confidence.
+
+## Upstream parity
+
+The implementation follows OpenCV 4.13's `FaceDetectorYN` buffer-loading path,
+input-size update, blob parameters, right/bottom multiple-of-32 padding, score
+thresholding, and NMS. KFaceAuth's additional below-64 right/bottom padding is
+explicitly tested at the smallest accepted frame. Native tests exercise model
+loading, no-face inference, input immutability, bounds, and malformed output
+shape. Numeric postprocessing tests use the explicit tolerance above rather
+than byte equality.
+
+No redistributable positive face photograph is included. Real-provider
+automation therefore covers verified loading, preprocessing, invalid input,
+postprocessing, and a synthetic black zero-face frame. Positive detections
+remain covered through the deterministic test provider until a project-owned,
+synthetic, or clearly licensed fixture is reviewed.

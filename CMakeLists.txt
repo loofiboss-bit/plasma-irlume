@@ -2,7 +2,8 @@
 
 cmake_minimum_required(VERSION 3.22)
 
-project(plasma-irlume VERSION 3.0.0 LANGUAGES CXX)
+include(cmake/ProjectIdentity.cmake)
+project(${KFACEAUTH_PROJECT_ID} VERSION ${KFACEAUTH_VERSION} LANGUAGES CXX)
 
 set(QT_MIN_VERSION "6.8.0")
 set(KF_MIN_VERSION "6.10.0")
@@ -24,13 +25,24 @@ include(KDECompilerSettings NO_POLICY_SCOPE)
 
 find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Concurrent Core Multimedia Qml Quick)
 find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS CoreAddons I18n KCMUtils)
+find_package(KF6Wallet ${KF_MIN_VERSION} REQUIRED)
+find_package(OpenCV 4.13 REQUIRED COMPONENTS core dnn imgproc objdetect)
+find_package(OpenSSL 3 REQUIRED COMPONENTS Crypto)
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(UDev REQUIRED IMPORTED_TARGET libudev)
+
+if(NOT OpenCV_VERSION MATCHES "^4\\.13\\.")
+    message(FATAL_ERROR "KFaceAuth 4.0.0 requires the reviewed OpenCV 4.13.x runtime")
+endif()
+
+option(KFACEAUTH_ENABLE_NATIVE_SANITIZERS "Enable ASan/UBSan for the native YuNet bridge test" OFF)
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/po")
     ki18n_install(po)
 endif()
 
+add_subdirectory(engine)
 add_subdirectory(src)
 add_subdirectory(data)
 

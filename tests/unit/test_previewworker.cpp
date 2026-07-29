@@ -35,7 +35,7 @@ void PreviewWorkerTest::rejectsSequenceReuseAndFreeArguments()
     QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
     environment.insert(QStringLiteral("QT_QPA_PLATFORM"), QStringLiteral("offscreen"));
     worker.setProcessEnvironment(environment);
-    worker.setProgram(QStringLiteral(IRLUME_PREVIEW_WORKER_PATH));
+    worker.setProgram(QStringLiteral(KFACEAUTH_PREVIEW_WORKER_PATH));
     worker.start();
     QTRY_COMPARE_WITH_TIMEOUT(worker.state(), QProcess::Running, 3000);
 

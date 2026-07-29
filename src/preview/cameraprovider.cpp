@@ -22,6 +22,14 @@
 #include <algorithm>
 #include <cerrno>
 
+namespace
+{
+QString userText(const char *text)
+{
+    return QCoreApplication::translate("CameraProvider", text);
+}
+} // namespace
+
 CameraProvider::CameraProvider(QObject *parent) : QObject(parent)
 {
     connect(new QMediaDevices(this), &QMediaDevices::videoInputsChanged, this, &CameraProvider::deviceListChanged);
@@ -189,8 +197,7 @@ QString CameraProvider::sanitizedLabel(const QString &label)
         if (sanitized.toUtf8().size() >= PreviewProtocol::MaxLabelBytes)
             break;
     }
-    return sanitized.trimmed().isEmpty() ? QCoreApplication::translate("CameraProvider", "Camera")
-                                         : sanitized.trimmed();
+    return sanitized.trimmed().isEmpty() ? userText("Camera") : sanitized.trimmed();
 }
 
 QString CameraProvider::spectrumForNode(const QString &node)

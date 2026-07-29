@@ -1,3 +1,0 @@
-{"contract_version":1,"engine_version":"0.6.2","command":"auth.test","operation_id":"operation-example-auth-no-match","sequence":0,"event":"started","terminal":false}
-{"contract_version":1,"engine_version":"0.6.2","command":"auth.test","operation_id":"operation-example-auth-no-match","sequence":1,"event":"stage","terminal":false,"data":{"stage":"matching"}}
-{"contract_version":1,"engine_version":"0.6.2","command":"auth.test","operation_id":"operation-example-auth-no-match","sequence":2,"event":"completed","terminal":true,"data":{"matched":false,"liveness":"live","credential_released":false,"profile_modified":false}}

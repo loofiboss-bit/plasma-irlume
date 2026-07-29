@@ -1,86 +1,67 @@
-# plasma-irlume
+# KFaceAuth
 
-`plasma-irlume` is a KDE Plasma System Settings frontend for the separately
-packaged [`irlume`](https://github.com/archledger/irlume) face-authentication
-engine on Fedora KDE.
+KFaceAuth 4.0.0 is a standalone native KDE local identity experiment. It can
+enroll and locally compare the currently logged-in user's face. A `Match` is an
+in-session UI result only: it does not unlock, authenticate, authorize, invoke
+PAM or Polkit, or alter the session.
 
-Version 3.0 adds **Camera Check**: local RGB/IR discovery and a manually
-started, 60-second camera preview. Camera access is isolated in the
-unprivileged `/usr/libexec/plasma-irlume-camera-preview-worker`. Frames remain
-in memory and are never used for face detection, enrollment, liveness,
-security classification, or authentication.
+The KCM provides:
 
-The existing irlume Machine API Contract 1 integration remains asynchronous
-and read-only. **Face Profiles** and **Access** display engine state but cannot
-modify profiles, configure PAM, or make authentication decisions.
+- explicit, bounded RGB/infrared preview and one-frame YuNet analysis;
+- verified YuNet FP32 detection plus verified SFace FP32 alignment and
+  128-value embedding extraction through Fedora OpenCV 4.13;
+- deliberate enrollment of 3–5 samples, with a hard stored maximum of 8;
+- one encrypted profile for the current numeric UID;
+- a random AES-256-GCM vault key stored only in KDE KWallet;
+- aggregate profile status, explicit deletion, and explicit unreadable reset;
+- one-click, rate-limited local verification returning `Match`, `No match`,
+  `Ambiguous`, or a typed unavailable result;
+- short-lived, unprivileged workers with private pipes, strict bounds,
+  cancellation, deadlines, no network, and no telemetry.
 
-## Security and privacy boundary
+Embeddings are sensitive biometric data. No captured image is intentionally
+persisted. Frames, landmarks, embeddings, keys, and similarity scores do not
+reach QML, normal logs, the CLI, or support reports.
 
-- Preview starts only after an explicit click and stops after 60 seconds.
-- Leaving Camera Check, deactivating System Settings, a worker failure, or KCM
-  teardown stops capture and clears the current frame.
-- The worker receives only fixed discovery/start/stop commands through private
-  process pipes. The protocol is length-framed CBOR v1 with a session ID and
-  monotonic sequences.
-- Discovery is limited to 16 devices. Preview is limited to 640×480, 8 fps,
-  and 128 KiB JPEG per frame with latest-frame backpressure.
-- RGB and IR labels come from reviewed udev properties. A name never creates
-  an IR or security claim; unclassified devices are **Unknown**.
-- No image, device identifier, or preview state is written to configuration,
-  logs, support reports, or disk.
-- The package contains no root helper, KAuth/Polkit action, system D-Bus
-  service, daemon, PAM scriptlet, model, or biometric processing.
+There is no liveness or presentation-attack detection, security tier, PAM
+module/configuration, authselect change, SDDM/lock-screen integration,
+sudo/Polkit integration, privileged helper, system service, TPM sealing,
+background recognition, networking, or runtime model download. KWallet keys
+are unavailable before login. FAR, FRR, bias, spoof resistance, and broad
+hardware behavior remain unqualified.
 
-See [Architecture](docs/ARCHITECTURE.md),
-[worker protocol](docs/CAMERA-PREVIEW-PROTOCOL.md),
-[engine contract](docs/ENGINE-CONTRACT.md), and
-[native roadmap](docs/NATIVE-ENGINE-ROADMAP.md).
+The code and automated gates are prepared as a v4.0.0 release candidate.
+Publication remains blocked until the required physical-camera, keyboard,
+assistive-technology, and representative identity qualification is recorded.
 
-## Engine compatibility
-
-The fixed handshake is `/usr/bin/irlume version --json`. When Contract 1 is
-advertised, the KCM may run only these capability-gated read commands:
-
-```text
-irlume status --json --contract 1
-irlume doctor --json --contract 1
-irlume profiles list --json --contract 1
-irlume login status --json --contract 1
-```
-
-Compatibility follows the contract and capabilities rather than an upper
-engine-version bound. The RPM requires `irlume >= 0.7.0`.
-
-## Install on Fedora 44
+## Build and verify
 
 ```bash
-sudo dnf copr enable archledger/irlume
-sudo dnf copr enable loofitheboss/plasma-irlume
-sudo dnf install plasma-irlume
-```
-
-Open **System Settings → Security & Privacy → Face Login**, or run
-`kcmshell6 kcm_irlume`.
-
-## Build and test
-
-Development packages include Qt 6 Multimedia and libudev:
-
-```bash
-sudo dnf install cmake extra-cmake-modules gcc-c++ ninja-build \
-  kf6-kcmutils-devel kf6-kcoreaddons-devel kf6-ki18n-devel \
-  kf6-kirigami-devel qt6-qtbase-devel qt6-qtdeclarative-devel \
-  qt6-qtmultimedia-devel systemd-devel
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
-cmake --build build
-ctest --test-dir build --output-on-failure
+cmake --fresh -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+cmake --build build --parallel
+QT_QPA_PLATFORM=offscreen ctest --test-dir build --output-on-failure
 python3 -m unittest discover -s tests -p 'test_*.py'
 /usr/lib64/qt6/bin/qmllint src/kcm/ui/*.qml src/kcm/ui/components/*.qml
+
+cargo fmt --manifest-path engine/Cargo.toml --all -- --check
+cargo clippy --manifest-path engine/Cargo.toml \
+  --workspace --all-targets --locked --offline -- -D warnings
+cargo test --manifest-path engine/Cargo.toml \
+  --workspace --all-targets --locked --offline
+python3 tools/verify_models.py --root models
 ```
 
-CI tests camera behavior with an injected provider and requires no physical
-camera. Real-hardware qualification is a separate Fedora 44 release gate.
+See [architecture](docs/ARCHITECTURE.md),
+[threat boundary](docs/THREAT-BOUNDARY.md),
+[identity pipeline](docs/IDENTITY-PIPELINE.md),
+[identity protocol](docs/IDENTITY-PROTOCOL.md),
+[template vault](docs/TEMPLATE-VAULT.md),
+[embedding decision](docs/EMBEDDING-MODEL-SELECTION.md),
+[build guide](docs/BUILDING.md), and
+[hardware qualification](docs/HARDWARE-QUALIFICATION.md).
 
 ## License
 
-GPL-3.0-or-later. See [LICENSE](LICENSE).
+Project code is GPL-3.0-or-later. YuNet weights are MIT. SFace weights and
+Fedora OpenCV are Apache-2.0. The exact model licenses and provenance are
+shipped in the closed model inventory.

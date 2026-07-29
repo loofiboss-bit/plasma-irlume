@@ -1,0 +1,18 @@
+[package]
+name = "kfaceauth-identity"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+kfaceauth-templates = { path = "../templates" }
+kfaceauth-vision = { path = "../vision" }
+kfaceauth-vision-opencv-sys = { path = "../vision-opencv-sys" }
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "kfaceauth-identity-worker"
+path = "src/main.rs"

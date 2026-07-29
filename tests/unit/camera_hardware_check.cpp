@@ -13,8 +13,7 @@ class HardwareCheck final : public QObject
   public:
     explicit HardwareCheck(QCoreApplication *application)
         : m_application(application),
-          m_session(QCoreApplication::applicationDirPath() + QStringLiteral("/plasma-irlume-camera-preview-worker"),
-                    this)
+          m_session(QCoreApplication::applicationDirPath() + QStringLiteral("/kfaceauth-camera-preview-worker"), this)
     {
         connect(&m_session, &CameraPreviewSession::stateChanged, this, &HardwareCheck::advance);
         connect(&m_session, &CameraPreviewSession::frameChanged, this,

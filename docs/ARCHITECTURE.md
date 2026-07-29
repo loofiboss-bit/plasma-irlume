@@ -1,51 +1,88 @@
 # Architecture
 
-plasma-irlume 3.0.0 has two independent, unprivileged data paths:
+Milestone 4 separates capture, neutral analysis, identity extraction, key
+access, and encrypted persistence:
 
 ```text
-Read-only engine diagnostics             Native Camera Check
-QML                                      QML
- -> presentation models                   -> CameraPreviewSession
- -> RefreshCoordinator                    -> private stdin/stdout pipes
- -> FaceAuthBackend                       -> preview worker
- -> /usr/bin/irlume Contract 1             -> Qt Multimedia + libudev
+KDE System Settings / KFaceAuthKcm
+  +-- RefreshCoordinator -> NativeFaceAuthBackend
+  +-- SystemProbe
+  +-- CameraPreviewSession -> kfaceauth-camera-preview-worker
+  +-- VisionAnalysisSession -> kfaceauth-vision-worker
+  +-- EnrollmentSession --------+
+  +-- LocalVerificationSession --+-> IdentityWorkerClient
+  |                                  -> kfaceauth-identity-worker
+  +-- KWalletKeyProvider
+
+Rust identity worker
+  -> vision -> vision-opencv-sys -> Fedora OpenCV 4.13
+  -> identity-types
+  -> templates -> crypto-openssl-sys -> Fedora OpenSSL 3
 ```
 
-## Engine diagnostics
+All workers run as the ordinary user and communicate only over inherited
+private pipes. Preview is a bounded session worker. Vision and identity are
+short-lived one-request workers. There is no listener, daemon activation,
+shell, network, privileged process, or authentication interface.
 
-`RefreshCoordinator` assigns monotonic generations and accepts only current
-signals. `IrlumeBackend` uses a signal-driven `QProcess`, fixed Contract 1 read
-commands, three-second timeouts, and independent 256 KiB stdout/stderr limits.
-It uses no camera or mutation command. A native preview failure cannot clear
-or replace a valid irlume diagnostic result.
+## Ownership
 
-## Native camera process
+Rust owns framing, closed operations, bounds, model inventory and identity,
+frame validation, cancellation/deadlines, native-output validation,
+normalization, matching policy, vault format, filesystem safety, and
+zeroization wrappers.
 
-`CameraPreviewSession` is the only KCM-side preview model. Its states are
-`Idle`, `Discovering`, `Ready`, `Starting`, `Streaming`, `Stopping`, and
-`Failed`. It exposes sanitized devices, current selection and spectrum, frame
-availability, remaining time, dropped frames, status, and a stable error code.
+The project-owned C++ OpenCV bridge owns only `FaceDetectorYN` and
+`FaceRecognizerSF` construction, packed BGR copies, five-landmark
+`alignCrop`, feature extraction, and a qualification-only cosine call. It
+catches every exception. OpenCV objects and matrices never cross the C ABI.
 
-The worker owns `QMediaDevices`, `QCamera`, `QMediaCaptureSession`, and
-`QVideoSink`; the KCM never opens a video node. libudev classifies only
-`ID_INFRARED_CAMERA=1` as IR and a reviewed capture capability as RGB.
-Everything else is Unknown.
+The KCM backend owns manual action boundaries, latest-generation-wins worker
+lifecycle, rate limiting, transient enrollment embeddings, KWallet access,
+and high-level UI states. QML receives no frame bytes, embeddings, landmarks,
+keys, paths, or scores.
 
-The parent and worker exchange length-framed CBOR v1 over private process
-pipes. Both validate the session, monotonic sequence, record size, command
-shape, device count, image dimensions, JPEG size, and spectrum. Commands have
-no path or free-form argument. The worker retains at most one pending frame;
-new frames replace older pending frames under backpressure.
+## Enrollment and verification
 
-The parent stops preview when the page is hidden or the application becomes
-inactive. The worker independently enforces 60 seconds. A missing stop
-acknowledgement causes a hard worker termination after one second. Crash,
-protocol, startup, and stall failures clear the in-memory frame.
+Enrollment starts explicitly, captures exactly one current frame per click,
+keeps 3–8 accepted embeddings only in memory (five recommended), and commits
+them atomically at Finish. Recoverable one-frame quality/face errors keep the
+bounded session available for an explicit retry; fatal failure, the 120-second
+timeout, page hide, app deactivation, preview stop, replacement, cancel, or
+teardown clears transient material.
 
-## Privilege and persistence boundary
+Verification also requires a preview and a separate one-frame action. The
+worker opens the current user's encrypted profile, extracts one candidate,
+applies the central median/threshold policy, and returns only a typed result.
+The result updates only Test Recognition.
 
-The worker is installed as an ordinary executable in `/usr/libexec` without
-setuid/setgid bits or file capabilities. It has no irlume adapter, privileged
-helper, KAuth, Polkit, system service, network feature, audio capture, or
-authentication API. Neither process persists frames or opaque device tokens.
-Support and configuration paths do not receive preview data.
+## Vault and key
+
+The fixed XDG user-data vault is AES-256-GCM encrypted and bound to numeric
+UID, schema, YuNet/SFace identities, exact SFace hash, embedding format,
+dimension, and normalization version. KWallet stores only the random master
+key. Atomic writes, metadata checks, bounded locking, authenticated rotation,
+corruption preservation, and explicit deletion/reset are defined in
+[TEMPLATE-VAULT.md](TEMPLATE-VAULT.md).
+
+## Status
+
+The backend reports aggregate engine/runtime, verified model availability,
+KWallet availability/lock state, vault/profile state, and bounded sample
+count. It exposes separate detector, embedding, enrollment, encrypted
+persistence, local verification, and deletion capabilities. PAM, authselect,
+system authentication, liveness, security tiers, and privileged services
+remain explicitly unsupported.
+
+Production refresh first verifies the installed worker and both model hashes,
+then executes the identity worker's bounded `status` operation. It reads a key
+only when KWallet is already open; a locked wallet is reported without
+prompting or falling back. Test-only availability probes bypass this runtime
+path only in unit tests.
+
+## Supply chain
+
+`models/manifest.kfaceauth` is a closed offline allow-list. Python and Rust
+both reject missing, renamed, modified, duplicate, malformed, or unlisted
+artifacts before inference. Configure, build, test, install, and runtime never
+download a model.

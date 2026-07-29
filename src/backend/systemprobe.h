@@ -16,7 +16,6 @@ struct SystemProbeInputs
     QString displayManagerTarget;
     QByteArray secureBootVariable;
     bool secureBootVariablePresent = false;
-    bool tpmPresent = false;
     EngineSnapshot engine;
 };
 

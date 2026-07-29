@@ -1,0 +1,964 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: kfaceauth 4.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-29 10:47+0200\n"
+"PO-Revision-Date: 2026-07-28 22:00+0200\n"
+"Last-Translator: KFaceAuth contributors\n"
+"Language-Team: Swedish\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/kcm/ui/CameraCheckPage.qml:19 src/kcm/ui/CameraCheckPage.qml:38
+#: src/kcm/ui/main.qml:33
+msgid "Camera Check"
+msgstr "Kamerakontroll"
+
+#: src/kcm/ui/CameraCheckPage.qml:46
+msgid ""
+"Preview starts only when you ask. Frames remain in memory, stop after 60 "
+"seconds, and are never used for enrollment or recognition."
+msgstr ""
+"Förhandsvisningen startar endast när du begär det. Bildrutor stannar i "
+"minnet, stoppas efter 60 sekunder och används aldrig för registrering eller "
+"igenkänning."
+
+#: src/kcm/ui/CameraCheckPage.qml:53
+msgid ""
+"A visible RGB or infrared image does not verify liveness, identity, security "
+"level, or authentication readiness."
+msgstr ""
+"En synlig RGB- eller infraröd bild verifierar inte livskontroll, identitet, "
+"säkerhetsnivå eller autentiseringsberedskap."
+
+#: src/kcm/ui/CameraCheckPage.qml:68
+msgid "Local camera"
+msgstr "Lokal kamera"
+
+#: src/kcm/ui/CameraCheckPage.qml:75
+msgid "Refresh"
+msgstr "Uppdatera"
+
+#: src/kcm/ui/CameraCheckPage.qml:88
+msgid "Private camera preview"
+msgstr "Privat kameraförhandsvisning"
+
+#: src/kcm/ui/CameraCheckPage.qml:102
+msgid "Infrared camera preview"
+msgstr "Förhandsvisning från infraröd kamera"
+
+#: src/kcm/ui/CameraCheckPage.qml:104
+msgid "RGB camera preview"
+msgstr "Förhandsvisning från RGB-kamera"
+
+#: src/kcm/ui/CameraCheckPage.qml:105
+msgid "Camera preview"
+msgstr "Kameraförhandsvisning"
+
+#: src/kcm/ui/CameraCheckPage.qml:112
+msgid "Starting camera…"
+msgstr "Startar kameran…"
+
+#: src/kcm/ui/CameraCheckPage.qml:113 src/kcm/ui/FaceProfilePage.qml:180
+#: src/kcm/ui/TestRecognitionPage.qml:76
+msgid "Preview is off"
+msgstr "Förhandsvisningen är avstängd"
+
+#: src/kcm/ui/CameraCheckPage.qml:126
+msgid "%1 s"
+msgstr "%1 s"
+
+#: src/kcm/ui/CameraCheckPage.qml:158 src/kcm/ui/FaceProfilePage.qml:192
+#: src/kcm/ui/TestRecognitionPage.qml:88
+msgid "Stop preview"
+msgstr "Stoppa förhandsvisning"
+
+#: src/kcm/ui/CameraCheckPage.qml:158 src/kcm/ui/FaceProfilePage.qml:192
+#: src/kcm/ui/TestRecognitionPage.qml:88
+msgid "Start preview"
+msgstr "Starta förhandsvisning"
+
+#: src/kcm/ui/CameraCheckPage.qml:176
+msgid "Dropped preview frames: %1"
+msgstr "Tappade bildrutor i förhandsvisningen: %1"
+
+#: src/kcm/ui/CameraCheckPage.qml:189
+msgid ""
+"Analyze uses local YuNet face detection for one current frame. It does not "
+"identify a person, test liveness, or make an authentication decision."
+msgstr ""
+"Analysen använder lokal YuNet-ansiktsdetektering för en aktuell bildruta. "
+"Den identifierar inte en person, testar inte livskontroll och fattar inget "
+"autentiseringsbeslut."
+
+#: src/kcm/ui/CameraCheckPage.qml:213
+msgid "Analyze current frame"
+msgstr "Analysera aktuell bildruta"
+
+#: src/kcm/ui/CameraCheckPage.qml:225
+msgid "No face was found in this frame."
+msgstr "Inget ansikte hittades i den här bildrutan."
+
+#: src/kcm/ui/CameraCheckPage.qml:227
+msgid "One face was found in this frame."
+msgstr "Ett ansikte hittades i den här bildrutan."
+
+#: src/kcm/ui/CameraCheckPage.qml:228
+msgid "Multiple faces were found in this frame."
+msgstr "Flera ansikten hittades i den här bildrutan."
+
+#: src/kcm/ui/CameraCheckPage.qml:240
+msgid "Center your face in the frame."
+msgstr "Centrera ansiktet i bildrutan."
+
+#: src/kcm/ui/CameraCheckPage.qml:247
+msgid "Move closer to the camera."
+msgstr "Flytta närmare kameran."
+
+#: src/kcm/ui/CameraCheckPage.qml:254
+msgid "Move farther from the camera."
+msgstr "Flytta längre bort från kameran."
+
+#: src/kcm/ui/CameraCheckPage.qml:261
+msgid "Add more even light."
+msgstr "Lägg till mer jämn belysning."
+
+#: src/kcm/ui/CameraCheckPage.qml:268
+msgid "Reduce bright light on your face."
+msgstr "Minska starkt ljus mot ansiktet."
+
+#: src/kcm/ui/CameraCheckPage.qml:275
+msgid "Use more even front lighting."
+msgstr "Använd jämnare belysning framifrån."
+
+#: src/kcm/ui/CameraCheckPage.qml:282
+msgid "Hold still and check that the camera lens is clear."
+msgstr "Håll stilla och kontrollera att kameralinsen är ren."
+
+#: src/kcm/ui/CameraCheckPage.qml:293
+msgid "Framing and image quality are suitable for this development check."
+msgstr ""
+"Inramning och bildkvalitet är lämpliga för den här utvecklingskontrollen."
+
+#: src/kcm/ui/DiagnosticsPage.qml:19 src/kcm/ui/main.qml:51
+msgid "Diagnostics"
+msgstr "Diagnostik"
+
+#: src/kcm/ui/DiagnosticsPage.qml:30
+msgid ""
+"Diagnostics are read-only. Refreshing runs bounded local probes and never "
+"performs biometric or PAM operations."
+msgstr ""
+"Diagnostiken är skrivskyddad. Uppdatering kör begränsade lokala kontroller "
+"och utför aldrig biometriska åtgärder eller PAM-åtgärder."
+
+#: src/kcm/ui/DiagnosticsPage.qml:43
+msgid "Native status"
+msgstr "Native-status"
+
+#: src/kcm/ui/DiagnosticsPage.qml:48 src/kcm/ui/SetupStatusPage.qml:82
+msgid "Native engine"
+msgstr "Native-motor"
+
+#: src/kcm/ui/DiagnosticsPage.qml:57 src/kcm/ui/SetupStatusPage.qml:109
+msgid "Enrollment"
+msgstr "Registrering"
+
+#: src/kcm/ui/DiagnosticsPage.qml:66
+msgid "Authentication decisions"
+msgstr "Autentiseringsbeslut"
+
+#: src/kcm/ui/DiagnosticsPage.qml:75
+msgid "PAM configuration"
+msgstr "PAM-konfiguration"
+
+#: src/kcm/ui/DiagnosticsPage.qml:84
+msgid "Template persistence"
+msgstr "Beständig mallagring"
+
+#: src/kcm/ui/DiagnosticsPage.qml:93
+msgid "Secure Boot"
+msgstr "Säker start"
+
+#: src/kcm/ui/DiagnosticsPage.qml:100 src/kcm/ui/SetupStatusPage.qml:57
+msgid "Updating…"
+msgstr "Uppdaterar…"
+
+#: src/kcm/ui/DiagnosticsPage.qml:100
+msgid "Refresh diagnostics"
+msgstr "Uppdatera diagnostik"
+
+#: src/kcm/ui/DiagnosticsPage.qml:111
+msgid "Redacted support report preview"
+msgstr "Förhandsvisning av maskerad supportrapport"
+
+#: src/kcm/ui/DiagnosticsPage.qml:121
+msgid "Redacted support report"
+msgstr "Maskerad supportrapport"
+
+#: src/kcm/ui/DiagnosticsPage.qml:129
+msgid "Copy report"
+msgstr "Kopiera rapport"
+
+#: src/kcm/ui/DiagnosticsPage.qml:135
+msgid "Export report"
+msgstr "Exportera rapport"
+
+#: src/kcm/ui/DiagnosticsPage.qml:137
+msgid "Saves a redacted Markdown report in Documents"
+msgstr "Sparar en maskerad Markdown-rapport i Dokument"
+
+#: src/kcm/ui/FaceProfilePage.qml:19 src/kcm/ui/FaceProfilePage.qml:74
+#: src/kcm/ui/main.qml:39
+msgid "Face Profile"
+msgstr "Ansiktsprofil"
+
+#: src/kcm/ui/FaceProfilePage.qml:36
+msgid "Delete face profile?"
+msgstr "Ta bort ansiktsprofil?"
+
+#: src/kcm/ui/FaceProfilePage.qml:42
+msgid ""
+"This deletes the encrypted local profile. Storage hardware, snapshots, "
+"backups, SSDs, and copy-on-write filesystems may retain physical copies."
+msgstr ""
+"Detta tar bort den krypterade lokala profilen. Lagringshårdvara, "
+"ögonblicksbilder, säkerhetskopior, SSD-enheter och copy-on-write-filsystem "
+"kan behålla fysiska kopior."
+
+#: src/kcm/ui/FaceProfilePage.qml:54
+msgid "Reset unreadable profile data?"
+msgstr "Återställ oläsbara profildata?"
+
+#: src/kcm/ui/FaceProfilePage.qml:60
+msgid ""
+"The unreadable vault and its KWallet key will be removed. This cannot "
+"recover the profile; you must enroll again."
+msgstr ""
+"Det oläsbara valvet och dess KWallet-nyckel tas bort. Profilen kan inte "
+"återställas; du måste registrera dig igen."
+
+#: src/kcm/ui/FaceProfilePage.qml:82
+msgid ""
+"Face embeddings are sensitive biometric data. KFaceAuth encrypts them with a "
+"user-session KWallet key. No captured image is intentionally saved."
+msgstr ""
+"Ansiktsinbäddningar är känsliga biometriska data. KFaceAuth krypterar dem "
+"med en KWallet-nyckel för användarsessionen. Ingen fångad bild sparas "
+"avsiktligt."
+
+#: src/kcm/ui/FaceProfilePage.qml:89
+msgid ""
+"Enrollment enables only an experimental comparison inside this page. It does "
+"not enable login, unlock, PAM, sudo, Polkit, liveness, or spoof resistance."
+msgstr ""
+"Registreringen möjliggör endast en experimentell jämförelse på den här "
+"sidan. Den aktiverar inte inloggning, upplåsning, PAM, sudo, Polkit, "
+"livskontroll eller förfalskningsskydd."
+
+#: src/kcm/ui/FaceProfilePage.qml:95
+msgid "Enrollment profile status"
+msgstr "Status för registreringsprofil"
+
+#: src/kcm/ui/FaceProfilePage.qml:101
+msgid "No face profile is enrolled."
+msgstr "Ingen ansiktsprofil är registrerad."
+
+#: src/kcm/ui/FaceProfilePage.qml:103
+msgid "%1 encrypted sample is enrolled."
+msgid_plural "%1 encrypted samples are enrolled."
+msgstr[0] "%1 krypterat prov är registrerat."
+msgstr[1] "%1 krypterade prov är registrerade."
+
+#: src/kcm/ui/FaceProfilePage.qml:105
+msgid "The encrypted profile is unreadable or corrupt."
+msgstr "Den krypterade profilen är oläsbar eller skadad."
+
+#: src/kcm/ui/FaceProfilePage.qml:107
+msgid "The profile model version does not match this runtime."
+msgstr "Profilens modellversion stämmer inte överens med den här körmiljön."
+
+#: src/kcm/ui/FaceProfilePage.qml:109
+msgid "KWallet is locked or access was cancelled."
+msgstr "KWallet är låst eller åtkomsten avbröts."
+
+#: src/kcm/ui/FaceProfilePage.qml:111
+msgid "Profile status is unavailable."
+msgstr "Profilstatus är inte tillgänglig."
+
+#: src/kcm/ui/FaceProfilePage.qml:112
+msgid "Checking profile status…"
+msgstr "Kontrollerar profilstatus…"
+
+#: src/kcm/ui/FaceProfilePage.qml:123 src/kcm/ui/SetupStatusPage.qml:57
+msgid "Refresh status"
+msgstr "Uppdatera status"
+
+#: src/kcm/ui/FaceProfilePage.qml:134
+msgid "Delete face profile"
+msgstr "Ta bort ansiktsprofil"
+
+#: src/kcm/ui/FaceProfilePage.qml:146
+msgid "Reset unreadable data"
+msgstr "Återställ oläsbara data"
+
+#: src/kcm/ui/FaceProfilePage.qml:163
+msgid "Private enrollment preview"
+msgstr "Privat registreringsförhandsvisning"
+
+#: src/kcm/ui/FaceProfilePage.qml:174
+msgid "Private enrollment camera preview"
+msgstr "Privat kameraförhandsvisning för registrering"
+
+#: src/kcm/ui/FaceProfilePage.qml:206
+msgid "Start enrollment"
+msgstr "Starta registrering"
+
+#: src/kcm/ui/FaceProfilePage.qml:222
+msgid "Capture sample"
+msgstr "Fånga prov"
+
+#: src/kcm/ui/FaceProfilePage.qml:236
+msgid "Enrollment sample progress"
+msgstr "Förlopp för registreringsprov"
+
+#: src/kcm/ui/FaceProfilePage.qml:237
+msgid "%1 of %2 maximum samples; five are recommended"
+msgstr "%1 av högst %2 prov; fem rekommenderas"
+
+#: src/kcm/ui/FaceProfilePage.qml:242
+msgid "%1 sample accepted"
+msgid_plural "%1 samples accepted"
+msgstr[0] "%1 prov godkänt"
+msgstr[1] "%1 prov godkända"
+
+#: src/kcm/ui/FaceProfilePage.qml:250
+msgid "Enrollment time remaining: %1 seconds"
+msgstr "Återstående registreringstid: %1 sekunder"
+
+#: src/kcm/ui/FaceProfilePage.qml:266
+msgid ""
+"Guidance: keep exactly one face visible, use even light, center the face, "
+"and vary ordinary pose or appearance between captures."
+msgstr ""
+"Vägledning: håll exakt ett ansikte synligt, använd jämnt ljus, centrera "
+"ansiktet och variera normal pose eller utseende mellan fångsterna."
+
+#: src/kcm/ui/FaceProfilePage.qml:277
+msgid "Retry sample"
+msgstr "Försök med provet igen"
+
+#: src/kcm/ui/FaceProfilePage.qml:288
+msgid "Cancel"
+msgstr "Avbryt"
+
+#: src/kcm/ui/FaceProfilePage.qml:302
+msgid "Finish and save"
+msgstr "Slutför och spara"
+
+#: src/kcm/ui/SetupStatusPage.qml:20 src/kcm/ui/main.qml:27
+msgid "Overview"
+msgstr "Översikt"
+
+#: src/kcm/ui/SetupStatusPage.qml:31
+msgid ""
+"KFaceAuth 4.0.0 provides explicit local enrollment and in-session comparison. "
+"It does not test liveness, configure PAM, authenticate users, unlock the "
+"session, or authorize any system action."
+msgstr ""
+"KFaceAuth 4.0.0 ger uttrycklig lokal registrering och jämförelse i sessionen. "
+"Det testar inte livskontroll, konfigurerar inte PAM, autentiserar inte "
+"användare, låser inte upp sessionen och godkänner inga systemåtgärder."
+
+#: src/kcm/ui/SetupStatusPage.qml:64
+msgid "Open Camera Check"
+msgstr "Öppna kamerakontroll"
+
+#: src/kcm/ui/SetupStatusPage.qml:75
+msgid "Milestone status"
+msgstr "Status för milstolpen"
+
+#: src/kcm/ui/SetupStatusPage.qml:91
+msgid "Local cameras"
+msgstr "Lokala kameror"
+
+#: src/kcm/ui/SetupStatusPage.qml:92
+msgid "%1 camera found"
+msgid_plural "%1 cameras found"
+msgstr[0] "%1 kamera hittades"
+msgstr[1] "%1 kameror hittades"
+
+#: src/kcm/ui/SetupStatusPage.qml:100
+msgid "Vision processing"
+msgstr "Bildbehandling"
+
+#: src/kcm/ui/SetupStatusPage.qml:101
+msgid "Explicit local actions only"
+msgstr "Endast uttryckliga lokala åtgärder"
+
+#: src/kcm/ui/SetupStatusPage.qml:118
+msgid "Authentication and PAM"
+msgstr "Autentisering och PAM"
+
+#: src/kcm/ui/TestRecognitionPage.qml:19 src/kcm/ui/TestRecognitionPage.qml:38
+#: src/kcm/ui/main.qml:45
+msgid "Test Recognition"
+msgstr "Testa igenkänning"
+
+#: src/kcm/ui/TestRecognitionPage.qml:46
+msgid ""
+"A Match is only an experimental in-session comparison. It cannot unlock, "
+"authenticate, authorize, call PAM, invoke Polkit, or change the Linux "
+"session."
+msgstr ""
+"En träff är endast en experimentell jämförelse i sessionen. Den kan inte "
+"låsa upp, autentisera, auktorisera, anropa PAM, aktivera Polkit eller ändra "
+"Linux-sessionen."
+
+#: src/kcm/ui/TestRecognitionPage.qml:53
+msgid ""
+"No liveness or presentation-attack detection exists. Similarity scores are "
+"intentionally hidden."
+msgstr ""
+"Det finns ingen livskontroll eller detektering av presentationsattacker. "
+"Likhetspoäng döljs avsiktligt."
+
+#: src/kcm/ui/TestRecognitionPage.qml:59
+msgid "Private recognition preview"
+msgstr "Privat igenkänningsförhandsvisning"
+
+#: src/kcm/ui/TestRecognitionPage.qml:70
+msgid "Private recognition camera preview"
+msgstr "Privat kameraförhandsvisning för igenkänning"
+
+#: src/kcm/ui/TestRecognitionPage.qml:102
+msgid "Test one current frame"
+msgstr "Testa en aktuell bildruta"
+
+#: src/kcm/ui/TestRecognitionPage.qml:114
+msgid "Clear result"
+msgstr "Rensa resultat"
+
+#: src/kcm/ui/main.qml:13
+msgid "KFaceAuth (Experimental Local Identity Preview)"
+msgstr "KFaceAuth (experimentell förhandsvisning av lokal identitet)"
+
+#: src/kcm/ui/main.qml:20
+msgid "KFaceAuth sections"
+msgstr "KFaceAuth-avsnitt"
+
+#: src/backend/camerapreviewsession.cpp:22
+msgid "CameraPreviewSession"
+msgstr "Kameraförhandsvisningssession"
+
+#: src/backend/camerapreviewsession.cpp:213
+#: src/backend/camerapreviewsession.cpp:313
+msgid "Looking for local cameras…"
+msgstr "Söker efter lokala kameror…"
+
+#: src/backend/camerapreviewsession.cpp:227
+msgid "Starting the selected camera…"
+msgstr "Startar den valda kameran…"
+
+#: src/backend/camerapreviewsession.cpp:242
+msgid "Stopping and releasing the camera…"
+msgstr "Stoppar och frigör kameran…"
+
+#: src/backend/camerapreviewsession.cpp:386
+msgid "Preview is live and remains only in memory."
+msgstr "Förhandsvisningen är aktiv och stannar endast i minnet."
+
+#: src/backend/camerapreviewsession.cpp:401
+msgid "The camera has been released."
+msgstr "Kameran har frigjorts."
+
+#: src/backend/camerapreviewsession.cpp:453
+msgid "Select a camera and start a private preview."
+msgstr "Välj en kamera och starta en privat förhandsvisning."
+
+#: src/backend/camerapreviewsession.cpp:534
+msgid "Camera permission was denied."
+msgstr "Kamerabehörighet nekades."
+
+#: src/backend/camerapreviewsession.cpp:536
+msgid "No compatible local camera was found."
+msgstr "Ingen kompatibel lokal kamera hittades."
+
+#: src/backend/camerapreviewsession.cpp:538
+msgid "The selected camera is already in use."
+msgstr "Den valda kameran används redan."
+
+#: src/backend/camerapreviewsession.cpp:540
+msgid "The selected camera has no usable preview format."
+msgstr "Den valda kameran saknar ett användbart förhandsvisningsformat."
+
+#: src/backend/camerapreviewsession.cpp:542
+msgid "The camera did not start in time."
+msgstr "Kameran startade inte i tid."
+
+#: src/backend/camerapreviewsession.cpp:544
+msgid "The camera preview stopped delivering frames."
+msgstr "Kameraförhandsvisningen slutade leverera bildrutor."
+
+#: src/backend/camerapreviewsession.cpp:546
+msgid "The camera worker returned invalid data."
+msgstr "Kameraprocessen returnerade ogiltiga data."
+
+#: src/backend/camerapreviewsession.cpp:548
+msgid "The camera worker stopped unexpectedly."
+msgstr "Kameraprocessen stoppades oväntat."
+
+#: src/backend/camerapreviewsession.cpp:549
+msgid "The local camera is unavailable."
+msgstr "Den lokala kameran är inte tillgänglig."
+
+#: src/backend/enrollmentsession.cpp:20
+msgid "EnrollmentSession"
+msgstr "Registreringssession"
+
+#: src/backend/enrollmentsession.cpp:27
+msgid "Check your face profile or start a new enrollment."
+msgstr "Kontrollera din ansiktsprofil eller starta en ny registrering."
+
+#: src/backend/enrollmentsession.cpp:41
+msgid "Enrollment timed out. No profile was saved."
+msgstr "Tidsgränsen för registreringen överskreds. Ingen profil sparades."
+
+#: src/backend/enrollmentsession.cpp:186
+msgid "Start the camera preview before enrollment."
+msgstr "Starta kameraförhandsvisningen före registreringen."
+
+#: src/backend/enrollmentsession.cpp:190 src/backend/enrollmentsession.cpp:333
+#: src/backend/localverificationsession.cpp:105
+msgid "Opening your user-session wallet…"
+msgstr "Öppnar plånboken för din användarsession…"
+
+#: src/backend/enrollmentsession.cpp:213
+msgid "The user-session vault key is locked, cancelled, or unavailable."
+msgstr ""
+"Valvnyckeln för användarsessionen är låst, avbruten eller otillgänglig."
+
+#: src/backend/enrollmentsession.cpp:219
+msgid "Capture three to five deliberate appearance samples."
+msgstr "Fånga tre till fem avsiktliga utseendeprov."
+
+#: src/backend/enrollmentsession.cpp:230
+#: src/backend/localverificationsession.cpp:98
+msgid "No current preview frame is available."
+msgstr "Ingen aktuell bildruta från förhandsvisningen är tillgänglig."
+
+#: src/backend/enrollmentsession.cpp:241
+#: src/backend/localverificationsession.cpp:134
+msgid "The current frame could not be prepared safely."
+msgstr "Den aktuella bildrutan kunde inte förberedas säkert."
+
+#: src/backend/enrollmentsession.cpp:247
+msgid "Extracting one local enrollment sample…"
+msgstr "Extraherar ett lokalt registreringsprov…"
+
+#: src/backend/enrollmentsession.cpp:262
+msgid "The latest sample was discarded. Capture a replacement when ready."
+msgstr "Det senaste provet kastades. Fånga ett ersättningsprov när du är redo."
+
+#: src/backend/enrollmentsession.cpp:270
+msgid "Encrypting and atomically saving your face profile…"
+msgstr "Krypterar och sparar din ansiktsprofil atomärt…"
+
+#: src/backend/enrollmentsession.cpp:280
+msgid "The user-session vault key could not be stored safely."
+msgstr "Nyckeln för användarsessionens valv kunde inte lagras säkert."
+
+#: src/backend/enrollmentsession.cpp:300
+msgid "The enrollment sample set is invalid."
+msgstr "Uppsättningen registreringsprov är ogiltig."
+
+#: src/backend/enrollmentsession.cpp:326
+msgid "Enrollment was cancelled. No partial profile was saved."
+msgstr "Registreringen avbröts. Ingen ofullständig profil sparades."
+
+#: src/backend/enrollmentsession.cpp:340
+msgid "The profile key is locked or unavailable."
+msgstr "Profilnyckeln är låst eller inte tillgänglig."
+
+#: src/backend/enrollmentsession.cpp:350
+msgid "Deleting the encrypted face profile…"
+msgstr "Tar bort den krypterade ansiktsprofilen…"
+
+#: src/backend/enrollmentsession.cpp:365
+msgid "Resetting unreadable local profile data…"
+msgstr "Återställer oläsbara lokala profildata…"
+
+#: src/backend/enrollmentsession.cpp:391
+msgid "The identity operation was cancelled."
+msgstr "Identitetsåtgärden avbröts."
+
+#: src/backend/enrollmentsession.cpp:392
+#: src/backend/localverificationsession.cpp:190
+msgid "The local identity worker was unavailable."
+msgstr "Den lokala identitetsworkern var inte tillgänglig."
+
+#: src/backend/enrollmentsession.cpp:400
+#: src/backend/localverificationsession.cpp:199
+msgid "The local identity worker returned an invalid response."
+msgstr "Den lokala identitetsworkern returnerade ett ogiltigt svar."
+
+#: src/backend/enrollmentsession.cpp:407
+msgid "No face was found. Center one face and retry."
+msgstr "Inget ansikte hittades. Centrera ett ansikte och försök igen."
+
+#: src/backend/enrollmentsession.cpp:408
+msgid "More than one face was found. Retry with one face."
+msgstr "Fler än ett ansikte hittades. Försök igen med ett ansikte."
+
+#: src/backend/enrollmentsession.cpp:409
+msgid "Lighting or image quality is unsuitable. Adjust and retry."
+msgstr "Ljuset eller bildkvaliteten är olämplig. Justera och försök igen."
+
+#: src/backend/enrollmentsession.cpp:410
+msgid "Move the face away from the frame edge and retry."
+msgstr "Flytta ansiktet bort från bildkanten och försök igen."
+
+#: src/backend/enrollmentsession.cpp:412
+msgid ""
+"This sample is too similar to an existing sample. Change appearance or pose."
+msgstr ""
+"Det här provet liknar ett befintligt prov för mycket. Ändra utseende eller "
+"pose."
+
+#: src/backend/enrollmentsession.cpp:413
+msgid "The local identity operation failed safely."
+msgstr "Den lokala identitetsåtgärden misslyckades på ett säkert sätt."
+
+#: src/backend/enrollmentsession.cpp:431
+msgid "Profile status was unavailable."
+msgstr "Profilstatus var inte tillgänglig."
+
+#: src/backend/enrollmentsession.cpp:447
+msgid "The enrollment sample was invalid."
+msgstr "Registreringsprovet var ogiltigt."
+
+#: src/backend/enrollmentsession.cpp:455
+msgid ""
+"Minimum enrollment is complete. Five samples are recommended; eight is the "
+"limit."
+msgstr ""
+"Minimikravet för registreringen är uppfyllt. Fem prov rekommenderas och åtta "
+"är gränsen."
+
+#: src/backend/enrollmentsession.cpp:456
+msgid "Sample accepted. Capture the next deliberate sample."
+msgstr "Provet godkändes. Fånga nästa avsiktliga prov."
+
+#: src/backend/enrollmentsession.cpp:461
+msgid "The profile was not saved."
+msgstr "Profilen sparades inte."
+
+#: src/backend/enrollmentsession.cpp:469
+msgid "Your encrypted local face profile was saved."
+msgstr "Din krypterade lokala ansiktsprofil sparades."
+
+#: src/backend/enrollmentsession.cpp:476
+msgid "The profile data was not deleted."
+msgstr "Profildata togs inte bort."
+
+#: src/backend/enrollmentsession.cpp:489
+msgid ""
+"The encrypted profile was deleted, but its KWallet key could not be removed."
+msgstr ""
+"Den krypterade profilen togs bort, men dess KWallet-nyckel kunde inte tas "
+"bort."
+
+#: src/backend/enrollmentsession.cpp:495
+msgid "The local face profile was deleted."
+msgstr "Den lokala ansiktsprofilen togs bort."
+
+#: src/backend/enrollmentsession.cpp:521
+msgid "Enrollment failed and the unused KWallet key could not be rolled back."
+msgstr ""
+"Registreringen misslyckades och den oanvända KWallet-nyckeln kunde inte "
+"återställas."
+
+#: src/backend/localverificationsession.cpp:18
+msgid "LocalVerificationSession"
+msgstr "LocalVerificationSession"
+
+#: src/backend/localverificationsession.cpp:27
+#: src/backend/localverificationsession.cpp:153
+msgid "Start preview, then explicitly test one current frame."
+msgstr ""
+"Starta förhandsvisningen och testa sedan uttryckligen en aktuell bildruta."
+
+#: src/backend/localverificationsession.cpp:91
+msgid "Please wait briefly before requesting another local test."
+msgstr "Vänta en kort stund innan du begär ett nytt lokalt test."
+
+#: src/backend/localverificationsession.cpp:121
+msgid "The user-session vault is locked or cancelled."
+msgstr "Valvet för användarsessionen är låst eller avbrutet."
+
+#: src/backend/localverificationsession.cpp:122
+msgid "No usable encrypted face profile is available."
+msgstr "Ingen användbar krypterad ansiktsprofil är tillgänglig."
+
+#: src/backend/localverificationsession.cpp:140
+msgid "Comparing one frame locally…"
+msgstr "Jämför en bildruta lokalt…"
+
+#: src/backend/localverificationsession.cpp:166
+#: src/backend/localverificationsession.cpp:189
+#: src/backend/localverificationsession.cpp:230
+msgid "The local recognition test was cancelled."
+msgstr "Det lokala igenkänningstestet avbröts."
+
+#: src/backend/localverificationsession.cpp:208
+msgid ""
+"Match — experimental local comparison only. Nothing was unlocked or "
+"authorized."
+msgstr ""
+"Träff – endast experimentell lokal jämförelse. Ingenting låstes upp eller "
+"auktoriserades."
+
+#: src/backend/localverificationsession.cpp:210
+msgid "No match — the current frame did not meet the provisional local policy."
+msgstr ""
+"Ingen träff – den aktuella bildrutan uppfyllde inte den preliminära lokala "
+"policyn."
+
+#: src/backend/localverificationsession.cpp:211
+msgid ""
+"Ambiguous — the local comparison is too close to the provisional boundary."
+msgstr ""
+"Tvetydigt – den lokala jämförelsen ligger för nära den preliminära gränsen."
+
+#: src/backend/localverificationsession.cpp:226
+msgid "No enrolled face profile exists."
+msgstr "Det finns ingen registrerad ansiktsprofil."
+
+#: src/backend/localverificationsession.cpp:227
+msgid "The user-session vault is locked."
+msgstr "Valvet för användarsessionen är låst."
+
+#: src/backend/localverificationsession.cpp:229
+msgid "The enrolled profile belongs to a different model version."
+msgstr "Den registrerade profilen tillhör en annan modellversion."
+
+#: src/backend/localverificationsession.cpp:231
+msgid "The local recognition test failed safely."
+msgstr "Det lokala igenkänningstestet misslyckades på ett säkert sätt."
+
+#: src/backend/localverificationsession.cpp:236
+msgid "The local identity response was invalid."
+msgstr "Det lokala identitetssvaret var ogiltigt."
+
+#: src/backend/supportreport.cpp:25
+msgid "SupportReport"
+msgstr "Support"
+
+#: src/backend/supportreport.cpp:82
+msgid "The redacted support report was copied."
+msgstr "Den maskerade supportrapporten kopierades."
+
+#: src/backend/supportreport.cpp:86
+msgid "The text could not be copied."
+msgstr "Texten kunde inte kopieras."
+
+#: src/backend/supportreport.cpp:103 src/backend/supportreport.cpp:113
+msgid "The support report could not be exported."
+msgstr "Supportrapporten kunde inte exporteras."
+
+#: src/backend/supportreport.cpp:119
+msgid "The redacted support report was exported to Documents."
+msgstr "Den maskerade supportrapporten exporterades till Dokument."
+
+#: src/backend/supportreport.cpp:144
+msgid "The camera is in use"
+msgstr "Kameran används"
+
+#: src/backend/supportreport.cpp:146
+msgid "The camera is unavailable"
+msgstr "Kameran är inte tillgänglig"
+
+#: src/backend/supportreport.cpp:148
+msgid "The native engine is unavailable"
+msgstr "Native-motorn är inte tillgänglig"
+
+#: src/backend/supportreport.cpp:150
+msgid "The native protocol is unavailable"
+msgstr "Native-protokollet är inte tillgängligt"
+
+#: src/backend/supportreport.cpp:151
+msgid "KFaceAuth needs attention"
+msgstr "KFaceAuth behöver åtgärdas"
+
+#: src/backend/supportreport.cpp:157
+msgid "Close applications using the camera, then retry the preview."
+msgstr ""
+"Stäng program som använder kameran och försök sedan med förhandsvisningen "
+"igen."
+
+#: src/backend/supportreport.cpp:159
+msgid "Reconnect or re-enable the camera, then refresh camera discovery."
+msgstr ""
+"Anslut eller aktivera kameran igen och uppdatera sedan kameraidentifieringen."
+
+#: src/backend/supportreport.cpp:161
+msgid ""
+"Verify the installed local identity worker and model inventory. PAM and "
+"system authentication remain unsupported."
+msgstr ""
+"Verifiera den installerade lokala identitetsworkern och modellinventeringen. "
+"PAM och systemautentisering stöds fortfarande inte."
+
+#: src/backend/supportreport.cpp:164
+msgid "No known issue is currently reported."
+msgstr "Inget känt problem rapporteras just nu."
+
+#: src/backend/supportreport.cpp:165
+msgid ""
+"Keep unsupported operations disabled and export the redacted report for "
+"development support."
+msgstr ""
+"Behåll åtgärder som inte stöds inaktiverade och exportera den maskerade "
+"rapporten för utvecklingssupport."
+
+#: src/backend/systemprobe.cpp:19
+msgid "SystemProbe"
+msgstr "SystemProbe"
+
+#: src/backend/systemprobe.cpp:94
+msgid "Live local system"
+msgstr "Lokalt system i realtid"
+
+#: src/backend/systemprobe.cpp:109
+msgid "Native engine unavailable"
+msgstr "Native-motorn är inte tillgänglig"
+
+#: src/backend/systemprobe.cpp:111
+msgid ""
+"The KCM remains usable for camera checks. Local identity components are "
+"unavailable; PAM and system authentication remain unsupported."
+msgstr ""
+"KCM-modulen kan fortfarande användas för kamerakontroller. Lokala "
+"identitetskomponenter är inte tillgängliga; PAM och systemautentisering "
+"stöds fortfarande inte."
+
+#: src/backend/systemprobe.cpp:120
+msgid "Native protocol unavailable"
+msgstr "Native-protokollet är inte tillgängligt"
+
+#: src/backend/systemprobe.cpp:121
+msgid ""
+"The local engine did not provide the versioned local-identity status "
+"protocol."
+msgstr ""
+"Den lokala motorn tillhandahöll inte det versionshanterade statusprotokollet "
+"för lokal identitet."
+
+#: src/backend/systemprobe.cpp:127
+msgid "Local identity engine available"
+msgstr "Lokal identitetsmotor tillgänglig"
+
+#: src/backend/systemprobe.cpp:129
+msgid ""
+"Verified detector and embedding models support encrypted user-session "
+"enrollment and explicit local comparison. PAM, liveness, and system "
+"authentication remain unsupported."
+msgstr ""
+"Verifierade detektor- och inbäddningsmodeller stöder krypterad registrering "
+"i användarsessionen och uttrycklig lokal jämförelse. PAM, livskontroll och "
+"systemautentisering stöds fortfarande inte."
+
+#: src/backend/visionanalysissession.cpp:44
+msgid "VisionAnalysisSession"
+msgstr "VisionAnalysisSession"
+
+#: src/backend/visionanalysissession.cpp:96
+msgid "Analyze one current preview frame when you choose."
+msgstr "Analysera en aktuell förhandsvisningsruta när du själv väljer."
+
+#: src/backend/visionanalysissession.cpp:315
+msgid "Replacing the previous analysis with the current frame…"
+msgstr "Ersätter den föregående analysen med den aktuella bildrutan…"
+
+#: src/backend/visionanalysissession.cpp:316
+msgid "Analysis was cancelled and its in-memory data was cleared."
+msgstr "Analysen avbröts och dess data i minnet rensades."
+
+#: src/backend/visionanalysissession.cpp:341
+msgid "Analyzing one in-memory frame…"
+msgstr "Analyserar en bildruta i minnet…"
+
+#: src/backend/visionanalysissession.cpp:388
+msgid "Starting local vision analysis…"
+msgstr "Startar lokal bildanalys…"
+
+#: src/backend/visionanalysissession.cpp:436
+msgid "Finishing local analysis and clearing process data…"
+msgstr "Slutför lokal analys och rensar processdata…"
+
+#: src/backend/visionanalysissession.cpp:471
+msgid "One-frame analysis is complete. No image was saved."
+msgstr "Analysen av en bildruta är klar. Ingen bild sparades."
+
+#: src/backend/visionanalysissession.cpp:620
+msgid "Local vision analysis could not be started."
+msgstr "Den lokala bildanalysen kunde inte startas."
+
+#: src/backend/visionanalysissession.cpp:622
+msgid "Local vision analysis did not start in time."
+msgstr "Den lokala bildanalysen startade inte i tid."
+
+#: src/backend/visionanalysissession.cpp:624
+msgid "The one-frame analysis timed out."
+msgstr "Tidsgränsen för analysen av en bildruta överskreds."
+
+#: src/backend/visionanalysissession.cpp:626
+msgid "Local vision analysis did not stop cleanly."
+msgstr "Den lokala bildanalysen stoppades inte korrekt."
+
+#: src/backend/visionanalysissession.cpp:628
+msgid "Local vision analysis stopped unexpectedly."
+msgstr "Den lokala bildanalysen stoppades oväntat."
+
+#: src/backend/visionanalysissession.cpp:630
+msgid "An outdated analysis response was rejected."
+msgstr "Ett inaktuellt analyssvar avvisades."
+
+#: src/backend/visionanalysissession.cpp:632
+msgid "The current preview frame could not be analyzed."
+msgstr "Den aktuella förhandsvisningsrutan kunde inte analyseras."
+
+#: src/backend/visionanalysissession.cpp:634
+msgid ""
+"YuNet is unavailable or failed model verification. Reinstall KFaceAuth and "
+"try again."
+msgstr ""
+"YuNet är inte tillgängligt eller klarade inte modellverifieringen. "
+"Installera om KFaceAuth och försök igen."
+
+#: src/backend/visionanalysissession.cpp:636
+msgid ""
+"The local YuNet detector returned invalid data. Try another frame or "
+"reinstall OpenCV."
+msgstr ""
+"Den lokala YuNet-detektorn returnerade ogiltiga data. Försök med en annan "
+"bildruta eller installera om OpenCV."
+
+#: src/backend/visionanalysissession.cpp:638
+msgid "Local vision analysis could not process this frame."
+msgstr "Den lokala bildanalysen kunde inte bearbeta den här bildrutan."
+
+#: src/backend/visionanalysissession.cpp:639
+msgid "Local vision analysis returned invalid data."
+msgstr "Den lokala bildanalysen returnerade ogiltiga data."
+
+#: src/preview/cameraprovider.cpp:29
+msgid "CameraProvider"
+msgstr "Kameraleverantör"
+
+#: src/preview/cameraprovider.cpp:200
+msgid "Camera"
+msgstr "Kamera"

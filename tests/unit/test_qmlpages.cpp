@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "authconfiguration.h"
 #include "camerapreviewitem.h"
 #include "camerapreviewsession.h"
-#include "fakeadapter.h"
-#include "profilemodel.h"
+#include "enrollmentsession.h"
+#include "identityworkerclient.h"
+#include "kwalletkeyprovider.h"
+#include "localverificationsession.h"
 #include "supportreport.h"
 #include "systemstate.h"
+#include "visionanalysissession.h"
 
 #include <KLocalizedQmlContext>
 
@@ -22,26 +24,16 @@ class QmlPagesTest final : public QObject
     Q_OBJECT
 
   private Q_SLOTS:
-    void everyScenarioCreatesEveryPage();
+    void milestonePagesCreateForUnavailableEngine();
     void cameraPageStopsWhenHidden();
+    void analysisCancelsWhenApplicationDeactivates();
 };
 
 namespace
 {
-class NullAuthActionRunner final : public AuthActionRunner
-{
-  public:
-    using AuthActionRunner::AuthActionRunner;
-
-    bool start(AuthAction, const QVariantMap &) override
-    {
-        return false;
-    }
-};
-
 std::unique_ptr<QObject> createPage(QQmlEngine &engine, const QString &fileName, const QVariantMap &properties)
 {
-    const QString path = QStringLiteral(IRLUME_SOURCE_DIR "/src/kcm/ui/") + fileName;
+    const QString path = QStringLiteral(KFACEAUTH_SOURCE_DIR "/src/kcm/ui/") + fileName;
     QQmlComponent component(&engine, QUrl::fromLocalFile(path));
     if (component.isError())
     {
@@ -51,122 +43,134 @@ std::unique_ptr<QObject> createPage(QQmlEngine &engine, const QString &fileName,
 
     auto object = std::unique_ptr<QObject>(component.createWithInitialProperties(properties));
     if (!object)
-    {
         qWarning().noquote() << component.errorString();
-    }
     return object;
 }
 } // namespace
 
-void QmlPagesTest::everyScenarioCreatesEveryPage()
+void QmlPagesTest::milestonePagesCreateForUnavailableEngine()
 {
-    FakeSystemStateAdapter adapter;
-    ProfileModel profileModel;
+    SystemStateSnapshot snapshot;
+    snapshot.headline = QStringLiteral("Native engine unavailable");
+    snapshot.summary = QStringLiteral("Camera checks remain available.");
+    snapshot.issueCode = QStringLiteral("native-engine-unavailable");
+    SystemState state;
+    state.apply(snapshot);
     CameraPreviewSession cameraPreviewSession(QStringLiteral("/nonexistent/preview-worker"), nullptr);
+    VisionAnalysisSession visionAnalysisSession(&cameraPreviewSession, QStringLiteral("/nonexistent/vision-worker"),
+                                                nullptr);
+    KWalletKeyProvider keyProvider;
+    IdentityWorkerClient identityWorker(QStringLiteral("/nonexistent/identity-worker"), {}, nullptr);
+    EnrollmentSession enrollmentSession(&cameraPreviewSession, &identityWorker, &keyProvider);
+    LocalVerificationSession localVerificationSession(&cameraPreviewSession, &identityWorker, &keyProvider);
+    SupportReport supportReport(&state, &cameraPreviewSession);
     QQmlEngine engine;
     auto *localizedContext = KLocalization::setupLocalizedContext(&engine);
-    localizedContext->setTranslationDomain(QStringLiteral("plasma_irlume"));
+    localizedContext->setTranslationDomain(QStringLiteral("kcm_kfaceauth"));
 
-    for (int index = 0; index < adapter.scenarioNames().size(); ++index)
+    auto overview = createPage(engine, QStringLiteral("SetupStatusPage.qml"),
+                               {
+                                   {QStringLiteral("systemState"), QVariant::fromValue(&state)},
+                                   {QStringLiteral("cameraPreviewSession"), QVariant::fromValue(&cameraPreviewSession)},
+                                   {QStringLiteral("refreshActive"), false},
+                               });
+    auto camera = createPage(engine, QStringLiteral("CameraCheckPage.qml"),
+                             {
+                                 {QStringLiteral("cameraPreviewSession"), QVariant::fromValue(&cameraPreviewSession)},
+                                 {QStringLiteral("visionAnalysisSession"), QVariant::fromValue(&visionAnalysisSession)},
+                             });
+    auto diagnostics = createPage(engine, QStringLiteral("DiagnosticsPage.qml"),
+                                  {
+                                      {QStringLiteral("systemState"), QVariant::fromValue(&state)},
+                                      {QStringLiteral("supportReport"), QVariant::fromValue(&supportReport)},
+                                      {QStringLiteral("refreshActive"), false},
+                                  });
+    auto profile = createPage(engine, QStringLiteral("FaceProfilePage.qml"),
+                              {
+                                  {QStringLiteral("cameraPreviewSession"), QVariant::fromValue(&cameraPreviewSession)},
+                                  {QStringLiteral("enrollmentSession"), QVariant::fromValue(&enrollmentSession)},
+                              });
+    auto recognition =
+        createPage(engine, QStringLiteral("TestRecognitionPage.qml"),
+                   {
+                       {QStringLiteral("cameraPreviewSession"), QVariant::fromValue(&cameraPreviewSession)},
+                       {QStringLiteral("localVerificationSession"), QVariant::fromValue(&localVerificationSession)},
+                   });
+    QVERIFY(overview);
+    QVERIFY(camera);
+    QVERIFY(diagnostics);
+    QVERIFY(profile);
+    QVERIFY(recognition);
+
+    for (QObject *page : {overview.get(), camera.get(), profile.get(), recognition.get(), diagnostics.get()})
     {
-        SystemState state;
-        state.apply(adapter.stateForScenario(index));
-        NullAuthActionRunner authRunner;
-        AuthConfiguration authConfiguration(&state, &authRunner);
-        SupportReport supportReport(&state, &profileModel, &authConfiguration);
-
-        const QVariant stateValue = QVariant::fromValue(&state);
-        auto overview =
-            createPage(engine, QStringLiteral("OverviewPage.qml"), {{QStringLiteral("systemState"), stateValue}});
-        QVERIFY2(overview, qPrintable(QStringLiteral("Overview failed for scenario %1").arg(index)));
-
-        auto security =
-            createPage(engine, QStringLiteral("SecurityPage.qml"), {{QStringLiteral("systemState"), stateValue}});
-        QVERIFY2(security, qPrintable(QStringLiteral("Security failed for scenario %1").arg(index)));
-
-        auto enrollment = createPage(engine, QStringLiteral("EnrollmentPage.qml"),
-                                     {
-                                         {QStringLiteral("profileModel"), QVariant::fromValue(&profileModel)},
-                                     });
-        QVERIFY2(enrollment, qPrintable(QStringLiteral("Enrollment failed for scenario %1").arg(index)));
-
-        auto cameraCheck =
-            createPage(engine, QStringLiteral("CameraCheckPage.qml"),
-                       {{QStringLiteral("cameraPreviewSession"), QVariant::fromValue(&cameraPreviewSession)}});
-        QVERIFY2(cameraCheck, qPrintable(QStringLiteral("Camera Check failed for scenario %1").arg(index)));
-
-        auto authentication =
-            createPage(engine, QStringLiteral("AuthenticationPage.qml"),
-                       {
-                           {QStringLiteral("systemState"), stateValue},
-                           {QStringLiteral("authConfiguration"), QVariant::fromValue(&authConfiguration)},
-                       });
-        QVERIFY2(authentication, qPrintable(QStringLiteral("Authentication failed for scenario %1").arg(index)));
-
-        auto diagnostics = createPage(engine, QStringLiteral("DiagnosticsPage.qml"),
-                                      {
-                                          {QStringLiteral("systemState"), stateValue},
-                                          {QStringLiteral("supportReport"), QVariant::fromValue(&supportReport)},
-                                          {QStringLiteral("refreshActive"), false},
-                                          {QStringLiteral("partialDiagnostics"), false},
-                                      });
-        QVERIFY2(diagnostics, qPrintable(QStringLiteral("Diagnostics failed for scenario %1").arg(index)));
-
-        auto setupStatus =
-            createPage(engine, QStringLiteral("SetupStatusPage.qml"),
-                       {
-                           {QStringLiteral("systemState"), stateValue},
-                           {QStringLiteral("profileModel"), QVariant::fromValue(&profileModel)},
-                           {QStringLiteral("authConfiguration"), QVariant::fromValue(&authConfiguration)},
-                           {QStringLiteral("cameraPreviewSession"), QVariant::fromValue(&cameraPreviewSession)},
-                           {QStringLiteral("refreshActive"), false},
-                           {QStringLiteral("partialDiagnostics"), false},
-                       });
-        QVERIFY2(setupStatus, qPrintable(QStringLiteral("Setup & Status failed for scenario %1").arg(index)));
-
-        auto *overviewItem = qobject_cast<QQuickItem *>(overview.get());
-        auto *securityItem = qobject_cast<QQuickItem *>(security.get());
-        auto *enrollmentItem = qobject_cast<QQuickItem *>(enrollment.get());
-        auto *diagnosticsItem = qobject_cast<QQuickItem *>(diagnostics.get());
-        auto *authenticationItem = qobject_cast<QQuickItem *>(authentication.get());
-        auto *setupStatusItem = qobject_cast<QQuickItem *>(setupStatus.get());
-        auto *cameraCheckItem = qobject_cast<QQuickItem *>(cameraCheck.get());
-        QVERIFY(overviewItem);
-        QVERIFY(securityItem);
-        QVERIFY(enrollmentItem);
-        QVERIFY(diagnosticsItem);
-        QVERIFY(authenticationItem);
-        QVERIFY(setupStatusItem);
-        QVERIFY(cameraCheckItem);
+        auto *item = qobject_cast<QQuickItem *>(page);
+        QVERIFY(item);
         for (const int width : {320, 480, 960})
         {
-            overviewItem->setSize(QSizeF(width, 720));
-            securityItem->setSize(QSizeF(width, 720));
-            enrollmentItem->setSize(QSizeF(width, 720));
-            diagnosticsItem->setSize(QSizeF(width, 720));
-            authenticationItem->setSize(QSizeF(width, 720));
-            setupStatusItem->setSize(QSizeF(width, 720));
-            cameraCheckItem->setSize(QSizeF(width, 720));
+            item->setSize(QSizeF(width, 720));
             QCoreApplication::processEvents();
-            QVERIFY(overviewItem->implicitHeight() > 0);
-            QVERIFY(securityItem->implicitHeight() > 0);
-            QVERIFY(enrollmentItem->implicitHeight() > 0);
-            QVERIFY(diagnosticsItem->implicitHeight() > 0);
-            QVERIFY(authenticationItem->implicitHeight() > 0);
-            QVERIFY(setupStatusItem->implicitHeight() > 0);
-            QVERIFY(cameraCheckItem->implicitHeight() > 0);
+            QVERIFY(item->implicitHeight() > 0);
         }
+    }
+
+    for (QObject *control : {
+             overview->findChild<QObject *>(QStringLiteral("overviewRefreshButton")),
+             overview->findChild<QObject *>(QStringLiteral("openCameraButton")),
+             camera->findChild<QObject *>(QStringLiteral("cameraDeviceSelector")),
+             camera->findChild<QObject *>(QStringLiteral("cameraRefreshButton")),
+             camera->findChild<QObject *>(QStringLiteral("cameraPreviewAction")),
+             camera->findChild<QObject *>(QStringLiteral("visionAnalyzeAction")),
+             profile->findChild<QObject *>(QStringLiteral("refreshStatusButton")),
+             profile->findChild<QObject *>(QStringLiteral("deleteProfileButton")),
+             profile->findChild<QObject *>(QStringLiteral("resetProfileButton")),
+             profile->findChild<QObject *>(QStringLiteral("previewButton")),
+             profile->findChild<QObject *>(QStringLiteral("startEnrollmentButton")),
+             profile->findChild<QObject *>(QStringLiteral("captureButton")),
+             profile->findChild<QObject *>(QStringLiteral("retrySampleButton")),
+             profile->findChild<QObject *>(QStringLiteral("cancelEnrollmentButton")),
+             profile->findChild<QObject *>(QStringLiteral("finishEnrollmentButton")),
+             recognition->findChild<QObject *>(QStringLiteral("previewButton")),
+             recognition->findChild<QObject *>(QStringLiteral("verifyButton")),
+             recognition->findChild<QObject *>(QStringLiteral("clearVerificationButton")),
+             diagnostics->findChild<QObject *>(QStringLiteral("diagnosticsRefreshButton")),
+             diagnostics->findChild<QObject *>(QStringLiteral("copyReportButton")),
+             diagnostics->findChild<QObject *>(QStringLiteral("exportReportButton")),
+         })
+    {
+        QVERIFY(control);
+        QVERIFY(control->property("activeFocusOnTab").toBool());
+        const QString accessibleText = control->property("text").isValid()
+                                           ? control->property("text").toString()
+                                           : control->property("accessibilityLabel").toString();
+        QVERIFY(!accessibleText.isEmpty());
+    }
+
+    for (QObject *dialog : {
+             profile->findChild<QObject *>(QStringLiteral("deleteProfileConfirmation")),
+             profile->findChild<QObject *>(QStringLiteral("resetProfileConfirmation")),
+         })
+    {
+        QVERIFY(dialog);
+        QVERIFY(dialog->property("modal").toBool());
+        QVERIFY(!dialog->property("title").toString().isEmpty());
     }
 }
 
 void QmlPagesTest::cameraPageStopsWhenHidden()
 {
-    CameraPreviewSession session(QStringLiteral(IRLUME_FAKE_PREVIEW_WORKER_PATH), nullptr);
+    CameraPreviewSession session(QStringLiteral(KFACEAUTH_FAKE_PREVIEW_WORKER_PATH), nullptr);
+    QProcessEnvironment environment;
+    environment.insert(QStringLiteral("KFACEAUTH_FAKE_VISION_MODE"), QStringLiteral("timeout"));
+    VisionAnalysisSession analysis(&session, QStringLiteral(KFACEAUTH_FAKE_VISION_WORKER_PATH), environment, nullptr);
     QQmlEngine engine;
     auto *localizedContext = KLocalization::setupLocalizedContext(&engine);
-    localizedContext->setTranslationDomain(QStringLiteral("plasma_irlume"));
+    localizedContext->setTranslationDomain(QStringLiteral("kcm_kfaceauth"));
     auto page = createPage(engine, QStringLiteral("CameraCheckPage.qml"),
-                           {{QStringLiteral("cameraPreviewSession"), QVariant::fromValue(&session)}});
+                           {
+                               {QStringLiteral("cameraPreviewSession"), QVariant::fromValue(&session)},
+                               {QStringLiteral("visionAnalysisSession"), QVariant::fromValue(&analysis)},
+                           });
     QVERIFY(page);
     auto *item = qobject_cast<QQuickItem *>(page.get());
     QVERIFY(item);
@@ -176,28 +180,63 @@ void QmlPagesTest::cameraPageStopsWhenHidden()
     auto *selector = page->findChild<QObject *>(QStringLiteral("cameraDeviceSelector"));
     auto *refreshButton = page->findChild<QObject *>(QStringLiteral("cameraRefreshButton"));
     auto *previewAction = page->findChild<QObject *>(QStringLiteral("cameraPreviewAction"));
+    auto *analyzeAction = page->findChild<QObject *>(QStringLiteral("visionAnalyzeAction"));
     QVERIFY(selector);
     QVERIFY(refreshButton);
     QVERIFY(previewAction);
+    QVERIFY(analyzeAction);
     QVERIFY(selector->property("activeFocusOnTab").toBool());
     QVERIFY(refreshButton->property("activeFocusOnTab").toBool());
     QVERIFY(previewAction->property("activeFocusOnTab").toBool());
+    QVERIFY(analyzeAction->property("activeFocusOnTab").toBool());
     QVERIFY(!selector->property("accessibilityLabel").toString().isEmpty());
 
     session.startPreview();
     QTRY_COMPARE(session.state(), CameraPreviewSession::State::Streaming);
     QTRY_VERIFY(session.frameAvailable());
+    QTRY_VERIFY(analyzeAction->property("enabled").toBool());
+    analysis.analyzeCurrentFrame();
+    QTRY_COMPARE(analysis.state(), VisionAnalysisSession::State::Analyzing);
     item->setVisible(false);
+    QTRY_COMPARE(analysis.state(), VisionAnalysisSession::State::Idle);
     QTRY_COMPARE(session.state(), CameraPreviewSession::State::Ready);
     QVERIFY(!session.frameAvailable());
+    QVERIFY(!analysis.resultAvailable());
+}
+
+void QmlPagesTest::analysisCancelsWhenApplicationDeactivates()
+{
+    CameraPreviewSession session(QStringLiteral(KFACEAUTH_FAKE_PREVIEW_WORKER_PATH), nullptr);
+    QProcessEnvironment environment;
+    environment.insert(QStringLiteral("KFACEAUTH_FAKE_VISION_MODE"), QStringLiteral("timeout"));
+    VisionAnalysisSession analysis(&session, QStringLiteral(KFACEAUTH_FAKE_VISION_WORKER_PATH), environment, nullptr);
+    session.refreshDevices();
+    QTRY_COMPARE(session.state(), CameraPreviewSession::State::Ready);
+    session.startPreview();
+    QTRY_COMPARE(session.state(), CameraPreviewSession::State::Streaming);
+    QTRY_VERIFY(session.frameAvailable());
+    analysis.analyzeCurrentFrame();
+    QTRY_COMPARE(analysis.state(), VisionAnalysisSession::State::Analyzing);
+
+    QMetaObject::invokeMethod(qGuiApp, "applicationStateChanged", Qt::DirectConnection,
+                              Q_ARG(Qt::ApplicationState, Qt::ApplicationInactive));
+    QTRY_COMPARE(analysis.state(), VisionAnalysisSession::State::Idle);
+    QTRY_COMPARE(session.state(), CameraPreviewSession::State::Ready);
+    QVERIFY(!analysis.resultAvailable());
 }
 
 int main(int argc, char **argv)
 {
     QGuiApplication application(argc, argv);
-    qmlRegisterType<CameraPreviewItem>("org.kde.plasma.irlume", 3, 0, "CameraPreview");
-    qmlRegisterUncreatableType<CameraPreviewSession>("org.kde.plasma.irlume", 3, 0, "CameraPreviewSession",
+    qmlRegisterType<CameraPreviewItem>("org.kde.kfaceauth", 4, 0, "CameraPreview");
+    qmlRegisterUncreatableType<CameraPreviewSession>("org.kde.kfaceauth", 4, 0, "CameraPreviewSession",
                                                      QStringLiteral("provided by test"));
+    qmlRegisterUncreatableType<VisionAnalysisSession>("org.kde.kfaceauth", 4, 0, "VisionAnalysisSession",
+                                                      QStringLiteral("provided by test"));
+    qmlRegisterUncreatableType<EnrollmentSession>("org.kde.kfaceauth", 4, 0, "EnrollmentSession",
+                                                  QStringLiteral("provided by test"));
+    qmlRegisterUncreatableType<LocalVerificationSession>("org.kde.kfaceauth", 4, 0, "LocalVerificationSession",
+                                                         QStringLiteral("provided by test"));
     QmlPagesTest test;
     return QTest::qExec(&test, argc, argv);
 }

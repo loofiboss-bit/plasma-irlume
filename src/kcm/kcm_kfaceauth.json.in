@@ -1,0 +1,11 @@
+{
+    "KPlugin": {
+        "Description": "Experimental local identity and in-session comparison preview",
+        "Icon": "preferences-desktop-user",
+        "License": "GPL-3.0-or-later",
+        "Name": "@KFACEAUTH_DISPLAY_NAME@ (Experimental Local Identity Preview)",
+        "Version": "@PROJECT_VERSION@"
+    },
+    "X-KDE-Keywords": "Camera,Privacy,Local Identity,Experimental Preview",
+    "X-KDE-System-Settings-Parent-Category": "security-and-privacy"
+}

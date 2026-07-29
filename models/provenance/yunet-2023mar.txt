@@ -1,0 +1,13 @@
+schema=kfaceauth-model-provenance-v1
+artifact=face_detection_yunet_2023mar.onnx
+upstream_repository=https://github.com/opencv/opencv_zoo
+upstream_commit=47534e27c9851bb1128ccc0102f1145e27f23f98
+upstream_path=models/face_detection_yunet/face_detection_yunet_2023mar.onnx
+upstream_model_source=https://github.com/ShiqiYu/libfacedetection.train/blob/a61a428929148171b488f024b5d6774f93cdbc13/tasks/task1/onnx/yunet.onnx
+license=MIT
+upstream_license_path=models/face_detection_yunet/LICENSE
+upstream_license_statement_path=models/face_detection_yunet/README.md
+packaged_license_path=licenses/yunet-MIT.txt
+runtime_backend=not-enabled
+sha256=8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4
+size=232589

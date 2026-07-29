@@ -1,16 +1,21 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
-add_library(irlume_backend STATIC
-    authactionrunner.cpp
-    authactionrunner.h
-    authconfiguration.cpp
-    authconfiguration.h
+add_library(kfaceauth_core STATIC
     camerapreviewsession.cpp
     camerapreviewsession.h
-    fakeadapter.cpp
-    fakeadapter.h
-    profilemodel.cpp
-    profilemodel.h
+    enrollmentsession.cpp
+    enrollmentsession.h
+    faceauthbackend.h
+    identityprotocol.cpp
+    identityprotocol.h
+    identityworkerclient.cpp
+    identityworkerclient.h
+    kwalletkeyprovider.cpp
+    kwalletkeyprovider.h
+    localverificationsession.cpp
+    localverificationsession.h
+    nativefaceauthbackend.cpp
+    nativefaceauthbackend.h
     refreshcoordinator.cpp
     refreshcoordinator.h
     supportreport.cpp
@@ -19,19 +24,26 @@ add_library(irlume_backend STATIC
     systemstate.h
     systemprobe.cpp
     systemprobe.h
+    visionanalysissession.cpp
+    visionanalysissession.h
 )
 
-set_target_properties(irlume_backend PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(kfaceauth_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-target_link_libraries(irlume_backend
+target_link_libraries(kfaceauth_core
     PUBLIC
-        irlume_adapter
         preview_protocol
         Qt6::Concurrent
         Qt6::Core
         Qt6::Gui
+        KF6::Wallet
+        OpenSSL::Crypto
 )
-target_include_directories(irlume_backend PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
-target_compile_definitions(irlume_backend PRIVATE
-    PLASMA_IRLUME_PREVIEW_WORKER_PATH="${CMAKE_INSTALL_PREFIX}/libexec/plasma-irlume-camera-preview-worker"
+target_include_directories(kfaceauth_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_compile_definitions(kfaceauth_core PRIVATE
+    KFACEAUTH_PREVIEW_WORKER_PATH="${CMAKE_INSTALL_PREFIX}/libexec/${KFACEAUTH_PREVIEW_WORKER}"
+    KFACEAUTH_VISION_WORKER_PATH="${CMAKE_INSTALL_PREFIX}/libexec/${KFACEAUTH_VISION_WORKER}"
+    KFACEAUTH_IDENTITY_WORKER_PATH="${CMAKE_INSTALL_PREFIX}/libexec/${KFACEAUTH_IDENTITY_WORKER}"
+    KFACEAUTH_MODEL_ROOT="${CMAKE_INSTALL_PREFIX}/share/${KFACEAUTH_MODEL_DIRECTORY}"
+    KFACEAUTH_SUPPORT_PREFIX="${KFACEAUTH_SUPPORT_PREFIX}"
 )

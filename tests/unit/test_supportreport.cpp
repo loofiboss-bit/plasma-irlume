@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "authconfiguration.h"
 #include "camerapreviewsession.h"
-#include "fakeadapter.h"
-#include "profilemodel.h"
 #include "supportreport.h"
 #include "systemstate.h"
 
@@ -12,68 +9,42 @@
 #include <QTemporaryDir>
 #include <QTest>
 
-namespace
-{
-class NullAuthActionRunner final : public AuthActionRunner
-{
-  public:
-    using AuthActionRunner::AuthActionRunner;
-    bool start(AuthAction, const QVariantMap &) override
-    {
-        return false;
-    }
-};
-} // namespace
-
 class SupportReportTest final : public QObject
 {
     Q_OBJECT
 
   private Q_SLOTS:
-    void mapsEveryPhaseFiveIssueToAnAction();
-    void reportContainsOnlyRedactedTypedState();
+    void mapsMilestoneIssuesToActions();
+    void reportPreservesPreviewPrivacy();
     void exportsMarkdownAtomically();
 };
 
-void SupportReportTest::mapsEveryPhaseFiveIssueToAnAction()
+void SupportReportTest::mapsMilestoneIssuesToActions()
 {
-    const QStringList codes = {
-        QStringLiteral("camera-busy"),
-        QStringLiteral("camera-unavailable"),
-        QStringLiteral("ir-emitter-failed"),
-        QStringLiteral("tpm-unseal-failed"),
-        QStringLiteral("secure-boot-pcr-changed"),
-        QStringLiteral("unsupported-contract"),
-        QStringLiteral("capability-unavailable"),
-        QStringLiteral("pam-drift"),
-        QStringLiteral("display-manager-migration"),
-        QStringLiteral("kwallet-password-mismatch"),
-    };
-
-    for (const QString &code : codes)
+    for (const QString &code : {
+             QStringLiteral("camera-busy"),
+             QStringLiteral("camera-unavailable"),
+             QStringLiteral("native-engine-unavailable"),
+             QStringLiteral("native-protocol-unavailable"),
+         })
     {
         QVERIFY2(!SupportReport::titleForCode(code).isEmpty(), qPrintable(code));
-        const QString action = SupportReport::actionForCode(code);
-        QVERIFY2(!action.isEmpty(), qPrintable(code));
-        QVERIFY2(action != SupportReport::actionForCode(QStringLiteral("unknown-error")), qPrintable(code));
+        QVERIFY2(!SupportReport::actionForCode(code).isEmpty(), qPrintable(code));
     }
 }
 
-void SupportReportTest::reportContainsOnlyRedactedTypedState()
+void SupportReportTest::reportPreservesPreviewPrivacy()
 {
-    auto snapshot = FakeSystemStateAdapter().stateForScenario(FakeSystemStateAdapter::PamDrift);
+    SystemStateSnapshot snapshot;
     snapshot.dataSource = QStringLiteral("/home/private-user/session");
     snapshot.fedoraVersion = QStringLiteral("password=hunter2");
     snapshot.plasmaVersion = QStringLiteral("owner@example.test");
     snapshot.engineVersion = QStringLiteral("embedding=biometric-payload");
-
+    snapshot.issueCode = QStringLiteral("native-engine-unavailable");
     SystemState state;
     state.apply(snapshot);
-    ProfileModel profileModel;
-    NullAuthActionRunner runner;
-    AuthConfiguration authConfiguration(&state, &runner);
-    CameraPreviewSession previewSession(QStringLiteral(IRLUME_FAKE_PREVIEW_WORKER_PATH), nullptr);
-    SupportReport supportReport(&state, &profileModel, &authConfiguration, &previewSession);
+    CameraPreviewSession previewSession(QStringLiteral(KFACEAUTH_FAKE_PREVIEW_WORKER_PATH), nullptr);
+    SupportReport supportReport(&state, &previewSession);
     previewSession.refreshDevices();
     QTRY_COMPARE(previewSession.state(), CameraPreviewSession::State::Ready);
 
@@ -87,27 +58,24 @@ void SupportReportTest::reportContainsOnlyRedactedTypedState()
     QVERIFY(report.contains(QStringLiteral("Native cameras: total=10 rgb=1 ir=1 unknown=8")));
     QVERIFY(!report.contains(QStringLiteral("RGB Test Camera")));
     QVERIFY(!report.contains(QStringLiteral("rgb-token")));
-    QCOMPARE(supportReport.issueCode(), QStringLiteral("pam-drift"));
 }
 
 void SupportReportTest::exportsMarkdownAtomically()
 {
     SystemState state;
-    state.apply(FakeSystemStateAdapter().stateForScenario(FakeSystemStateAdapter::SecureIr));
-    ProfileModel profileModel;
-    NullAuthActionRunner runner;
-    AuthConfiguration authConfiguration(&state, &runner);
-    SupportReport supportReport(&state, &profileModel, &authConfiguration);
+    state.apply(SystemStateSnapshot{});
+    SupportReport supportReport(&state);
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
 
     QVERIFY(supportReport.exportToDirectory(directory.path()));
     const QStringList files = QDir(directory.path()).entryList({QStringLiteral("*.md")}, QDir::Files);
     QCOMPARE(files.size(), 1);
+    QVERIFY(files.constFirst().startsWith(QStringLiteral("kfaceauth-support-")));
     QFile reportFile(QDir(directory.path()).filePath(files.constFirst()));
     QVERIFY(reportFile.open(QIODevice::ReadOnly | QIODevice::Text));
     const QByteArray contents = reportFile.readAll();
-    QVERIFY(contents.startsWith("# plasma-irlume support report"));
+    QVERIFY(contents.startsWith("# KFaceAuth support report"));
     QVERIFY(!contents.contains("/home/"));
 }
 

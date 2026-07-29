@@ -5,9 +5,7 @@
 #include <QObject>
 #include <QString>
 
-class AuthConfiguration;
 class CameraPreviewSession;
-class ProfileModel;
 class SystemState;
 
 class SupportReport final : public QObject
@@ -18,26 +16,23 @@ class SupportReport final : public QObject
     Q_PROPERTY(QString issueCode READ issueCode NOTIFY reportChanged)
     Q_PROPERTY(QString issueTitle READ issueTitle NOTIFY reportChanged)
     Q_PROPERTY(QString recommendedAction READ recommendedAction NOTIFY reportChanged)
-    Q_PROPERTY(QString recoveryInstructions READ recoveryInstructions CONSTANT)
     Q_PROPERTY(QString lastExportPath READ lastExportPath NOTIFY exportChanged)
     Q_PROPERTY(QString statusText READ statusText NOTIFY exportChanged)
     Q_PROPERTY(bool hasIssue READ hasIssue NOTIFY reportChanged)
 
   public:
-    explicit SupportReport(SystemState *systemState, ProfileModel *profileModel, AuthConfiguration *authConfiguration,
-                           CameraPreviewSession *cameraPreviewSession = nullptr, QObject *parent = nullptr);
+    explicit SupportReport(SystemState *systemState, CameraPreviewSession *cameraPreviewSession = nullptr,
+                           QObject *parent = nullptr);
 
     [[nodiscard]] QString report() const;
     [[nodiscard]] QString issueCode() const;
     [[nodiscard]] QString issueTitle() const;
     [[nodiscard]] QString recommendedAction() const;
-    [[nodiscard]] QString recoveryInstructions() const;
     [[nodiscard]] QString lastExportPath() const;
     [[nodiscard]] QString statusText() const;
     [[nodiscard]] bool hasIssue() const;
 
     Q_INVOKABLE void copyReport();
-    Q_INVOKABLE void copyRecoveryInstructions();
     Q_INVOKABLE bool exportReport();
 
     bool exportToDirectory(const QString &directory);
@@ -51,12 +46,9 @@ class SupportReport final : public QObject
 
   private:
     void rebuild();
-    void copyText(const QString &text, const QString &successMessage);
     [[nodiscard]] QString currentIssueCode() const;
 
     SystemState *m_systemState = nullptr;
-    ProfileModel *m_profileModel = nullptr;
-    AuthConfiguration *m_authConfiguration = nullptr;
     CameraPreviewSession *m_cameraPreviewSession = nullptr;
     QString m_report;
     QString m_issueCode;
