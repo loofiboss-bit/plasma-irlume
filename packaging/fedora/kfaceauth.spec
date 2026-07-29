@@ -5,10 +5,14 @@
 Name:           kfaceauth
 Version:        4.0.0
 Release:        1%{?dist}
-Summary:        KDE development preview for native face authentication
+Summary:        Experimental KDE local identity and comparison preview
 
 License:        GPL-3.0-or-later AND MIT AND Apache-2.0
-Source0:        %{name}-%{version}.tar.gz
+URL:            https://github.com/loofiboss-bit/plasma-irlume
+Source0:        %{url}/releases/download/v%{version}/%{name}-%{version}.tar.gz
+
+Obsoletes:      plasma-irlume < 4.0.0
+Provides:       plasma-irlume = %{version}-%{release}
 
 BuildRequires:  cmake >= 3.22
 BuildRequires:  cmake-rpm-macros

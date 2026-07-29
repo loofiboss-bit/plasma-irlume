@@ -20,6 +20,8 @@ class IdentityWorkerClient final : public QObject
 
     explicit IdentityWorkerClient(QObject *parent = nullptr);
     IdentityWorkerClient(QString workerPath, QProcessEnvironment environment, QObject *parent);
+    IdentityWorkerClient(QString workerPath, QProcessEnvironment environment, int startupTimeoutMs,
+                         int operationTimeoutMs, int shutdownTimeoutMs, QObject *parent);
     ~IdentityWorkerClient() override;
 
     [[nodiscard]] bool busy() const;

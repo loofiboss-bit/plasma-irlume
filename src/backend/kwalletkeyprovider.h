@@ -14,7 +14,7 @@ namespace KWallet
 class Wallet;
 }
 
-class KWalletKeyProvider final : public QObject
+class KWalletKeyProvider : public QObject
 {
     Q_OBJECT
 
@@ -66,12 +66,12 @@ class KWalletKeyProvider final : public QObject
     explicit KWalletKeyProvider(QObject *parent = nullptr);
     ~KWalletKeyProvider() override;
 
-    [[nodiscard]] State boundedState() const;
-    void requestKey(Completion completion);
-    [[nodiscard]] Result generateTransientKey() const;
-    void storeKey(QByteArray key, Completion completion);
-    void deleteKey(Completion completion);
-    void cancel();
+    [[nodiscard]] virtual State boundedState() const;
+    virtual void requestKey(Completion completion);
+    [[nodiscard]] virtual Result generateTransientKey() const;
+    virtual void storeKey(QByteArray key, Completion completion);
+    virtual void deleteKey(Completion completion);
+    virtual void cancel();
 
   private:
     void finishOpen(bool success);

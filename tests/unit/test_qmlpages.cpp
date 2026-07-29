@@ -115,16 +115,45 @@ void QmlPagesTest::milestonePagesCreateForUnavailableEngine()
     }
 
     for (QObject *control : {
+             overview->findChild<QObject *>(QStringLiteral("overviewRefreshButton")),
+             overview->findChild<QObject *>(QStringLiteral("openCameraButton")),
+             camera->findChild<QObject *>(QStringLiteral("cameraDeviceSelector")),
+             camera->findChild<QObject *>(QStringLiteral("cameraRefreshButton")),
+             camera->findChild<QObject *>(QStringLiteral("cameraPreviewAction")),
+             camera->findChild<QObject *>(QStringLiteral("visionAnalyzeAction")),
+             profile->findChild<QObject *>(QStringLiteral("refreshStatusButton")),
+             profile->findChild<QObject *>(QStringLiteral("deleteProfileButton")),
+             profile->findChild<QObject *>(QStringLiteral("resetProfileButton")),
              profile->findChild<QObject *>(QStringLiteral("previewButton")),
              profile->findChild<QObject *>(QStringLiteral("startEnrollmentButton")),
              profile->findChild<QObject *>(QStringLiteral("captureButton")),
+             profile->findChild<QObject *>(QStringLiteral("retrySampleButton")),
+             profile->findChild<QObject *>(QStringLiteral("cancelEnrollmentButton")),
+             profile->findChild<QObject *>(QStringLiteral("finishEnrollmentButton")),
              recognition->findChild<QObject *>(QStringLiteral("previewButton")),
              recognition->findChild<QObject *>(QStringLiteral("verifyButton")),
+             recognition->findChild<QObject *>(QStringLiteral("clearVerificationButton")),
+             diagnostics->findChild<QObject *>(QStringLiteral("diagnosticsRefreshButton")),
+             diagnostics->findChild<QObject *>(QStringLiteral("copyReportButton")),
+             diagnostics->findChild<QObject *>(QStringLiteral("exportReportButton")),
          })
     {
         QVERIFY(control);
         QVERIFY(control->property("activeFocusOnTab").toBool());
-        QVERIFY(!control->property("text").toString().isEmpty());
+        const QString accessibleText = control->property("text").isValid()
+                                           ? control->property("text").toString()
+                                           : control->property("accessibilityLabel").toString();
+        QVERIFY(!accessibleText.isEmpty());
+    }
+
+    for (QObject *dialog : {
+             profile->findChild<QObject *>(QStringLiteral("deleteProfileConfirmation")),
+             profile->findChild<QObject *>(QStringLiteral("resetProfileConfirmation")),
+         })
+    {
+        QVERIFY(dialog);
+        QVERIFY(dialog->property("modal").toBool());
+        QVERIFY(!dialog->property("title").toString().isEmpty());
     }
 }
 

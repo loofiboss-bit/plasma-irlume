@@ -78,6 +78,7 @@ Kirigami.ScrollablePage {
                     && cameraPreviewSession.state !== 3
                     && cameraPreviewSession.state !== 4
                     && cameraPreviewSession.state !== 5
+                Accessible.name: text
                 onClicked: cameraPreviewSession.refreshDevices()
             }
         }
@@ -160,6 +161,7 @@ Kirigami.ScrollablePage {
                         enabled: cameraPreviewSession.state === 4
                             || (cameraPreviewSession.state === 2
                                 && cameraPreviewSession.selectedDeviceIndex >= 0)
+                        Accessible.name: text
                         onClicked: {
                             if (cameraPreviewSession.state === 4) {
                                 cameraPreviewSession.stopPreview();
@@ -213,6 +215,7 @@ Kirigami.ScrollablePage {
                         text: i18n("Analyze current frame")
                         icon.name: "view-preview"
                         enabled: visionAnalysisSession.canAnalyze
+                        Accessible.name: text
                         onClicked: visionAnalysisSession.analyzeCurrentFrame()
                     }
                 }

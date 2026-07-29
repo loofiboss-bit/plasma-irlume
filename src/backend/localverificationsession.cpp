@@ -155,6 +155,7 @@ void LocalVerificationSession::clearResult()
 
 void LocalVerificationSession::cancel()
 {
+    const bool wasBusy = busy();
     if (m_requestActive)
     {
         m_requestActive = false;
@@ -162,8 +163,10 @@ void LocalVerificationSession::cancel()
         m_worker->cancel();
     }
     m_keyProvider->cancel();
-    if (busy())
+    if (wasBusy)
         setResult(Result::Cancelled, State::Cancelled, translate("The local recognition test was cancelled."));
+    else if (m_result != Result::None)
+        setResult(Result::None, State::Idle, translate("Start preview, then explicitly test one current frame."));
 }
 
 void LocalVerificationSession::setPageActive(bool active)
@@ -176,9 +179,9 @@ void LocalVerificationSession::setPageActive(bool active)
 
 void LocalVerificationSession::handleResponse(quint64 generation, QByteArrayView payload, const QString &transportError)
 {
-    m_requestActive = false;
     if (generation == 0 || generation != m_activeGeneration)
         return;
+    m_requestActive = false;
     m_activeGeneration = 0;
     m_rateLimit.restart();
     if (!transportError.isEmpty())

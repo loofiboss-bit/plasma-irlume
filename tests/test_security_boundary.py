@@ -126,7 +126,9 @@ class SecurityBoundaryTests(unittest.TestCase):
         ):
             self.assertNotIn(forbidden, qml)
 
-    def test_no_legacy_identity_or_dependency_remains(self) -> None:
+    def test_no_legacy_identity_or_dependency_remains_outside_transition_contract(
+        self,
+    ) -> None:
         legacy_engine = "ir" + "lume"
         forbidden_names = (
             legacy_engine,
@@ -150,6 +152,15 @@ class SecurityBoundaryTests(unittest.TestCase):
             ".rs",
             ".po",
         }
+        allowed_transition_files = {
+            Path("CHANGELOG.md"),
+            Path("packaging/fedora/README.md"),
+            Path("packaging/fedora/kfaceauth.spec"),
+            Path("packaging/fedora/rpm-smoke-test.sh"),
+            Path("packaging/fedora/tests/plasma-irlume-3.0.0-fixture.spec"),
+            Path("tests/test_packaging.py"),
+            Path("tests/test_security_boundary.py"),
+        }
         offenders: list[str] = []
         for path in ROOT.rglob("*"):
             if (
@@ -165,13 +176,38 @@ class SecurityBoundaryTests(unittest.TestCase):
             relative = path.relative_to(ROOT)
             lowered_name = relative.as_posix().lower()
             if any(name in lowered_name for name in forbidden_names):
-                offenders.append(str(relative))
+                if relative not in allowed_transition_files:
+                    offenders.append(str(relative))
                 continue
             if path.suffix in checked_suffixes or path.name in {"CMakeLists.txt", "LICENSE"}:
                 text = path.read_text(encoding="utf-8", errors="replace").lower()
-                if any(name in text for name in forbidden_names):
+                if any(name in text for name in forbidden_names) and relative not in allowed_transition_files:
                     offenders.append(str(relative))
         self.assertEqual(offenders, [])
+
+    def test_qml_navigation_and_privacy_contracts_are_explicit(self) -> None:
+        main = (ROOT / "src/kcm/ui/main.qml").read_text(encoding="utf-8")
+        qml = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in sorted((ROOT / "src/kcm/ui").rglob("*.qml"))
+        )
+
+        for object_name in (
+            "overviewTab",
+            "cameraCheckTab",
+            "faceProfileTab",
+            "testRecognitionTab",
+            "diagnosticsTab",
+        ):
+            self.assertIn(f'objectName: "{object_name}"', main)
+        self.assertEqual(main.count("activeFocusOnTab: true"), 5)
+        self.assertGreaterEqual(main.count("Accessible.name: text"), 5)
+        self.assertIn("onClosed: deleteButton.forceActiveFocus()", qml)
+        self.assertIn("onClosed: resetButton.forceActiveFocus()", qml)
+        self.assertNotRegex(
+            qml,
+            r"(?i)\b(?:similarityScore|rawScore|embeddingVector|vaultPath|frameBytes)\b",
+        )
 
     def test_rust_identity_has_no_network_or_authentication_surface(self) -> None:
         rust = "\n".join(

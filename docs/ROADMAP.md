@@ -15,6 +15,19 @@
 Milestone 4 remains an experimental user-session comparison. It does not
 authorize login, unlock, sudo, Polkit, or any system action.
 
+## v4.0.0 release-candidate boundary
+
+The v4 source, package transition, and automated gates are prepared for release
+review. Publication remains blocked until a completed
+[v4 qualification report](V4-QUALIFICATION-REPORT.md) records physical RGB/IR
+camera coverage, keyboard and assistive-technology behavior, cancellation and
+teardown loops, KWallet failure behavior, corrupt-vault recovery, latency,
+memory, and remaining untested coverage.
+
+Representative FAR/FRR, bias, liveness, and spoof-resistance evidence is not
+available. It must remain `UNQUALIFIED`; no current Match result is an
+authentication or publication claim.
+
 ## Blockers before liveness work
 
 1. Select a liveness/presentation-attack threat model and representative attack

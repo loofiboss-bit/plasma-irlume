@@ -79,8 +79,9 @@ Kirigami.ScrollablePage {
                     }
                 }
 
-                RowLayout {
+                Flow {
                     Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
 
                     QQC2.Button {
                         id: previewButton

@@ -30,6 +30,7 @@ class IdentityWorkerClientTest final : public QObject
     void cancellationClearsTheActiveGeneration();
     void overlappingRequestIsRejected();
     void workerCrashIsUnavailable();
+    void operationTimeoutTerminatesWorker();
 };
 
 void IdentityWorkerClientTest::completesOneBoundedRequest()
@@ -111,6 +112,18 @@ void IdentityWorkerClientTest::workerCrashIsUnavailable()
                    [&](quint64, QByteArrayView, const QString &failure) { error = failure; });
 
     QTRY_COMPARE(error, QStringLiteral("identity-worker-failed"));
+    QVERIFY(!client.busy());
+}
+
+void IdentityWorkerClientTest::operationTimeoutTerminatesWorker()
+{
+    IdentityWorkerClient client(QStringLiteral(KFACEAUTH_FAKE_IDENTITY_WORKER_PATH),
+                                environmentFor(QStringLiteral("hang")), 200, 40, 200, this);
+    QString error;
+    client.execute(7, QByteArrayLiteral("request"),
+                   [&](quint64, QByteArrayView, const QString &failure) { error = failure; });
+
+    QTRY_COMPARE_WITH_TIMEOUT(error, QStringLiteral("identity-operation-timeout"), 1000);
     QVERIFY(!client.busy());
 }
 

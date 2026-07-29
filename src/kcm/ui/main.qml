@@ -10,7 +10,7 @@ import org.kde.kcmutils as KCMUtils
 KCMUtils.SimpleKCM {
     id: root
 
-    title: i18n("KFaceAuth (Development Preview)")
+    title: i18n("KFaceAuth (Experimental Local Identity Preview)")
     KCMUtils.ConfigModule.buttons: KCMUtils.ConfigModule.NoAdditionalButton
 
     header: QQC2.TabBar {
@@ -24,33 +24,43 @@ KCMUtils.SimpleKCM {
                     : (currentIndex === 3 ? testRecognition : diagnostics)))
 
         QQC2.TabButton {
+            objectName: "overviewTab"
             text: i18n("Overview")
             icon.name: "view-dashboard"
             Accessible.name: text
+            activeFocusOnTab: true
         }
 
         QQC2.TabButton {
+            objectName: "cameraCheckTab"
             text: i18n("Camera Check")
             icon.name: "camera-photo"
             Accessible.name: text
+            activeFocusOnTab: true
         }
 
         QQC2.TabButton {
+            objectName: "faceProfileTab"
             text: i18n("Face Profile")
             icon.name: "user-identity"
             Accessible.name: text
+            activeFocusOnTab: true
         }
 
         QQC2.TabButton {
+            objectName: "testRecognitionTab"
             text: i18n("Test Recognition")
             icon.name: "view-preview"
             Accessible.name: text
+            activeFocusOnTab: true
         }
 
         QQC2.TabButton {
+            objectName: "diagnosticsTab"
             text: i18n("Diagnostics")
             icon.name: "tools-report-bug"
             Accessible.name: text
+            activeFocusOnTab: true
         }
     }
 

@@ -96,10 +96,12 @@ Kirigami.ScrollablePage {
                 }
 
                 QQC2.Button {
+                    objectName: "diagnosticsRefreshButton"
                     Layout.alignment: Qt.AlignRight
                     text: root.refreshActive ? i18n("Updating…") : i18n("Refresh diagnostics")
                     icon.name: "view-refresh"
                     enabled: !root.refreshActive
+                    Accessible.name: text
                     onClicked: root.refresh()
                 }
             }
@@ -126,14 +128,18 @@ Kirigami.ScrollablePage {
                     spacing: Kirigami.Units.smallSpacing
 
                     QQC2.Button {
+                        objectName: "copyReportButton"
                         text: i18n("Copy report")
                         icon.name: "edit-copy"
+                        Accessible.name: text
                         onClicked: supportReport.copyReport()
                     }
 
                     QQC2.Button {
+                        objectName: "exportReportButton"
                         text: i18n("Export report")
                         icon.name: "document-save"
+                        Accessible.name: text
                         Accessible.description: i18n("Saves a redacted Markdown report in Documents")
                         onClicked: supportReport.exportReport()
                     }

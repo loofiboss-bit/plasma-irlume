@@ -28,7 +28,7 @@ Kirigami.ScrollablePage {
             Layout.fillWidth: true
             visible: true
             type: Kirigami.MessageType.Information
-            text: i18n("Milestone 3 adds explicit local YuNet face-presence detection to Camera Check. It does not recognize people, test liveness, enroll profiles, store biometric data, configure PAM, or authenticate users.")
+            text: i18n("KFaceAuth 4.0.0 provides explicit local enrollment and in-session comparison. It does not test liveness, configure PAM, authenticate users, unlock the session, or authorize any system action.")
         }
 
         Kirigami.AbstractCard {
@@ -50,19 +50,24 @@ Kirigami.ScrollablePage {
                     wrapMode: Text.Wrap
                 }
 
-                RowLayout {
+                Flow {
                     Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
 
                     QQC2.Button {
+                        objectName: "overviewRefreshButton"
                         text: root.refreshActive ? i18n("Updating…") : i18n("Refresh status")
                         icon.name: "view-refresh"
                         enabled: !root.refreshActive
+                        Accessible.name: text
                         onClicked: root.refresh()
                     }
 
                     QQC2.Button {
+                        objectName: "openCameraButton"
                         text: i18n("Open Camera Check")
                         icon.name: "camera-photo"
+                        Accessible.name: text
                         onClicked: root.openCamera()
                     }
                 }
@@ -98,7 +103,7 @@ Kirigami.ScrollablePage {
                 Components.DetailRow {
                     Layout.fillWidth: true
                     label: i18n("Vision processing")
-                    value: i18n("Local Camera Check only")
+                    value: i18n("Explicit local actions only")
                     tone: 1
                 }
 
@@ -108,7 +113,7 @@ Kirigami.ScrollablePage {
                     Layout.fillWidth: true
                     label: i18n("Enrollment")
                     value: systemState.enrollmentStatusLabel
-                    tone: 2
+                    tone: systemState.enrollmentStatus === 0 ? 1 : 2
                 }
 
                 Kirigami.Separator { Layout.fillWidth: true }

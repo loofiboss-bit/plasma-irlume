@@ -15,6 +15,8 @@
 | Status/privacy | separate local identity capabilities, PAM/system states unsupported, aggregate-only support reports, no embeddings/scores in QML |
 | Security | no PAM/authselect writes, service, privilege, socket/network, runtime download, production fake selector, arbitrary production vault root |
 | Packaging | exact dependencies/files/licenses/workers, ordinary permissions, no auth scriptlets, reproducible archive/SRPM/RPM and isolated lifecycle |
+| Package transition | v3 payload fixture is obsoleted by v4, old KCM files removed, user/PAM sentinels preserved, clean install/reinstall/remove deterministic |
+| Release workflow | least privilege, exactly one source archive/binary RPM/SRPM, complete strict checksums, seven-day temporary retention, fail-closed published-release upload |
 | Localization | all active user-visible messages have checked Swedish translations |
 
 Hardware, representative FAR/FRR, demographic/bias behavior, liveness, and

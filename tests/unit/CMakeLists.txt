@@ -38,6 +38,16 @@ target_link_libraries(test_identityworkerclient kfaceauth_core Qt6::Core Qt6::Te
 add_dependencies(test_identityworkerclient fake_identity_worker)
 add_test(NAME identityworkerclient COMMAND test_identityworkerclient)
 
+add_executable(test_identitysessions test_identitysessions.cpp)
+target_compile_definitions(test_identitysessions PRIVATE
+    KFACEAUTH_FAKE_IDENTITY_WORKER_PATH="$<TARGET_FILE:fake_identity_worker>"
+    KFACEAUTH_FAKE_PREVIEW_WORKER_PATH="$<TARGET_FILE:fake_preview_worker>"
+)
+target_link_libraries(test_identitysessions kfaceauth_core Qt6::Core Qt6::Gui Qt6::Test)
+add_dependencies(test_identitysessions fake_identity_worker fake_preview_worker)
+add_test(NAME identitysessions COMMAND test_identitysessions)
+set_tests_properties(identitysessions PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 add_executable(test_cameraprovider test_cameraprovider.cpp)
 target_link_libraries(test_cameraprovider camera_provider Qt6::Core Qt6::Gui Qt6::Test)
 add_test(NAME cameraprovider COMMAND test_cameraprovider)

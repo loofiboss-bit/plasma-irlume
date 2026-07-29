@@ -76,7 +76,9 @@ are not product qualification.
 Record date, tester, environment, consent scope, camera class, conditions,
 aggregate results, cancellation/teardown behavior, performance, failures, and
 untested coverage. Do not record biometric material or stable participant
-identity.
+identity. Start each run from
+[V4-QUALIFICATION-REPORT.md](V4-QUALIFICATION-REPORT.md) and leave every
+unobserved field as `NOT RUN` or `UNQUALIFIED`.
 
 Missing representative FAR/FRR, bias, broad RGB/IR hardware, accessibility,
 and spoof testing remains explicit release-blocker evidence. Passing this

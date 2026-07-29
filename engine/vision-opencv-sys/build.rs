@@ -34,7 +34,7 @@ fn main() {
         .and_then(|value| value.parse::<u32>().ok());
     assert!(
         major == Some(4) && minor == Some(13),
-        "KFaceAuth Milestone 3 requires Fedora OpenCV 4.13.x, found {}",
+        "KFaceAuth 4.0.0 requires the reviewed Fedora OpenCV 4.13.x runtime, found {}",
         version.trim()
     );
 

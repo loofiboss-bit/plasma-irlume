@@ -365,14 +365,13 @@ msgstr "Översikt"
 
 #: src/kcm/ui/SetupStatusPage.qml:31
 msgid ""
-"Milestone 3 adds explicit local YuNet face-presence detection to Camera "
-"Check. It does not recognize people, test liveness, enroll profiles, store "
-"biometric data, configure PAM, or authenticate users."
+"KFaceAuth 4.0.0 provides explicit local enrollment and in-session comparison. "
+"It does not test liveness, configure PAM, authenticate users, unlock the "
+"session, or authorize any system action."
 msgstr ""
-"Milstolpe 3 lägger till uttrycklig lokal YuNet-detektering av ansiktsnärvaro "
-"i kamerakontrollen. Den känner inte igen personer, testar inte livskontroll, "
-"registrerar inte profiler, lagrar inte biometriska data, konfigurerar inte "
-"PAM och autentiserar inte användare."
+"KFaceAuth 4.0.0 ger uttrycklig lokal registrering och jämförelse i sessionen. "
+"Det testar inte livskontroll, konfigurerar inte PAM, autentiserar inte "
+"användare, låser inte upp sessionen och godkänner inga systemåtgärder."
 
 #: src/kcm/ui/SetupStatusPage.qml:64
 msgid "Open Camera Check"
@@ -397,8 +396,8 @@ msgid "Vision processing"
 msgstr "Bildbehandling"
 
 #: src/kcm/ui/SetupStatusPage.qml:101
-msgid "Local Camera Check only"
-msgstr "Endast lokal kamerakontroll"
+msgid "Explicit local actions only"
+msgstr "Endast uttryckliga lokala åtgärder"
 
 #: src/kcm/ui/SetupStatusPage.qml:118
 msgid "Authentication and PAM"
@@ -444,8 +443,8 @@ msgid "Clear result"
 msgstr "Rensa resultat"
 
 #: src/kcm/ui/main.qml:13
-msgid "KFaceAuth (Development Preview)"
-msgstr "KFaceAuth (utvecklingsförhandsvisning)"
+msgid "KFaceAuth (Experimental Local Identity Preview)"
+msgstr "KFaceAuth (experimentell förhandsvisning av lokal identitet)"
 
 #: src/kcm/ui/main.qml:20
 msgid "KFaceAuth sections"

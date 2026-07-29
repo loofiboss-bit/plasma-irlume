@@ -39,14 +39,20 @@ IdentityWorkerClient::IdentityWorkerClient(QObject *parent)
 }
 
 IdentityWorkerClient::IdentityWorkerClient(QString workerPath, QProcessEnvironment environment, QObject *parent)
+    : IdentityWorkerClient(std::move(workerPath), std::move(environment), 2000, 10000, 1000, parent)
+{
+}
+
+IdentityWorkerClient::IdentityWorkerClient(QString workerPath, QProcessEnvironment environment, int startupTimeoutMs,
+                                           int operationTimeoutMs, int shutdownTimeoutMs, QObject *parent)
     : QObject(parent), m_workerPath(std::move(workerPath)), m_environment(std::move(environment))
 {
     m_startupTimer.setSingleShot(true);
-    m_startupTimer.setInterval(2000);
+    m_startupTimer.setInterval(startupTimeoutMs);
     m_operationTimer.setSingleShot(true);
-    m_operationTimer.setInterval(10000);
+    m_operationTimer.setInterval(operationTimeoutMs);
     m_shutdownTimer.setSingleShot(true);
-    m_shutdownTimer.setInterval(1000);
+    m_shutdownTimer.setInterval(shutdownTimeoutMs);
     connect(&m_startupTimer, &QTimer::timeout, this, [this]() { fail(QStringLiteral("identity-startup-timeout")); });
     connect(&m_operationTimer, &QTimer::timeout, this,
             [this]() { fail(QStringLiteral("identity-operation-timeout")); });

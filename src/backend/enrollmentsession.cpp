@@ -380,9 +380,9 @@ void EnrollmentSession::setPageActive(bool active)
 
 void EnrollmentSession::handleResponse(quint64 generation, QByteArrayView payload, const QString &transportError)
 {
-    m_requestActive = false;
     if (generation == 0 || generation != m_activeGeneration)
         return;
+    m_requestActive = false;
     m_activeGeneration = 0;
     if (!transportError.isEmpty())
     {

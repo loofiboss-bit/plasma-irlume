@@ -1,9 +1,9 @@
 # KFaceAuth
 
-KFaceAuth is a temporary neutral name for a standalone native KDE local
-identity experiment. Milestone 4 can enroll and locally compare the currently
-logged-in user's face. A `Match` is an in-session UI result only: it does not
-unlock, authenticate, authorize, invoke PAM or Polkit, or alter the session.
+KFaceAuth 4.0.0 is a standalone native KDE local identity experiment. It can
+enroll and locally compare the currently logged-in user's face. A `Match` is an
+in-session UI result only: it does not unlock, authenticate, authorize, invoke
+PAM or Polkit, or alter the session.
 
 The KCM provides:
 
@@ -29,6 +29,10 @@ sudo/Polkit integration, privileged helper, system service, TPM sealing,
 background recognition, networking, or runtime model download. KWallet keys
 are unavailable before login. FAR, FRR, bias, spoof resistance, and broad
 hardware behavior remain unqualified.
+
+The code and automated gates are prepared as a v4.0.0 release candidate.
+Publication remains blocked until the required physical-camera, keyboard,
+assistive-technology, and representative identity qualification is recorded.
 
 ## Build and verify
 

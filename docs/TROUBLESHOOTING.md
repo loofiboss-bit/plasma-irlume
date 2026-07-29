@@ -2,16 +2,18 @@
 
 ## Local identity unavailable
 
-Verify the package and exact model inventory:
+Verify every installed package-owned file, including the exact model
+inventory:
 
 ```bash
 rpm -V kfaceauth
-python3 /usr/share/doc/kfaceauth/tools/verify_models.py \
-  --root /usr/share/kfaceauth/models
 ```
 
-Do not copy, rename, or download an ONNX file manually. The worker requires the
-exact closed YuNet/SFace inventory and never substitutes a model.
+No output means RPM verification found no difference. Then open KFaceAuth,
+choose **Diagnostics**, refresh status, and inspect or export the bounded
+redacted report. Do not copy, rename, or download an ONNX file manually. The
+worker requires the exact closed YuNet/SFace inventory and never substitutes a
+model.
 
 ## KWallet locked, cancelled, or unavailable
 

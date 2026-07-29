@@ -36,6 +36,7 @@ Kirigami.ScrollablePage {
         title: i18n("Delete face profile?")
         standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
         onAccepted: enrollmentSession.deleteProfile()
+        onClosed: deleteButton.forceActiveFocus()
 
         QQC2.Label {
             width: Math.min(Kirigami.Units.gridUnit * 28, root.width)
@@ -54,6 +55,7 @@ Kirigami.ScrollablePage {
         title: i18n("Reset unreadable profile data?")
         standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
         onAccepted: enrollmentSession.resetUnreadable()
+        onClosed: resetButton.forceActiveFocus()
 
         QQC2.Label {
             width: Math.min(Kirigami.Units.gridUnit * 28, root.width)
@@ -114,8 +116,9 @@ Kirigami.ScrollablePage {
                     Accessible.role: Accessible.StaticText
                 }
 
-                RowLayout {
+                Flow {
                     Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
 
                     QQC2.Button {
                         id: refreshStatusButton
@@ -183,8 +186,9 @@ Kirigami.ScrollablePage {
                     }
                 }
 
-                RowLayout {
+                Flow {
                     Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
 
                     QQC2.Button {
                         id: previewButton
@@ -268,8 +272,9 @@ Kirigami.ScrollablePage {
                     wrapMode: Text.Wrap
                 }
 
-                RowLayout {
+                Flow {
                     Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
 
                     QQC2.Button {
                         id: retryButton
@@ -293,8 +298,6 @@ Kirigami.ScrollablePage {
                         KeyNavigation.right: finishButton
                         onClicked: enrollmentSession.cancel()
                     }
-
-                    Item { Layout.fillWidth: true }
 
                     QQC2.Button {
                         id: finishButton

@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-if [[ $# -ne 1 ]]; then
-    echo "Usage: $0 PATH_TO_BINARY_RPM" >&2
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+    echo "Usage: $0 PATH_TO_BINARY_RPM [LEGACY_FIXTURE_SPEC_OR_RPM]" >&2
     exit 2
 fi
 
@@ -13,6 +13,58 @@ if [[ ! -f "${rpm_path}" ]]; then
     exit 2
 fi
 
+legacy_fixture="$(
+    realpath "${2:-$(dirname -- "${BASH_SOURCE[0]}")/tests/plasma-irlume-3.0.0-fixture.spec}"
+)"
+if [[ ! -f "${legacy_fixture}" ]]; then
+    echo "Legacy transition fixture not found: ${legacy_fixture}" >&2
+    exit 2
+fi
+
+fixture_topdir=""
+smoke_root=""
+cleanup() {
+    if [[ -n "${smoke_root}" ]]; then
+        rm -rf -- "${smoke_root}"
+    fi
+    if [[ -n "${fixture_topdir}" ]]; then
+        rm -rf -- "${fixture_topdir}"
+    fi
+}
+trap cleanup EXIT
+
+if [[ "${legacy_fixture}" == *.rpm ]]; then
+    legacy_rpm="${legacy_fixture}"
+    legacy_nevra="$(rpm -qp --queryformat '%{NAME}-%{VERSION}' "${legacy_rpm}")"
+    if [[ "${legacy_nevra}" != "plasma-irlume-3.0.0" ]]; then
+        echo "Expected a plasma-irlume 3.0.0 fixture RPM, got ${legacy_nevra}" >&2
+        exit 2
+    fi
+else
+    if ! command -v rpmbuild >/dev/null 2>&1; then
+        echo "rpmbuild is required for the isolated v3-to-v4 transition test" >&2
+        exit 2
+    fi
+
+    fixture_topdir="$(mktemp -d)"
+    mkdir -p \
+        "${fixture_topdir}/BUILD" \
+        "${fixture_topdir}/BUILDROOT" \
+        "${fixture_topdir}/RPMS" \
+        "${fixture_topdir}/SOURCES" \
+        "${fixture_topdir}/SPECS" \
+        "${fixture_topdir}/SRPMS"
+    rpmbuild -bb "${legacy_fixture}" --define "_topdir ${fixture_topdir}"
+    legacy_rpm="$(
+        find "${fixture_topdir}/RPMS" \
+            -type f -name 'plasma-irlume-3.0.0-1.*.rpm' -print -quit
+    )"
+    if [[ -z "${legacy_rpm}" || ! -s "${legacy_rpm}" ]]; then
+        echo "Failed to build the isolated plasma-irlume 3.0.0 transition fixture" >&2
+        exit 1
+    fi
+fi
+
 if [[ "${EUID}" -ne 0 ]]; then
     if ! command -v podman >/dev/null 2>&1; then
         echo "Run as root or install Podman for the isolated RPM transaction" >&2
@@ -20,12 +72,17 @@ if [[ "${EUID}" -ne 0 ]]; then
     fi
 
     script_path="$(realpath "${BASH_SOURCE[0]}")"
-    exec podman run --rm \
+    podman run --rm \
+        --network=none \
         --security-opt label=disable \
         --volume "${rpm_path}:/tmp/kfaceauth.rpm:ro" \
+        --volume "${legacy_rpm}:/tmp/plasma-irlume-3.0.0.rpm:ro" \
         --volume "${script_path}:/tmp/rpm-smoke-test.sh:ro" \
         fedora:44 \
-        bash /tmp/rpm-smoke-test.sh /tmp/kfaceauth.rpm
+        bash /tmp/rpm-smoke-test.sh \
+            /tmp/kfaceauth.rpm \
+            /tmp/plasma-irlume-3.0.0.rpm
+    exit
 fi
 
 package_name="$(rpm -qp --queryformat '%{NAME}' "${rpm_path}")"
@@ -40,20 +97,39 @@ if rpm -qp --scripts "${rpm_path}" | grep -Eiq 'pam|authselect|biometric'; then
 fi
 
 smoke_root="$(mktemp -d)"
-trap 'rm -rf -- "${smoke_root}"' EXIT
-
 mkdir -p \
     "${smoke_root}/usr/lib/sysimage/rpm" \
     "${smoke_root}/home/test/.config" \
     "${smoke_root}/etc/pam.d"
 printf 'user-setting\n' >"${smoke_root}/home/test/.config/kfaceauth-preserve-me"
+printf 'legacy-user-setting\n' >"${smoke_root}/home/test/.config/plasma-irlume.conf"
 printf 'auth required pam_unix.so\n' >"${smoke_root}/etc/pam.d/kfaceauth-sentinel"
 
 pam_hash_before="$(sha256sum "${smoke_root}/etc/pam.d/kfaceauth-sentinel")"
 user_hash_before="$(sha256sum "${smoke_root}/home/test/.config/kfaceauth-preserve-me")"
+legacy_user_hash_before="$(sha256sum "${smoke_root}/home/test/.config/plasma-irlume.conf")"
 
 rpm --root "${smoke_root}" --initdb
-rpm --root "${smoke_root}" --nodeps --install "${rpm_path}"
+rpm --root "${smoke_root}" --nodeps --install "${legacy_rpm}"
+mapfile -t legacy_paths < <(rpm --root "${smoke_root}" -ql plasma-irlume)
+for path in "${legacy_paths[@]}"; do
+    if [[ ! -f "${smoke_root}${path}" ]]; then
+        echo "Legacy fixture payload is missing before upgrade: ${path}" >&2
+        exit 1
+    fi
+done
+
+rpm --root "${smoke_root}" --nodeps --upgrade "${rpm_path}"
+if rpm --root "${smoke_root}" -qa --queryformat '%{NAME}\n' | grep -Fxq plasma-irlume; then
+    echo "Legacy plasma-irlume package remains installed after upgrade" >&2
+    exit 1
+fi
+for path in "${legacy_paths[@]}"; do
+    if [[ -e "${smoke_root}${path}" || -L "${smoke_root}${path}" ]]; then
+        echo "Legacy plasma-irlume payload remains after upgrade: ${path}" >&2
+        exit 1
+    fi
+done
 rpm --root "${smoke_root}" --nodeps --upgrade --replacepkgs "${rpm_path}"
 
 required_paths=(
@@ -137,6 +213,7 @@ if [[ "$(sha256sum "${smoke_root}/etc/pam.d/kfaceauth-sentinel")" != "${pam_hash
     exit 1
 fi
 [[ "$(sha256sum "${smoke_root}/home/test/.config/kfaceauth-preserve-me")" == "${user_hash_before}" ]]
+[[ "$(sha256sum "${smoke_root}/home/test/.config/plasma-irlume.conf")" == "${legacy_user_hash_before}" ]]
 [[ ! -e "${smoke_root}/home/test/.local/share/kfaceauth" ]]
 
 mapfile -t packaged_paths < <(
@@ -159,5 +236,14 @@ for path in "${packaged_paths[@]}"; do
     fi
 done
 [[ "$(sha256sum "${smoke_root}/home/test/.config/kfaceauth-preserve-me")" == "${user_hash_before}" ]]
+[[ "$(sha256sum "${smoke_root}/home/test/.config/plasma-irlume.conf")" == "${legacy_user_hash_before}" ]]
 
-echo "RPM install/upgrade/remove lifecycle smoke test passed"
+rpm --root "${smoke_root}" --nodeps --install "${rpm_path}"
+rpm --root "${smoke_root}" --nodeps --upgrade --replacepkgs "${rpm_path}"
+rpm --root "${smoke_root}" --erase kfaceauth
+[[ "$(sha256sum "${smoke_root}/etc/pam.d/kfaceauth-sentinel")" == "${pam_hash_before}" ]]
+[[ "$(sha256sum "${smoke_root}/home/test/.config/kfaceauth-preserve-me")" == "${user_hash_before}" ]]
+[[ "$(sha256sum "${smoke_root}/home/test/.config/plasma-irlume.conf")" == "${legacy_user_hash_before}" ]]
+[[ ! -e "${smoke_root}/home/test/.local/share/kfaceauth" ]]
+
+echo "RPM v3-to-v4 transition and clean install/reinstall/remove lifecycle smoke test passed"

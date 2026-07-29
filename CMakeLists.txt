@@ -33,7 +33,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(UDev REQUIRED IMPORTED_TARGET libudev)
 
 if(NOT OpenCV_VERSION MATCHES "^4\\.13\\.")
-    message(FATAL_ERROR "KFaceAuth Milestone 3 requires OpenCV 4.13.x")
+    message(FATAL_ERROR "KFaceAuth 4.0.0 requires the reviewed OpenCV 4.13.x runtime")
 endif()
 
 option(KFACEAUTH_ENABLE_NATIVE_SANITIZERS "Enable ASan/UBSan for the native YuNet bridge test" OFF)
