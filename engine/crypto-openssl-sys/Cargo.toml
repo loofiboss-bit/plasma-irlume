@@ -1,0 +1,11 @@
+[package]
+name = "kfaceauth-crypto-openssl-sys"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+links = "kfaceauth_crypto_openssl"
+build = "build.rs"
+
+[lib]
+path = "src/lib.rs"

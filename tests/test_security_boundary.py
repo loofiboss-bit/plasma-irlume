@@ -35,15 +35,34 @@ class SecurityBoundaryTests(unittest.TestCase):
         for forbidden in ("KAuth", "AuthCore", "kauth_install", "kf6-kauth"):
             self.assertNotIn(forbidden, build_inputs)
 
-    def test_native_backend_never_executes_an_engine_process(self) -> None:
+    def test_native_backend_reports_real_bounded_identity_components(self) -> None:
         backend = "\n".join(
             path.read_text(encoding="utf-8")
             for path in sorted((ROOT / "src" / "backend").glob("nativefaceauthbackend.*"))
         )
         self.assertNotIn("QProcess", backend)
         self.assertNotIn("/usr/bin/", backend)
-        self.assertIn("unsupported-in-milestone-1", backend)
         self.assertIn("native-engine-unavailable", backend)
+        self.assertIn("face_detection_yunet_2023mar.onnx", backend)
+        self.assertIn("face_recognition_sface_2021dec.onnx", backend)
+        self.assertIn("QCryptographicHash::Sha256", backend)
+        self.assertIn("IdentityProtocol::statusRequest", backend)
+        self.assertIn("m_statusWorker->execute", backend)
+        self.assertIn("KWallet::Wallet::isOpen", backend)
+        self.assertNotIn("unsupported-in-milestone-1", backend)
+
+        client = (ROOT / "src/backend/identityworkerclient.cpp").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('QStringLiteral("HOME")', client)
+        self.assertIn('QStringLiteral("XDG_DATA_HOME")', client)
+        for forbidden in (
+            'QStringLiteral("PATH")',
+            'QStringLiteral("LD_PRELOAD")',
+            'QStringLiteral("LD_LIBRARY_PATH")',
+            'QStringLiteral("DBUS_SESSION_BUS_ADDRESS")',
+        ):
+            self.assertNotIn(forbidden, client)
 
     def test_preview_worker_has_no_privileged_or_persistent_surface(self) -> None:
         preview = "\n".join(
@@ -91,15 +110,13 @@ class SecurityBoundaryTests(unittest.TestCase):
         self.assertNotIn("qDebug", vision)
         self.assertNotIn("qInfo", vision)
 
-    def test_milestone_ui_exposes_no_mutation_control(self) -> None:
+    def test_identity_ui_exposes_no_system_authentication_mutation(self) -> None:
         qml = "\n".join(
             path.read_text(encoding="utf-8")
             for path in sorted((ROOT / "src" / "kcm" / "ui").rglob("*.qml"))
         )
         for forbidden in (
             ".enroll(",
-            ".deleteProfile(",
-            ".addAppearanceScan(",
             ".enableLoginScreen(",
             ".enableLockScreen(",
             ".disableNow(",
@@ -156,39 +173,45 @@ class SecurityBoundaryTests(unittest.TestCase):
                     offenders.append(str(relative))
         self.assertEqual(offenders, [])
 
-    def test_rust_skeleton_has_no_network_or_persistence_surface(self) -> None:
+    def test_rust_identity_has_no_network_or_authentication_surface(self) -> None:
         rust = "\n".join(
             path.read_text(encoding="utf-8").split("#[cfg(test)]", 1)[0]
             for path in sorted((ROOT / "engine").rglob("*.rs"))
             if "vision-opencv-sys" not in path.parts
+            and "crypto-openssl-sys" not in path.parts
         )
         for forbidden in (
             "std::net::",
             "tokio",
             "reqwest",
             "unsafe {",
-            "create_dir",
             "write_all_at",
             "pam_start",
             "authenticate(",
-            "enroll(",
+            "PAM_SUCCESS",
         ):
             self.assertNotIn(forbidden, rust)
+        self.assertIn("authselect", rust)
+        self.assertIn("Unsupported", rust)
         self.assertIn("MAX_REQUEST_BYTES", rust)
         self.assertIn("MAX_RESPONSE_BYTES", rust)
 
-    def test_unsafe_rust_is_isolated_to_reviewed_ffi_crate(self) -> None:
+    def test_unsafe_rust_is_isolated_to_reviewed_ffi_crates(self) -> None:
         offenders: list[str] = []
-        allowed = ROOT / "engine" / "vision-opencv-sys" / "src" / "lib.rs"
+        allowed = {
+            ROOT / "engine" / "vision-opencv-sys" / "src" / "lib.rs",
+            ROOT / "engine" / "crypto-openssl-sys" / "src" / "lib.rs",
+        }
         for path in sorted((ROOT / "engine").rglob("*.rs")):
             source = path.read_text(encoding="utf-8").split("#[cfg(test)]", 1)[0]
-            if re.search(r"\bunsafe(?:\s+extern|\s*\{|\s+fn|\s+trait|\s+impl)", source) and path != allowed:
+            if re.search(r"\bunsafe(?:\s+extern|\s*\{|\s+fn|\s+trait|\s+impl)", source) and path not in allowed:
                 offenders.append(str(path.relative_to(ROOT)))
         self.assertEqual(offenders, [])
-        ffi = allowed.read_text(encoding="utf-8")
-        self.assertIn("#![deny(unsafe_op_in_unsafe_fn)]", ffi)
-        self.assertIn("unsafe extern", ffi)
-        self.assertNotIn("cv::", ffi)
+        for ffi_path in allowed:
+            ffi = ffi_path.read_text(encoding="utf-8")
+            self.assertIn("#![deny(unsafe_op_in_unsafe_fn)]", ffi)
+            self.assertIn("unsafe extern", ffi)
+            self.assertNotIn("cv::", ffi)
 
     def test_vision_worker_has_no_network_auth_or_disk_write_surface(self) -> None:
         vision_rust = "\n".join(
@@ -246,6 +269,61 @@ class SecurityBoundaryTests(unittest.TestCase):
         self.assertIn("PR_SET_DUMPABLE", native)
         self.assertIn("RLIMIT_CORE", native)
         self.assertIn('FaceDetectorYN::create("ONNX", model', native)
+        self.assertIn('FaceRecognizerSF::create("ONNX", model', native)
+
+    def test_identity_worker_is_private_bounded_and_unprivileged(self) -> None:
+        identity = "\n".join(
+            path.read_text(encoding="utf-8").split("#[cfg(test)]", 1)[0]
+            for path in (
+                ROOT / "engine" / "identity" / "src" / "lib.rs",
+                ROOT / "engine" / "identity" / "src" / "main.rs",
+            )
+        )
+        for forbidden in (
+            "std::net::",
+            "TcpStream",
+            "UdpSocket",
+            "reqwest",
+            "tokio",
+            "pam_",
+            "PAM_SUCCESS",
+            "authselect",
+            "systemd",
+            "Command::new",
+        ):
+            self.assertNotIn(forbidden, identity)
+        self.assertIn("MAX_IDENTITY_REQUEST_BYTES", identity)
+        self.assertIn("MAX_IDENTITY_RESPONSE_BYTES", identity)
+        self.assertIn("PRODUCTION_MODEL_ROOT", identity)
+        self.assertNotIn("--model-root", identity)
+
+    def test_vault_and_kwallet_boundaries_are_fail_closed(self) -> None:
+        vault = (ROOT / "engine/templates/src/lib.rs").read_text(encoding="utf-8")
+        wallet = (ROOT / "src/backend/kwalletkeyprovider.cpp").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("AES-256", (ROOT / "docs/TEMPLATE-VAULT.md").read_text(encoding="utf-8") if (ROOT / "docs/TEMPLATE-VAULT.md").exists() else "AES-256")
+        for required in (
+            "symlink_metadata",
+            "nlink() != 1",
+            "sync_all",
+            "fs::rename",
+            "AuthenticationFailure",
+            "MAXIMUM_PROFILE_SAMPLES",
+        ):
+            self.assertIn(required, vault)
+        self.assertIn("KWallet::Wallet::Stream", wallet)
+        self.assertIn("RAND_priv_bytes", wallet)
+        self.assertIn("m_accessTimer.setInterval(15000)", wallet)
+        self.assertIn("m_accessTimer.start()", wallet)
+        self.assertNotIn("QSettings", wallet)
+
+        enrollment = (
+            ROOT / "src/backend/enrollmentsession.cpp"
+        ).read_text(encoding="utf-8")
+        self.assertLess(enrollment.index("m_keyProvider->storeKey("), enrollment.index("commitEnrollment();"))
+        self.assertIn("m_keyStoredDuringEnrollment", enrollment)
+        self.assertIn("vault-key-rollback-failed", enrollment)
 
     def test_fake_provider_is_test_only_and_not_packaged(self) -> None:
         manifest = (ROOT / "models" / "manifest.kfaceauth").read_text(

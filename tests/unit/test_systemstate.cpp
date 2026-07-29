@@ -26,7 +26,7 @@ class SystemStateTest final : public QObject
 
   private Q_SLOTS:
     void unavailableEngineFailsClosed();
-    void skeletonReportsUnsupportedOperations();
+    void localIdentityReportsSupportedAndUnsupportedOperations();
     void applyingStateNotifiesConsumers();
     void hostProbeRunsAsynchronously();
 };
@@ -43,21 +43,25 @@ void SystemStateTest::unavailableEngineFailsClosed()
     QCOMPARE(snapshot.templatePersistenceStatus, SystemStateSnapshot::CapabilityStatus::Unsupported);
 }
 
-void SystemStateTest::skeletonReportsUnsupportedOperations()
+void SystemStateTest::localIdentityReportsSupportedAndUnsupportedOperations()
 {
     SystemProbeInputs inputs = baseInputs();
     inputs.engine.engineAvailable = true;
-    inputs.engine.protocol = EngineProtocolSnapshot{1, QStringLiteral("0.1.0")};
-    inputs.engine.status = EngineStatusSnapshot{EngineStatusSnapshot::State::Skeleton};
+    inputs.engine.protocol = EngineProtocolSnapshot{2, QStringLiteral("0.1.0-local-identity")};
+    inputs.engine.status = EngineStatusSnapshot{EngineStatusSnapshot::State::Ready};
+    inputs.engine.capabilities.detectorAnalysis = OperationSupport::Supported;
+    inputs.engine.capabilities.enrollment = OperationSupport::Supported;
+    inputs.engine.capabilities.encryptedPersistence = OperationSupport::Supported;
 
     const SystemStateSnapshot snapshot = SystemProbe::evaluate(inputs);
 
-    QCOMPARE(snapshot.engineStatus, SystemStateSnapshot::EngineStatus::SkeletonAvailable);
-    QCOMPARE(snapshot.engineVersion, QStringLiteral("0.1.0"));
+    QCOMPARE(snapshot.engineStatus, SystemStateSnapshot::EngineStatus::LocalIdentityAvailable);
+    QCOMPARE(snapshot.engineVersion, QStringLiteral("0.1.0-local-identity"));
+    QCOMPARE(snapshot.visionStatus, SystemStateSnapshot::CapabilityStatus::Supported);
+    QCOMPARE(snapshot.enrollmentStatus, SystemStateSnapshot::CapabilityStatus::Supported);
+    QCOMPARE(snapshot.templatePersistenceStatus, SystemStateSnapshot::CapabilityStatus::Supported);
     QCOMPARE(snapshot.authenticationStatus, SystemStateSnapshot::CapabilityStatus::Unsupported);
-    QCOMPARE(snapshot.enrollmentStatus, SystemStateSnapshot::CapabilityStatus::Unsupported);
     QCOMPARE(snapshot.pamStatus, SystemStateSnapshot::CapabilityStatus::Unsupported);
-    QCOMPARE(snapshot.templatePersistenceStatus, SystemStateSnapshot::CapabilityStatus::Unsupported);
     QVERIFY(snapshot.issueCode.isEmpty());
 }
 
@@ -66,12 +70,12 @@ void SystemStateTest::applyingStateNotifiesConsumers()
     SystemState state;
     QSignalSpy spy(&state, &SystemState::stateChanged);
     SystemStateSnapshot snapshot;
-    snapshot.scenarioId = QStringLiteral("native-milestone-1");
+    snapshot.scenarioId = QStringLiteral("native-local-identity-mvp");
     snapshot.engineStatus = SystemStateSnapshot::EngineStatus::Unavailable;
     state.apply(snapshot);
 
     QCOMPARE(spy.count(), 1);
-    QCOMPARE(state.scenarioId(), QStringLiteral("native-milestone-1"));
+    QCOMPARE(state.scenarioId(), QStringLiteral("native-local-identity-mvp"));
     QCOMPARE(state.engineStatus(), SystemState::EngineStatus::Unavailable);
     QCOMPARE(state.authenticationStatus(), SystemState::CapabilityStatus::Unsupported);
     QVERIFY(!state.authenticationStatusLabel().isEmpty());

@@ -3,7 +3,11 @@
 #pragma once
 
 #include "camerapreviewsession.h"
+#include "enrollmentsession.h"
 #include "faceauthbackend.h"
+#include "identityworkerclient.h"
+#include "kwalletkeyprovider.h"
+#include "localverificationsession.h"
 #include "refreshcoordinator.h"
 #include "supportreport.h"
 #include "systemprobe.h"
@@ -21,6 +25,8 @@ class KFaceAuthKcm final : public KQuickConfigModule
     Q_PROPERTY(SystemState *systemState READ systemState CONSTANT)
     Q_PROPERTY(CameraPreviewSession *cameraPreviewSession READ cameraPreviewSession CONSTANT)
     Q_PROPERTY(VisionAnalysisSession *visionAnalysisSession READ visionAnalysisSession CONSTANT)
+    Q_PROPERTY(EnrollmentSession *enrollmentSession READ enrollmentSession CONSTANT)
+    Q_PROPERTY(LocalVerificationSession *localVerificationSession READ localVerificationSession CONSTANT)
     Q_PROPERTY(SupportReport *supportReport READ supportReport CONSTANT)
     Q_PROPERTY(bool refreshing READ refreshing NOTIFY refreshStateChanged)
     Q_PROPERTY(bool partialDiagnostics READ partialDiagnostics NOTIFY refreshStateChanged)
@@ -34,6 +40,8 @@ class KFaceAuthKcm final : public KQuickConfigModule
     [[nodiscard]] SystemState *systemState();
     [[nodiscard]] CameraPreviewSession *cameraPreviewSession();
     [[nodiscard]] VisionAnalysisSession *visionAnalysisSession();
+    [[nodiscard]] EnrollmentSession *enrollmentSession();
+    [[nodiscard]] LocalVerificationSession *localVerificationSession();
     [[nodiscard]] SupportReport *supportReport();
     [[nodiscard]] bool refreshing() const;
     [[nodiscard]] bool partialDiagnostics() const;
@@ -48,6 +56,10 @@ class KFaceAuthKcm final : public KQuickConfigModule
     SystemState m_systemState;
     CameraPreviewSession m_cameraPreviewSession;
     VisionAnalysisSession m_visionAnalysisSession;
+    KWalletKeyProvider m_keyProvider;
+    IdentityWorkerClient m_identityWorker;
+    EnrollmentSession m_enrollmentSession;
+    LocalVerificationSession m_localVerificationSession;
     SupportReport m_supportReport;
     RefreshCoordinator m_refreshCoordinator;
     quint64 m_probeGeneration = 0;

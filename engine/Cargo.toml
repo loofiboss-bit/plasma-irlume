@@ -1,5 +1,8 @@
 [workspace]
 members = [
+    "crypto-openssl-sys",
+    "identity",
+    "identity-types",
     "protocol",
     "vision",
     "vision-opencv-sys",

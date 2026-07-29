@@ -20,6 +20,10 @@ const STATUS_OUTPUT_TOO_LARGE: c_int = 3;
 const STATUS_MALFORMED_OUTPUT: c_int = 4;
 const STATUS_HARDENING_FAILURE: c_int = 5;
 
+pub const SFACE_EMBEDDING_DIMENSION: usize = 128;
+pub const SFACE_ALIGNED_WIDTH: u32 = 112;
+pub const SFACE_ALIGNED_HEIGHT: u32 = 112;
+
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default)]
 pub struct RawDetection {
@@ -51,6 +55,32 @@ unsafe extern "C" {
         detection_count: *mut usize,
     ) -> c_int;
     fn kfaceauth_yunet_destroy(detector: *mut c_void);
+    fn kfaceauth_sface_create(
+        model_bytes: *const u8,
+        model_size: usize,
+        recognizer_out: *mut *mut c_void,
+    ) -> c_int;
+    fn kfaceauth_sface_extract(
+        recognizer: *mut c_void,
+        bgr_bytes: *const u8,
+        bgr_size: usize,
+        width: i32,
+        height: i32,
+        stride: usize,
+        detection: *const RawDetection,
+        embedding: *mut f32,
+        embedding_capacity: usize,
+        embedding_count: *mut usize,
+    ) -> c_int;
+    fn kfaceauth_sface_cosine(
+        recognizer: *mut c_void,
+        left: *const f32,
+        left_count: usize,
+        right: *const f32,
+        right_count: usize,
+        similarity: *mut f64,
+    ) -> c_int;
+    fn kfaceauth_sface_destroy(recognizer: *mut c_void);
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -210,6 +240,109 @@ impl Drop for Detector {
     }
 }
 
+pub struct Recognizer {
+    handle: NonNull<c_void>,
+    _not_send_or_sync: PhantomData<Rc<()>>,
+}
+
+impl Recognizer {
+    /// Constructs an OpenCV CPU SFace recognizer from already verified bytes.
+    ///
+    /// # Errors
+    ///
+    /// Returns a stable bridge error for rejected model bytes or runtime load
+    /// failures.
+    pub fn new(model_bytes: &[u8]) -> Result<Self, BridgeError> {
+        let mut handle = std::ptr::null_mut();
+        // SAFETY: the model slice remains valid for the call and the output
+        // pointer refers to initialized local storage.
+        status_result(unsafe {
+            kfaceauth_sface_create(model_bytes.as_ptr(), model_bytes.len(), &mut handle)
+        })?;
+        let handle = NonNull::new(handle).ok_or(BridgeError::RuntimeFailure)?;
+        Ok(Self {
+            handle,
+            _not_send_or_sync: PhantomData,
+        })
+    }
+
+    /// Aligns the five YuNet landmarks, crops a 112x112 BGR face, and extracts
+    /// the raw 128-element FP32 SFace feature.
+    ///
+    /// # Errors
+    ///
+    /// Returns a stable error if geometry, landmarks, native shape, type, or
+    /// values violate the reviewed contract.
+    pub fn extract(
+        &self,
+        bgr_bytes: &[u8],
+        width: u32,
+        height: u32,
+        stride: usize,
+        detection: &RawDetection,
+    ) -> Result<[f32; SFACE_EMBEDDING_DIMENSION], BridgeError> {
+        let width = i32::try_from(width).map_err(|_| BridgeError::InvalidArgument)?;
+        let height = i32::try_from(height).map_err(|_| BridgeError::InvalidArgument)?;
+        let mut embedding = [0.0_f32; SFACE_EMBEDDING_DIMENSION];
+        let mut count = 0_usize;
+        // SAFETY: all buffers and the opaque handle remain valid for the
+        // duration of the call; the output array is uniquely writable.
+        status_result(unsafe {
+            kfaceauth_sface_extract(
+                self.handle.as_ptr(),
+                bgr_bytes.as_ptr(),
+                bgr_bytes.len(),
+                width,
+                height,
+                stride,
+                detection,
+                embedding.as_mut_ptr(),
+                embedding.len(),
+                &mut count,
+            )
+        })?;
+        if count != SFACE_EMBEDDING_DIMENSION {
+            embedding.fill(0.0);
+            return Err(BridgeError::MalformedOutput);
+        }
+        Ok(embedding)
+    }
+
+    /// Compares two validated SFace features through OpenCV's cosine
+    /// implementation. Matching policy remains owned by safe Rust.
+    ///
+    /// # Errors
+    ///
+    /// Returns a stable error for malformed inputs or native output.
+    pub fn cosine(
+        &self,
+        left: &[f32; SFACE_EMBEDDING_DIMENSION],
+        right: &[f32; SFACE_EMBEDDING_DIMENSION],
+    ) -> Result<f64, BridgeError> {
+        let mut similarity = 0.0_f64;
+        // SAFETY: input arrays remain valid and immutable for the call and the
+        // output pointer refers to initialized local storage.
+        status_result(unsafe {
+            kfaceauth_sface_cosine(
+                self.handle.as_ptr(),
+                left.as_ptr(),
+                left.len(),
+                right.as_ptr(),
+                right.len(),
+                &mut similarity,
+            )
+        })?;
+        Ok(similarity)
+    }
+}
+
+impl Drop for Recognizer {
+    fn drop(&mut self) {
+        // SAFETY: the handle is uniquely owned and destroyed exactly once.
+        unsafe { kfaceauth_sface_destroy(self.handle.as_ptr()) };
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -218,6 +351,10 @@ mod tests {
     fn rejects_invalid_constructor_inputs_before_runtime_use() {
         assert!(matches!(
             Detector::new(&[], 320, 320, 0.9, 0.3, 8),
+            Err(BridgeError::InvalidArgument)
+        ));
+        assert!(matches!(
+            Recognizer::new(&[]),
             Err(BridgeError::InvalidArgument)
         ));
     }

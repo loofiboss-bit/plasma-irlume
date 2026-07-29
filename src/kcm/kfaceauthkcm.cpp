@@ -15,7 +15,9 @@ KFaceAuthKcm::KFaceAuthKcm(QObject *parent, const KPluginMetaData &data)
 
 KFaceAuthKcm::KFaceAuthKcm(QObject *parent, const KPluginMetaData &data, std::unique_ptr<FaceAuthBackend> backend)
     : KQuickConfigModule(parent, data), m_probe(this), m_systemState(this), m_cameraPreviewSession(this),
-      m_visionAnalysisSession(&m_cameraPreviewSession, this),
+      m_visionAnalysisSession(&m_cameraPreviewSession, this), m_keyProvider(this), m_identityWorker(this),
+      m_enrollmentSession(&m_cameraPreviewSession, &m_identityWorker, &m_keyProvider, this),
+      m_localVerificationSession(&m_cameraPreviewSession, &m_identityWorker, &m_keyProvider, this),
       m_supportReport(&m_systemState, &m_cameraPreviewSession, this), m_refreshCoordinator(std::move(backend), this)
 {
     qmlRegisterType<CameraPreviewItem>(KFACEAUTH_QML_URI, 4, 0, "CameraPreview");
@@ -23,6 +25,11 @@ KFaceAuthKcm::KFaceAuthKcm(QObject *parent, const KPluginMetaData &data, std::un
                                                      QStringLiteral("CameraPreviewSession is provided by the KCM"));
     qmlRegisterUncreatableType<VisionAnalysisSession>(KFACEAUTH_QML_URI, 4, 0, "VisionAnalysisSession",
                                                       QStringLiteral("VisionAnalysisSession is provided by the KCM"));
+    qmlRegisterUncreatableType<EnrollmentSession>(KFACEAUTH_QML_URI, 4, 0, "EnrollmentSession",
+                                                  QStringLiteral("EnrollmentSession is provided by the KCM"));
+    qmlRegisterUncreatableType<LocalVerificationSession>(
+        KFACEAUTH_QML_URI, 4, 0, "LocalVerificationSession",
+        QStringLiteral("LocalVerificationSession is provided by the KCM"));
     setButtons(NoAdditionalButton);
     connect(&m_refreshCoordinator, &RefreshCoordinator::snapshotChanged, this,
             [this](const EngineSnapshot &snapshot)
@@ -57,6 +64,16 @@ CameraPreviewSession *KFaceAuthKcm::cameraPreviewSession()
 VisionAnalysisSession *KFaceAuthKcm::visionAnalysisSession()
 {
     return &m_visionAnalysisSession;
+}
+
+EnrollmentSession *KFaceAuthKcm::enrollmentSession()
+{
+    return &m_enrollmentSession;
+}
+
+LocalVerificationSession *KFaceAuthKcm::localVerificationSession()
+{
+    return &m_localVerificationSession;
 }
 
 SupportReport *KFaceAuthKcm::supportReport()

@@ -34,6 +34,7 @@ class PackagingContractTests(unittest.TestCase):
             'set(KFACEAUTH_I18N_DOMAIN "kcm_kfaceauth")',
             'set(KFACEAUTH_PREVIEW_WORKER "kfaceauth-camera-preview-worker")',
             'set(KFACEAUTH_VISION_WORKER "kfaceauth-vision-worker")',
+            'set(KFACEAUTH_IDENTITY_WORKER "kfaceauth-identity-worker")',
             'set(KFACEAUTH_MODEL_DIRECTORY "kfaceauth/models")',
             'set(KFACEAUTH_MODEL_MANIFEST "manifest.kfaceauth")',
         ):
@@ -60,7 +61,17 @@ class PackagingContractTests(unittest.TestCase):
         self.assertNotIn("kf6-kauth", spec)
         self.assertIn("%{_libexecdir}/kfaceauth-camera-preview-worker", spec)
         self.assertIn("%{_libexecdir}/kfaceauth-vision-worker", spec)
+        self.assertIn("%{_libexecdir}/kfaceauth-identity-worker", spec)
         self.assertIn("face_detection_yunet_2023mar.onnx", spec)
+        self.assertIn("face_recognition_sface_2021dec.onnx", spec)
+        for directory in (
+            "%dir %{_datadir}/kfaceauth",
+            "%dir %{_datadir}/kfaceauth/models",
+            "%dir %{_datadir}/kfaceauth/models/files",
+            "%dir %{_datadir}/kfaceauth/models/licenses",
+            "%dir %{_datadir}/kfaceauth/models/provenance",
+        ):
+            self.assertIn(directory, spec)
         self.assertNotIn("fake-provider-v1.cfg", spec)
         for dependency in (
             "BuildRequires:  opencv-devel",
@@ -68,9 +79,16 @@ class PackagingContractTests(unittest.TestCase):
             "Requires:       opencv-dnn",
             "Requires:       opencv-imgproc",
             "Requires:       opencv-objdetect",
+            "BuildRequires:  openssl-devel",
+            "BuildRequires:  kf6-kwallet-devel",
+            "Requires:       openssl-libs",
+            "Requires:       kf6-kwallet",
         ):
             self.assertIn(dependency, spec)
-        self.assertRegex(spec, r"(?m)^License:\s+GPL-3\.0-or-later AND MIT$")
+        self.assertRegex(
+            spec,
+            r"(?m)^License:\s+GPL-3\.0-or-later AND MIT AND Apache-2\.0$",
+        )
         self.assertIn("kcm_kfaceauth.so", spec)
 
     def test_source_archive_is_reproducible_in_shape_and_has_no_legacy_identity(
@@ -111,6 +129,9 @@ class PackagingContractTests(unittest.TestCase):
                     or name.startswith("kfaceauth-4.0.0/")
                     for name in names
                 )
+            )
+            self.assertFalse(
+                any("/redhat-linux-build/" in f"/{name}/" for name in names)
             )
             legacy_engine = "ir" + "lume"
             self.assertFalse(any(legacy_engine in name.lower() for name in names))

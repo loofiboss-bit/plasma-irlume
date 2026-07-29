@@ -1,108 +1,88 @@
 # Architecture
 
-Milestone 3 separates five unprivileged areas:
+Milestone 4 separates capture, neutral analysis, identity extraction, key
+access, and encrypted persistence:
 
 ```text
-KDE System Settings
-  -> KFaceAuthKcm
-     -> RefreshCoordinator
-        -> NativeFaceAuthBackend
-     -> SystemProbe
-     -> CameraPreviewSession
-        -> kfaceauth-camera-preview-worker
-     -> VisionAnalysisSession
-        -> kfaceauth-vision-worker
+KDE System Settings / KFaceAuthKcm
+  +-- RefreshCoordinator -> NativeFaceAuthBackend
+  +-- SystemProbe
+  +-- CameraPreviewSession -> kfaceauth-camera-preview-worker
+  +-- VisionAnalysisSession -> kfaceauth-vision-worker
+  +-- EnrollmentSession --------+
+  +-- LocalVerificationSession --+-> IdentityWorkerClient
+  |                                  -> kfaceauth-identity-worker
+  +-- KWalletKeyProvider
 
-engine/
-  -> protocol
-  -> vision
-  -> vision-worker
-  -> templates
-  -> daemon
-  -> cli
+Rust identity worker
+  -> vision -> vision-opencv-sys -> Fedora OpenCV 4.13
+  -> identity-types
+  -> templates -> crypto-openssl-sys -> Fedora OpenSSL 3
 ```
 
-## KCM coordination
+All workers run as the ordinary user and communicate only over inherited
+private pipes. Preview is a bounded session worker. Vision and identity are
+short-lived one-request workers. There is no listener, daemon activation,
+shell, network, privileged process, or authentication interface.
 
-`NativeFaceAuthBackend` implements the provider-neutral `FaceAuthBackend`
-interface. Requests, progress, completion, and cancellation carry a monotonically
-increasing generation. `RefreshCoordinator` ignores stale generations, and the
-backend cancels a pending generation before scheduling a newer one.
+## Ownership
 
-The production backend is fully queued and currently completes with
-`native-engine-unavailable`. It does not use `QProcess`, a shell, a command
-path, a socket, or network access. An injected availability probe exists only
-for deterministic unit tests of the typed skeleton state.
+Rust owns framing, closed operations, bounds, model inventory and identity,
+frame validation, cancellation/deadlines, native-output validation,
+normalization, matching policy, vault format, filesystem safety, and
+zeroization wrappers.
 
-`SystemProbe` runs bounded local reads through `QtConcurrent` and applies results
-only when its generation is current. It reports OS, display-manager, Secure
-Boot, native-engine, and explicit unsupported capability states. Unknown or
-missing data is never interpreted as success.
+The project-owned C++ OpenCV bridge owns only `FaceDetectorYN` and
+`FaceRecognizerSF` construction, packed BGR copies, five-landmark
+`alignCrop`, feature extraction, and a qualification-only cosine call. It
+catches every exception. OpenCV objects and matrices never cross the C ABI.
 
-## Camera path
+The KCM backend owns manual action boundaries, latest-generation-wins worker
+lifecycle, rate limiting, transient enrollment embeddings, KWallet access,
+and high-level UI states. QML receives no frame bytes, embeddings, landmarks,
+keys, paths, or scores.
 
-`CameraPreviewSession` owns a separate unprivileged worker process. It handles
-preview pixels only and
-does not share a transport, state, or implementation with the native engine.
-The existing framed CBOR protocol, session identifiers, monotonic sequences,
-bounds, timeouts, backpressure, cancellation, and frame clearing remain intact.
+## Enrollment and verification
 
-`VisionAnalysisSession` is separate from preview capture. A user must first
-start preview and then explicitly request analysis. C++ copies only the current
-bounded `QImage`, normalizes it to an accepted packed pixel format, and sends it
-over private process pipes. It never exposes bytes to QML or uses a temporary
-file. Each request has a monotonic generation; stale responses are discarded.
-Page hiding, application deactivation, preview stop, cancellation, protocol
-failure, timeout, replacement request, or teardown kills the short-lived worker
-and clears both the frame copy and result. A replacement request starts only
-after the previous process has exited, so workers never overlap.
+Enrollment starts explicitly, captures exactly one current frame per click,
+keeps 3–8 accepted embeddings only in memory (five recommended), and commits
+them atomically at Finish. Recoverable one-frame quality/face errors keep the
+bounded session available for an explicit retry; fatal failure, the 120-second
+timeout, page hide, app deactivation, preview stop, replacement, cancel, or
+teardown clears transient material.
 
-## Rust workspace
+Verification also requires a preview and a separate one-frame action. The
+worker opens the current user's encrypted profile, extracts one candidate,
+applies the central median/threshold policy, and returns only a typed result.
+The result updates only Test Recognition.
 
-The workspace keeps the Milestone 1 status skeleton and adds bounded vision:
+## Vault and key
 
-- `protocol` defines protocol version 1, a four-byte big-endian frame length,
-  4 KiB requests, 16 KiB responses, closed request/response enums, and typed
-  stable errors;
-- `vision` owns model-manifest parsing, SHA-256 verification, checked frame
-  validation, backend-neutral detector/quality types, cancellation,
-  preprocessing, postprocessing, and the production YuNet provider;
-- `vision-opencv-sys` is the only unsafe Rust crate and exposes a narrow safe
-  wrapper over the project-owned OpenCV C ABI bridge;
-- `vision-worker` accepts one versioned length-framed analyze operation on
-  stdin/stdout and never opens a socket or persistent store;
-- `templates` reports persistence unavailable;
-- `daemon` dispatches exactly one bounded status or capability request over
-  caller-provided local streams;
-- `cli` prints only the source skeleton's typed status and capabilities.
+The fixed XDG user-data vault is AES-256-GCM encrypted and bound to numeric
+UID, schema, YuNet/SFace identities, exact SFace hash, embedding format,
+dimension, and normalization version. KWallet stores only the random master
+key. Atomic writes, metadata checks, bounded locking, authenticated rotation,
+corruption preservation, and explicit deletion/reset are defined in
+[TEMPLATE-VAULT.md](TEMPLATE-VAULT.md).
 
-All other crates forbid unsafe Rust and the workspace has no registry
-dependencies. Build and test are offline. The vision worker verifies the
-complete inventory and exact model again before initializing Fedora OpenCV
-from in-memory bytes. It does not download anything, open sockets, access
-cameras, persist data, produce embeddings, or make authentication decisions.
-It is a one-request executable owned by the source and package, not a daemon or
-system service.
+## Status
 
-`FaceDetectorYN` and its C++ ABI live only in the short-lived worker. The bridge
-accepts verified model bytes and a tightly packed BGR image, catches all native
-exceptions, and returns bounded 15-float rows. Rust treats the rows as hostile,
-validates every finite rectangle, landmark, and score, and discards landmarks
-and scores before encoding the existing neutral protocol result. See
-[runtime selection](RUNTIME-SELECTION.md) and [pipeline](YUNET-PIPELINE.md).
+The backend reports aggregate engine/runtime, verified model availability,
+KWallet availability/lock state, vault/profile state, and bounded sample
+count. It exposes separate detector, embedding, enrollment, encrypted
+persistence, local verification, and deletion capabilities. PAM, authselect,
+system authentication, liveness, security tiers, and privileged services
+remain explicitly unsupported.
 
-## Model supply chain
+Production refresh first verifies the installed worker and both model hashes,
+then executes the identity worker's bounded `status` operation. It reads a key
+only when KWallet is already open; a locked wallet is reported without
+prompting or falling back. Test-only availability probes bypass this runtime
+path only in unit tests.
 
-`models/manifest.kfaceauth` is the machine-readable allow-list. It pins filename,
-version, immutable origin, size, SHA-256, role, backend, and license.
-`models/files` contains only listed, license-reviewed artifacts.
-`tools/verify_models.py` and Rust initialization both reject missing, renamed,
-modified, duplicate, malformed, or unlisted files. Configure, build, test,
-install, and runtime never fetch model data.
+## Supply chain
 
-## Identity
-
-The temporary product, KCM, application, QML, translation, worker, and support
-report identifiers are defined in `cmake/ProjectIdentity.cmake`. Generated
-desktop and plugin metadata derive from that file. No compatibility aliases are
-installed.
+`models/manifest.kfaceauth` is a closed offline allow-list. Python and Rust
+both reject missing, renamed, modified, duplicate, malformed, or unlisted
+artifacts before inference. Configure, build, test, install, and runtime never
+download a model.

@@ -1,32 +1,52 @@
 # User guide
 
-KFaceAuth currently appears as a development preview in System Settings.
-
-## Overview
-
-Overview shows whether the native engine skeleton is available and explicitly
-marks vision, enrollment, authentication, PAM, and template persistence as not
-implemented. The normal Milestone 1 state is `Native engine unavailable`.
+KFaceAuth is an experimental local identity page in KDE System Settings. It
+does not enable login or authentication.
 
 ## Camera Check
 
-Select **Refresh** to discover local cameras. Select a camera and choose
-**Start preview** to begin a private preview. It stops after 60 seconds; you can
-also stop it manually or leave the page.
+Refresh cameras, start preview explicitly, then choose **Analyze current
+frame** for neutral YuNet face-presence and image-quality guidance. Preview
+stops after 60 seconds and on page/app teardown.
 
-The preview is only a camera and privacy diagnostic. To run detection, choose
-**Analyze current frame** separately. This starts one short-lived local YuNet
-worker for the current frame; it is not continuous. A new analysis replaces
-and cancels an active one.
+## Face Profile
 
-The result can report zero, one, or multiple detected faces plus neutral image
-or framing guidance. It does not recognize a person, test liveness, enroll
-anything, or prove authentication readiness. If the verified model or OpenCV
-runtime is unavailable, Camera Check shows an error and never substitutes a
-simulated result.
+Face embeddings are sensitive biometric data. KFaceAuth intentionally stores
+no captured image. It encrypts one current-user profile with AES-256-GCM and a
+random key held only in your logged-in KWallet session.
 
-## Diagnostics
+1. Unlock KWallet when requested.
+2. Start preview, then select **Start enrollment**.
+3. Select **Capture sample** separately for each appearance. Exactly one
+   centered, sufficiently large face is required.
+4. Three samples are required, five are recommended, and eight is the hard
+   storage maximum.
+5. Choose **Retry sample** to discard the latest accepted sample, **Cancel** to
+   discard the entire uncommitted session, or **Finish and save** for one
+   atomic encrypted commit.
 
-Diagnostics refreshes bounded local status and can copy or export a redacted
-Markdown report. Review the report before sharing it. It intentionally excludes
-frames, device identifiers, biometric data, credentials, and local paths.
+Enrollment expires after 120 seconds and is cancelled when its page, preview,
+application, or KCM becomes inactive. Nothing is partially saved before Finish.
+
+Status shows only absent/ready/unreadable/model-mismatch/unavailable and a
+bounded sample count. **Delete face profile** authenticates and removes a valid
+profile. **Reset unreadable data** destructively removes an unreadable file and
+its KWallet key after confirmation; re-enrollment is then required. Deletion
+cannot promise physical erasure from SSDs, snapshots, backups, journals, or
+copy-on-write storage.
+
+## Test Recognition
+
+Start preview and choose **Test one current frame**. The current frame is
+processed once, the encrypted current-user profile is opened, and the UI can
+show Match, No match, Ambiguous, No profile, Vault locked, Model mismatch,
+Unavailable, Cancelled, or Internal failure.
+
+Scores are intentionally hidden. Requests are rate-limited. A Match changes
+only this page: it cannot unlock, authenticate, authorize, call PAM/Polkit, or
+alter the Linux session.
+
+There is no liveness or spoof resistance. KWallet keys are unavailable before
+login. FAR, FRR, bias, RGB/IR security, and authentication suitability remain
+unqualified. Password fallback is irrelevant because KFaceAuth does not modify
+authentication.

@@ -11,13 +11,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "kfaceauth-crypto-openssl-sys"
+version = "0.1.0"
+
+[[package]]
 name = "kfaceauth-daemon"
 version = "0.1.0"
 dependencies = [
  "kfaceauth-protocol",
+]
+
+[[package]]
+name = "kfaceauth-identity"
+version = "0.1.0"
+dependencies = [
  "kfaceauth-templates",
  "kfaceauth-vision",
+ "kfaceauth-vision-opencv-sys",
 ]
+
+[[package]]
+name = "kfaceauth-identity-types"
+version = "0.1.0"
 
 [[package]]
 name = "kfaceauth-protocol"
@@ -26,11 +41,16 @@ version = "0.1.0"
 [[package]]
 name = "kfaceauth-templates"
 version = "0.1.0"
+dependencies = [
+ "kfaceauth-crypto-openssl-sys",
+ "kfaceauth-identity-types",
+]
 
 [[package]]
 name = "kfaceauth-vision"
 version = "0.1.0"
 dependencies = [
+ "kfaceauth-identity-types",
  "kfaceauth-vision-opencv-sys",
 ]
 

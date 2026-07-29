@@ -9,7 +9,7 @@ struct SystemStateSnapshot
 {
     enum class EngineStatus
     {
-        SkeletonAvailable,
+        LocalIdentityAvailable,
         Unavailable,
         ProtocolError,
     };
@@ -79,7 +79,7 @@ class SystemState final : public QObject
   public:
     enum class EngineStatus
     {
-        SkeletonAvailable,
+        LocalIdentityAvailable,
         Unavailable,
         ProtocolError,
     };

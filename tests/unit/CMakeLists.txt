@@ -19,9 +19,24 @@ target_link_libraries(fake_preview_worker preview_protocol Qt6::Core Qt6::Gui)
 add_executable(fake_vision_worker fake_vision_worker.cpp)
 target_link_libraries(fake_vision_worker Qt6::Core)
 
+add_executable(fake_identity_worker fake_identity_worker.cpp)
+target_link_libraries(fake_identity_worker Qt6::Core)
+
 add_executable(test_previewprotocol test_previewprotocol.cpp)
 target_link_libraries(test_previewprotocol preview_protocol Qt6::Core Qt6::Test)
 add_test(NAME previewprotocol COMMAND test_previewprotocol)
+
+add_executable(test_identityprotocol test_identityprotocol.cpp)
+target_link_libraries(test_identityprotocol kfaceauth_core Qt6::Core Qt6::Gui Qt6::Test)
+add_test(NAME identityprotocol COMMAND test_identityprotocol)
+
+add_executable(test_identityworkerclient test_identityworkerclient.cpp)
+target_compile_definitions(test_identityworkerclient PRIVATE
+    KFACEAUTH_FAKE_IDENTITY_WORKER_PATH="$<TARGET_FILE:fake_identity_worker>"
+)
+target_link_libraries(test_identityworkerclient kfaceauth_core Qt6::Core Qt6::Test)
+add_dependencies(test_identityworkerclient fake_identity_worker)
+add_test(NAME identityworkerclient COMMAND test_identityworkerclient)
 
 add_executable(test_cameraprovider test_cameraprovider.cpp)
 target_link_libraries(test_cameraprovider camera_provider Qt6::Core Qt6::Gui Qt6::Test)
@@ -62,6 +77,7 @@ target_include_directories(test_yunet_bridge_native PRIVATE
 )
 target_compile_definitions(test_yunet_bridge_native PRIVATE
     KFACEAUTH_YUNET_MODEL_PATH="${PROJECT_SOURCE_DIR}/models/files/face_detection_yunet_2023mar.onnx"
+    KFACEAUTH_SFACE_MODEL_PATH="${PROJECT_SOURCE_DIR}/models/files/face_recognition_sface_2021dec.onnx"
 )
 target_compile_options(test_yunet_bridge_native PRIVATE -fexceptions)
 target_link_libraries(test_yunet_bridge_native PRIVATE

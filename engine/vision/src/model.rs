@@ -12,7 +12,7 @@ pub const MANIFEST_FILE: &str = "manifest.kfaceauth";
 pub const MANIFEST_MAGIC: &str = "KFACEAUTH_MODEL_MANIFEST\t1";
 pub const MANIFEST_HEADER: &str = "id\tpath\tsize\tsha256\trole\tbackend\tlicense\tprovenance";
 pub const MAX_MANIFEST_BYTES: u64 = 64 * 1024;
-pub const MAX_ARTIFACT_BYTES: u64 = 8 * 1024 * 1024;
+pub const MAX_ARTIFACT_BYTES: u64 = 64 * 1024 * 1024;
 pub const MAX_MANIFEST_ENTRIES: usize = 64;
 const MAX_INVENTORY_ENTRIES: usize = MAX_MANIFEST_ENTRIES * 2 + 1;
 

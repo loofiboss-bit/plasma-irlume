@@ -5,7 +5,7 @@
 use std::fmt;
 use std::io::{self, Read, Write};
 
-pub const PROTOCOL_VERSION: u16 = 1;
+pub const PROTOCOL_VERSION: u16 = 2;
 pub const MAX_REQUEST_BYTES: usize = 4 * 1024;
 pub const MAX_RESPONSE_BYTES: usize = 16 * 1024;
 pub const MAX_REQUEST_BYTES_WIRE: u32 = 4 * 1024;
@@ -55,7 +55,7 @@ pub enum DisabledCapability {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum EngineState {
-    Skeleton,
+    Ready,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -65,29 +65,47 @@ pub struct Capabilities {
     pub max_request_bytes: u32,
     pub max_response_bytes: u32,
     pub operations: u16,
-    pub vision: OperationSupport,
-    pub enrollment: OperationSupport,
-    pub authentication: OperationSupport,
+    pub detector_analysis: OperationSupport,
+    pub embedding_extraction: OperationSupport,
+    pub user_session_enrollment: OperationSupport,
+    pub encrypted_user_session_persistence: OperationSupport,
+    pub explicit_local_verification: OperationSupport,
+    pub profile_deletion: OperationSupport,
+    pub pam_authentication: OperationSupport,
     pub pam_configuration: OperationSupport,
-    pub template_persistence: OperationSupport,
+    pub authselect: OperationSupport,
+    pub sddm_lock_screen: OperationSupport,
+    pub sudo_polkit: OperationSupport,
+    pub liveness: OperationSupport,
+    pub security_tiers: OperationSupport,
+    pub privileged_services: OperationSupport,
     pub network_access: DisabledCapability,
     pub runtime_model_downloads: DisabledCapability,
 }
 
 impl Capabilities {
     #[must_use]
-    pub const fn milestone_one() -> Self {
+    pub const fn local_identity() -> Self {
         Self {
             protocol_min: PROTOCOL_VERSION,
             protocol_max: PROTOCOL_VERSION,
             max_request_bytes: MAX_REQUEST_BYTES_WIRE,
             max_response_bytes: MAX_RESPONSE_BYTES_WIRE,
             operations: OPERATION_CAPABILITIES | OPERATION_STATUS,
-            vision: OperationSupport::Unsupported,
-            enrollment: OperationSupport::Unsupported,
-            authentication: OperationSupport::Unsupported,
+            detector_analysis: OperationSupport::Supported,
+            embedding_extraction: OperationSupport::Supported,
+            user_session_enrollment: OperationSupport::Supported,
+            encrypted_user_session_persistence: OperationSupport::Supported,
+            explicit_local_verification: OperationSupport::Supported,
+            profile_deletion: OperationSupport::Supported,
+            pam_authentication: OperationSupport::Unsupported,
             pam_configuration: OperationSupport::Unsupported,
-            template_persistence: OperationSupport::Unsupported,
+            authselect: OperationSupport::Unsupported,
+            sddm_lock_screen: OperationSupport::Unsupported,
+            sudo_polkit: OperationSupport::Unsupported,
+            liveness: OperationSupport::Unsupported,
+            security_tiers: OperationSupport::Unsupported,
+            privileged_services: OperationSupport::Unsupported,
             network_access: DisabledCapability::Disabled,
             runtime_model_downloads: DisabledCapability::Disabled,
         }
@@ -97,23 +115,41 @@ impl Capabilities {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Status {
     pub state: EngineState,
-    pub vision: OperationSupport,
-    pub enrollment: OperationSupport,
-    pub authentication: OperationSupport,
+    pub detector_analysis: OperationSupport,
+    pub embedding_extraction: OperationSupport,
+    pub user_session_enrollment: OperationSupport,
+    pub encrypted_user_session_persistence: OperationSupport,
+    pub explicit_local_verification: OperationSupport,
+    pub profile_deletion: OperationSupport,
+    pub pam_authentication: OperationSupport,
     pub pam_configuration: OperationSupport,
-    pub template_persistence: OperationSupport,
+    pub authselect: OperationSupport,
+    pub sddm_lock_screen: OperationSupport,
+    pub sudo_polkit: OperationSupport,
+    pub liveness: OperationSupport,
+    pub security_tiers: OperationSupport,
+    pub privileged_services: OperationSupport,
 }
 
 impl Status {
     #[must_use]
-    pub const fn milestone_one() -> Self {
+    pub const fn local_identity() -> Self {
         Self {
-            state: EngineState::Skeleton,
-            vision: OperationSupport::Unsupported,
-            enrollment: OperationSupport::Unsupported,
-            authentication: OperationSupport::Unsupported,
+            state: EngineState::Ready,
+            detector_analysis: OperationSupport::Supported,
+            embedding_extraction: OperationSupport::Supported,
+            user_session_enrollment: OperationSupport::Supported,
+            encrypted_user_session_persistence: OperationSupport::Supported,
+            explicit_local_verification: OperationSupport::Supported,
+            profile_deletion: OperationSupport::Supported,
+            pam_authentication: OperationSupport::Unsupported,
             pam_configuration: OperationSupport::Unsupported,
-            template_persistence: OperationSupport::Unsupported,
+            authselect: OperationSupport::Unsupported,
+            sddm_lock_screen: OperationSupport::Unsupported,
+            sudo_polkit: OperationSupport::Unsupported,
+            liveness: OperationSupport::Unsupported,
+            security_tiers: OperationSupport::Unsupported,
+            privileged_services: OperationSupport::Unsupported,
         }
     }
 }
@@ -209,26 +245,44 @@ pub fn encode_response(response: Response) -> Vec<u8> {
             payload.extend_from_slice(&capabilities.max_request_bytes.to_be_bytes());
             payload.extend_from_slice(&capabilities.max_response_bytes.to_be_bytes());
             payload.extend_from_slice(&capabilities.operations.to_be_bytes());
-            payload.extend_from_slice(&support_bytes(
-                capabilities.vision,
-                capabilities.enrollment,
-                capabilities.authentication,
+            payload.extend_from_slice(&support_bytes([
+                capabilities.detector_analysis,
+                capabilities.embedding_extraction,
+                capabilities.user_session_enrollment,
+                capabilities.encrypted_user_session_persistence,
+                capabilities.explicit_local_verification,
+                capabilities.profile_deletion,
+                capabilities.pam_authentication,
                 capabilities.pam_configuration,
-                capabilities.template_persistence,
-            ));
+                capabilities.authselect,
+                capabilities.sddm_lock_screen,
+                capabilities.sudo_polkit,
+                capabilities.liveness,
+                capabilities.security_tiers,
+                capabilities.privileged_services,
+            ]));
             payload.push(0);
             payload.push(0);
         }
         Response::Status(status) => {
             payload[2] = RESPONSE_STATUS;
-            payload.push(1);
-            payload.extend_from_slice(&support_bytes(
-                status.vision,
-                status.enrollment,
-                status.authentication,
+            payload.push(2);
+            payload.extend_from_slice(&support_bytes([
+                status.detector_analysis,
+                status.embedding_extraction,
+                status.user_session_enrollment,
+                status.encrypted_user_session_persistence,
+                status.explicit_local_verification,
+                status.profile_deletion,
+                status.pam_authentication,
                 status.pam_configuration,
-                status.template_persistence,
-            ));
+                status.authselect,
+                status.sddm_lock_screen,
+                status.sudo_polkit,
+                status.liveness,
+                status.security_tiers,
+                status.privileged_services,
+            ]));
         }
         Response::Error(code) => {
             payload[2] = RESPONSE_ERROR;
@@ -336,37 +390,49 @@ fn validate_version(payload: &[u8]) -> Result<(), CodecError> {
     Ok(())
 }
 
-const fn support_bytes(
-    vision: OperationSupport,
-    enrollment: OperationSupport,
-    authentication: OperationSupport,
-    pam_configuration: OperationSupport,
-    template_persistence: OperationSupport,
-) -> [u8; 5] {
+const fn support_bytes(support: [OperationSupport; 14]) -> [u8; 14] {
     [
-        vision.wire_value(),
-        enrollment.wire_value(),
-        authentication.wire_value(),
-        pam_configuration.wire_value(),
-        template_persistence.wire_value(),
+        support[0].wire_value(),
+        support[1].wire_value(),
+        support[2].wire_value(),
+        support[3].wire_value(),
+        support[4].wire_value(),
+        support[5].wire_value(),
+        support[6].wire_value(),
+        support[7].wire_value(),
+        support[8].wire_value(),
+        support[9].wire_value(),
+        support[10].wire_value(),
+        support[11].wire_value(),
+        support[12].wire_value(),
+        support[13].wire_value(),
     ]
 }
 
-fn decode_support(payload: &[u8]) -> Result<[OperationSupport; 5], CodecError> {
+fn decode_support(payload: &[u8]) -> Result<[OperationSupport; 14], CodecError> {
     Ok([
         OperationSupport::from_wire(payload[0])?,
         OperationSupport::from_wire(payload[1])?,
         OperationSupport::from_wire(payload[2])?,
         OperationSupport::from_wire(payload[3])?,
         OperationSupport::from_wire(payload[4])?,
+        OperationSupport::from_wire(payload[5])?,
+        OperationSupport::from_wire(payload[6])?,
+        OperationSupport::from_wire(payload[7])?,
+        OperationSupport::from_wire(payload[8])?,
+        OperationSupport::from_wire(payload[9])?,
+        OperationSupport::from_wire(payload[10])?,
+        OperationSupport::from_wire(payload[11])?,
+        OperationSupport::from_wire(payload[12])?,
+        OperationSupport::from_wire(payload[13])?,
     ])
 }
 
 fn decode_capabilities(payload: &[u8]) -> Result<Response, CodecError> {
-    if payload.len() != 25 || payload[23] != 0 || payload[24] != 0 {
+    if payload.len() != 34 || payload[32] != 0 || payload[33] != 0 {
         return Err(CodecError::InvalidPayload);
     }
-    let support = decode_support(&payload[18..23])?;
+    let support = decode_support(&payload[18..32])?;
     Ok(Response::Capabilities(Capabilities {
         protocol_min: u16::from_be_bytes([payload[4], payload[5]]),
         protocol_max: u16::from_be_bytes([payload[6], payload[7]]),
@@ -378,28 +444,46 @@ fn decode_capabilities(payload: &[u8]) -> Result<Response, CodecError> {
             payload[15],
         ]),
         operations: u16::from_be_bytes([payload[16], payload[17]]),
-        vision: support[0],
-        enrollment: support[1],
-        authentication: support[2],
-        pam_configuration: support[3],
-        template_persistence: support[4],
+        detector_analysis: support[0],
+        embedding_extraction: support[1],
+        user_session_enrollment: support[2],
+        encrypted_user_session_persistence: support[3],
+        explicit_local_verification: support[4],
+        profile_deletion: support[5],
+        pam_authentication: support[6],
+        pam_configuration: support[7],
+        authselect: support[8],
+        sddm_lock_screen: support[9],
+        sudo_polkit: support[10],
+        liveness: support[11],
+        security_tiers: support[12],
+        privileged_services: support[13],
         network_access: DisabledCapability::Disabled,
         runtime_model_downloads: DisabledCapability::Disabled,
     }))
 }
 
 fn decode_status(payload: &[u8]) -> Result<Response, CodecError> {
-    if payload.len() != 10 || payload[4] != 1 {
+    if payload.len() != 19 || payload[4] != 2 {
         return Err(CodecError::InvalidPayload);
     }
-    let support = decode_support(&payload[5..10])?;
+    let support = decode_support(&payload[5..19])?;
     Ok(Response::Status(Status {
-        state: EngineState::Skeleton,
-        vision: support[0],
-        enrollment: support[1],
-        authentication: support[2],
-        pam_configuration: support[3],
-        template_persistence: support[4],
+        state: EngineState::Ready,
+        detector_analysis: support[0],
+        embedding_extraction: support[1],
+        user_session_enrollment: support[2],
+        encrypted_user_session_persistence: support[3],
+        explicit_local_verification: support[4],
+        profile_deletion: support[5],
+        pam_authentication: support[6],
+        pam_configuration: support[7],
+        authselect: support[8],
+        sddm_lock_screen: support[9],
+        sudo_polkit: support[10],
+        liveness: support[11],
+        security_tiers: support[12],
+        privileged_services: support[13],
     }))
 }
 
@@ -414,7 +498,7 @@ mod tests {
             assert_eq!(decode_request(&encode_request(request)).unwrap(), request);
         }
         assert!(matches!(
-            decode_request(&[0, 1, 9, 0]),
+            decode_request(&[0, 2, 9, 0]),
             Err(CodecError::InvalidPayload)
         ));
     }
@@ -422,8 +506,8 @@ mod tests {
     #[test]
     fn responses_round_trip() {
         let responses = [
-            Response::Capabilities(Capabilities::milestone_one()),
-            Response::Status(Status::milestone_one()),
+            Response::Capabilities(Capabilities::local_identity()),
+            Response::Status(Status::local_identity()),
             Response::Error(ErrorCode::UnsupportedOperation),
         ];
         for response in responses {
@@ -460,8 +544,8 @@ mod tests {
             Err(CodecError::EmptyFrame)
         ));
         assert!(matches!(
-            decode_request(&[0, 2, REQUEST_STATUS, 0]),
-            Err(CodecError::UnsupportedVersion(2))
+            decode_request(&[0, 3, REQUEST_STATUS, 0]),
+            Err(CodecError::UnsupportedVersion(3))
         ));
     }
 }

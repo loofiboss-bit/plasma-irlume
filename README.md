@@ -1,52 +1,34 @@
 # KFaceAuth
 
-KFaceAuth is a temporary neutral name for a standalone native KDE
-face-authentication project. Milestone 3 adds real bounded local YuNet analysis and
-does **not** authenticate users.
+KFaceAuth is a temporary neutral name for a standalone native KDE local
+identity experiment. Milestone 4 can enroll and locally compare the currently
+logged-in user's face. A `Match` is an in-session UI result only: it does not
+unlock, authenticate, authorize, invoke PAM or Polkit, or alter the session.
 
-The current KCM provides:
+The KCM provides:
 
-- asynchronous native-engine status with explicit unavailable and unsupported
-  states;
-- bounded local system probes;
-- reusable Kirigami status and diagnostics components;
-- local RGB/infrared camera discovery and an explicitly started, 60-second
-  in-memory preview;
-- a second explicit action that copies one current frame through private pipes
-  to a short-lived, unprivileged Rust vision worker;
-- real local CPU inference through Fedora OpenCV 4.13 and the hash-pinned YuNet
-  detector;
-- typed zero, one, or multiple-face presence and neutral image-quality results;
-- a selected, hash-pinned YuNet detector with offline verification and complete
-  model provenance.
+- explicit, bounded RGB/infrared preview and one-frame YuNet analysis;
+- verified YuNet FP32 detection plus verified SFace FP32 alignment and
+  128-value embedding extraction through Fedora OpenCV 4.13;
+- deliberate enrollment of 3–5 samples, with a hard stored maximum of 8;
+- one encrypted profile for the current numeric UID;
+- a random AES-256-GCM vault key stored only in KDE KWallet;
+- aggregate profile status, explicit deletion, and explicit unreadable reset;
+- one-click, rate-limited local verification returning `Match`, `No match`,
+  `Ambiguous`, or a typed unavailable result;
+- short-lived, unprivileged workers with private pipes, strict bounds,
+  cancellation, deadlines, no network, and no telemetry.
 
-Vision analysis is local and experimental. Production uses the real YuNet
-provider; deterministic inference exists only in test code and cannot be
-selected by a production flag, environment variable, or configuration. Face
-detection is not identification, image-quality guidance is not liveness, and no
-security tier is claimed.
+Embeddings are sensitive biometric data. No captured image is intentionally
+persisted. Frames, landmarks, embeddings, keys, and similarity scores do not
+reach QML, normal logs, the CLI, or support reports.
 
-There is no recognition, face matching, identity threshold, enrollment,
-biometric persistence, PAM module, privileged helper, system service, SELinux
-policy, network access, telemetry, or runtime model download.
-
-## Privacy boundary
-
-The camera preview remains a separate unprivileged worker:
-
-- capture starts only after an explicit click and stops after 60 seconds;
-- leaving Camera Check, deactivating the KCM, worker failure, or teardown stops
-  capture and clears the frame;
-- frames are bounded to 640×480, 8 fps, and 128 KiB JPEG;
-- analysis requires a separate click, sends at most one decoded 640×480 frame,
-  and is cancelled when preview or the Camera Check session ends;
-- discovery is limited to 16 devices and uses reviewed udev properties;
-- raw frames are never exposed to QML or written to disk;
-- frames, face rectangles, quality results, and device identifiers never enter
-  configuration, normal logs, or support reports.
-
-Finding a camera does not establish identity, liveness, security, enrollment,
-or authentication readiness. Neither does a face-presence result.
+There is no liveness or presentation-attack detection, security tier, PAM
+module/configuration, authselect change, SDDM/lock-screen integration,
+sudo/Polkit integration, privileged helper, system service, TPM sealing,
+background recognition, networking, or runtime model download. KWallet keys
+are unavailable before login. FAR, FRR, bias, spoof resistance, and broad
+hardware behavior remain unqualified.
 
 ## Build and verify
 
@@ -67,16 +49,15 @@ python3 tools/verify_models.py --root models
 
 See [architecture](docs/ARCHITECTURE.md),
 [threat boundary](docs/THREAT-BOUNDARY.md),
-[build guide](docs/BUILDING.md),
-[runtime decision](docs/RUNTIME-SELECTION.md),
-[YuNet pipeline](docs/YUNET-PIPELINE.md),
-[hardware qualification](docs/HARDWARE-QUALIFICATION.md),
-[camera protocol](docs/CAMERA-PREVIEW-PROTOCOL.md),
-[vision protocol](docs/VISION-PROTOCOL.md),
-[model decision](docs/MODEL-SELECTION.md), and the
-[roadmap](docs/ROADMAP.md).
+[identity pipeline](docs/IDENTITY-PIPELINE.md),
+[identity protocol](docs/IDENTITY-PROTOCOL.md),
+[template vault](docs/TEMPLATE-VAULT.md),
+[embedding decision](docs/EMBEDDING-MODEL-SELECTION.md),
+[build guide](docs/BUILDING.md), and
+[hardware qualification](docs/HARDWARE-QUALIFICATION.md).
 
 ## License
 
-Project code is GPL-3.0-or-later. The selected YuNet model is MIT. See
-[LICENSE](LICENSE) and [model selection](docs/MODEL-SELECTION.md).
+Project code is GPL-3.0-or-later. YuNet weights are MIT. SFace weights and
+Fedora OpenCV are Apache-2.0. The exact model licenses and provenance are
+shipped in the closed model inventory.

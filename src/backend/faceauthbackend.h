@@ -15,6 +15,9 @@ enum class EngineOperation
     Status,
     Capabilities,
     Enrollment,
+    EmbeddingExtraction,
+    LocalVerification,
+    ProfileDeletion,
     Authentication,
     PamConfiguration,
     TemplatePersistence,
@@ -36,6 +39,12 @@ enum class EngineFeature : quint32
     CapabilityRead = 1U << 1U,
     CameraDiscovery = 1U << 2U,
     Preview = 1U << 3U,
+    DetectorAnalysis = 1U << 4U,
+    EmbeddingExtraction = 1U << 5U,
+    UserSessionEnrollment = 1U << 6U,
+    EncryptedPersistence = 1U << 7U,
+    LocalVerification = 1U << 8U,
+    ProfileDeletion = 1U << 9U,
 };
 Q_DECLARE_FLAGS(EngineFeatures, EngineFeature)
 Q_DECLARE_OPERATORS_FOR_FLAGS(EngineFeatures)
@@ -83,11 +92,14 @@ struct EngineProtocolSnapshot
 struct EngineCapabilities
 {
     EngineFeatures features;
-    OperationSupport vision = OperationSupport::Unsupported;
+    OperationSupport detectorAnalysis = OperationSupport::Unsupported;
+    OperationSupport embeddingExtraction = OperationSupport::Unsupported;
     OperationSupport enrollment = OperationSupport::Unsupported;
+    OperationSupport localVerification = OperationSupport::Unsupported;
+    OperationSupport profileDeletion = OperationSupport::Unsupported;
     OperationSupport authentication = OperationSupport::Unsupported;
     OperationSupport pamConfiguration = OperationSupport::Unsupported;
-    OperationSupport templatePersistence = OperationSupport::Unsupported;
+    OperationSupport encryptedPersistence = OperationSupport::Unsupported;
 
     [[nodiscard]] bool supports(EngineFeature feature) const
     {
@@ -99,11 +111,33 @@ struct EngineStatusSnapshot
 {
     enum class State
     {
-        Skeleton,
         Ready,
+        Degraded,
     };
 
-    State state = State::Skeleton;
+    enum class KeyProviderState
+    {
+        Available,
+        Locked,
+        Unavailable,
+    };
+
+    enum class VaultState
+    {
+        Unknown,
+        Absent,
+        Ready,
+        Corrupt,
+        ModelMismatch,
+    };
+
+    State state = State::Degraded;
+    bool detectorModelAvailable = false;
+    bool embeddingModelAvailable = false;
+    KeyProviderState keyProviderState = KeyProviderState::Unavailable;
+    VaultState vaultState = VaultState::Unknown;
+    bool profileEnrolled = false;
+    quint8 sampleCount = 0;
 };
 
 struct EngineSnapshot

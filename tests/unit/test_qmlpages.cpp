@@ -2,6 +2,10 @@
 
 #include "camerapreviewitem.h"
 #include "camerapreviewsession.h"
+#include "enrollmentsession.h"
+#include "identityworkerclient.h"
+#include "kwalletkeyprovider.h"
+#include "localverificationsession.h"
 #include "supportreport.h"
 #include "systemstate.h"
 #include "visionanalysissession.h"
@@ -55,6 +59,10 @@ void QmlPagesTest::milestonePagesCreateForUnavailableEngine()
     CameraPreviewSession cameraPreviewSession(QStringLiteral("/nonexistent/preview-worker"), nullptr);
     VisionAnalysisSession visionAnalysisSession(&cameraPreviewSession, QStringLiteral("/nonexistent/vision-worker"),
                                                 nullptr);
+    KWalletKeyProvider keyProvider;
+    IdentityWorkerClient identityWorker(QStringLiteral("/nonexistent/identity-worker"), {}, nullptr);
+    EnrollmentSession enrollmentSession(&cameraPreviewSession, &identityWorker, &keyProvider);
+    LocalVerificationSession localVerificationSession(&cameraPreviewSession, &identityWorker, &keyProvider);
     SupportReport supportReport(&state, &cameraPreviewSession);
     QQmlEngine engine;
     auto *localizedContext = KLocalization::setupLocalizedContext(&engine);
@@ -77,11 +85,24 @@ void QmlPagesTest::milestonePagesCreateForUnavailableEngine()
                                       {QStringLiteral("supportReport"), QVariant::fromValue(&supportReport)},
                                       {QStringLiteral("refreshActive"), false},
                                   });
+    auto profile = createPage(engine, QStringLiteral("FaceProfilePage.qml"),
+                              {
+                                  {QStringLiteral("cameraPreviewSession"), QVariant::fromValue(&cameraPreviewSession)},
+                                  {QStringLiteral("enrollmentSession"), QVariant::fromValue(&enrollmentSession)},
+                              });
+    auto recognition =
+        createPage(engine, QStringLiteral("TestRecognitionPage.qml"),
+                   {
+                       {QStringLiteral("cameraPreviewSession"), QVariant::fromValue(&cameraPreviewSession)},
+                       {QStringLiteral("localVerificationSession"), QVariant::fromValue(&localVerificationSession)},
+                   });
     QVERIFY(overview);
     QVERIFY(camera);
     QVERIFY(diagnostics);
+    QVERIFY(profile);
+    QVERIFY(recognition);
 
-    for (QObject *page : {overview.get(), camera.get(), diagnostics.get()})
+    for (QObject *page : {overview.get(), camera.get(), profile.get(), recognition.get(), diagnostics.get()})
     {
         auto *item = qobject_cast<QQuickItem *>(page);
         QVERIFY(item);
@@ -91,6 +112,19 @@ void QmlPagesTest::milestonePagesCreateForUnavailableEngine()
             QCoreApplication::processEvents();
             QVERIFY(item->implicitHeight() > 0);
         }
+    }
+
+    for (QObject *control : {
+             profile->findChild<QObject *>(QStringLiteral("previewButton")),
+             profile->findChild<QObject *>(QStringLiteral("startEnrollmentButton")),
+             profile->findChild<QObject *>(QStringLiteral("captureButton")),
+             recognition->findChild<QObject *>(QStringLiteral("previewButton")),
+             recognition->findChild<QObject *>(QStringLiteral("verifyButton")),
+         })
+    {
+        QVERIFY(control);
+        QVERIFY(control->property("activeFocusOnTab").toBool());
+        QVERIFY(!control->property("text").toString().isEmpty());
     }
 }
 
@@ -170,6 +204,10 @@ int main(int argc, char **argv)
                                                      QStringLiteral("provided by test"));
     qmlRegisterUncreatableType<VisionAnalysisSession>("org.kde.kfaceauth", 4, 0, "VisionAnalysisSession",
                                                       QStringLiteral("provided by test"));
+    qmlRegisterUncreatableType<EnrollmentSession>("org.kde.kfaceauth", 4, 0, "EnrollmentSession",
+                                                  QStringLiteral("provided by test"));
+    qmlRegisterUncreatableType<LocalVerificationSession>("org.kde.kfaceauth", 4, 0, "LocalVerificationSession",
+                                                         QStringLiteral("provided by test"));
     QmlPagesTest test;
     return QTest::qExec(&test, argc, argv);
 }

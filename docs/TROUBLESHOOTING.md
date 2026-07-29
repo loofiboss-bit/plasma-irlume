@@ -1,51 +1,47 @@
 # Troubleshooting
 
-## Native engine unavailable
+## Local identity unavailable
 
-This is expected in Milestone 1. The engine workspace is source-only and the KCM
-does not start it. Camera Check and diagnostics remain responsive. No biometric
-or PAM feature should become enabled.
-
-## Camera unavailable
-
-- close other applications using the camera;
-- verify the hardware privacy switch;
-- select **Refresh**;
-- reconnect the device if it is removable;
-- inspect the stable preview error code in Diagnostics.
-
-Camera errors do not alter native-engine status. Native-engine errors do not
-weaken preview bounds or privacy.
-
-## Face detector unavailable
-
-If Camera Check reports that the verified model is unavailable, reinstall the
-KFaceAuth RPM through the Fedora package manager. Do not copy or rename an ONNX
-file manually: the worker requires the exact closed inventory, metadata, size,
-and SHA-256.
-
-If Camera Check reports invalid detector output, stop preview and retry once.
-Persistent failure indicates an unsupported or damaged OpenCV/runtime
-installation; record the stable error and verify the package with:
+Verify the package and exact model inventory:
 
 ```bash
 rpm -V kfaceauth
+python3 /usr/share/doc/kfaceauth/tools/verify_models.py \
+  --root /usr/share/kfaceauth/models
 ```
 
-Neither error enables simulated inference.
+Do not copy, rename, or download an ONNX file manually. The worker requires the
+exact closed YuNet/SFace inventory and never substitutes a model.
 
-## Preview stops
+## KWallet locked, cancelled, or unavailable
 
-Automatic stop after 60 seconds is expected. Hiding the page, deactivating
-System Settings, worker failure, or KCM teardown also stops capture and clears
-the current frame.
+Unlock your normal KDE wallet and retry. Cancelling access safely leaves the
+profile unchanged. KFaceAuth never falls back to a key file. If the wallet key
+is permanently lost, use **Reset unreadable data** and re-enroll; recovery or
+export is not implemented.
 
-## Build cannot find Qt Multimedia
+## Profile unreadable or model mismatch
 
-Install `qt6-qtmultimedia-devel`. The runtime package alone does not contain the
-CMake configuration and headers required to build the worker.
+KFaceAuth preserves unreadable data and will not overwrite it automatically.
+First verify/reinstall the RPM. If the profile cannot be recovered with the
+original KWallet key and exact model version, explicitly reset it and enroll
+again.
 
-## Build cannot find OpenCV 4.13
+## Enrollment sample rejected
 
-Install `opencv-devel` from the Fedora 44 repositories. KFaceAuth deliberately
-rejects a different OpenCV minor implementation until it has been reviewed.
+Keep exactly one face visible, use even lighting, center the face away from the
+edge, move closer if it is small, and vary ordinary pose or appearance between
+samples. Each frame requires an explicit Capture click. Quality guidance is not
+liveness evidence.
+
+## Preview stops or verification is rate-limited
+
+Preview stops after 60 seconds and on page hide, app deactivation, failure, or
+teardown. Restart it explicitly. Verification intentionally permits no faster
+than one request every two seconds.
+
+## Build dependencies
+
+`opencv-devel` must provide OpenCV 4.13, `openssl-devel` OpenSSL 3, and
+`kf6-kwallet-devel` KF6 Wallet. KFaceAuth rejects another OpenCV minor until
+reviewed.

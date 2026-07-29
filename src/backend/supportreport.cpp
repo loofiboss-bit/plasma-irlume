@@ -158,7 +158,8 @@ QString SupportReport::actionForCode(const QString &code)
     if (code == QLatin1String("camera-unavailable"))
         return translate("Reconnect or re-enable the camera, then refresh camera discovery.");
     if (code == QLatin1String("native-engine-unavailable") || code == QLatin1String("native-protocol-unavailable"))
-        return translate("No action is required in Milestone 1. Biometric and PAM operations remain disabled.");
+        return translate("Verify the installed local identity worker and model inventory. PAM and system "
+                         "authentication remain unsupported.");
     if (code.isEmpty())
         return translate("No known issue is currently reported.");
     return translate("Keep unsupported operations disabled and export the redacted report for development support.");

@@ -37,6 +37,7 @@ tar \
     --exclude='./.vscode' \
     --exclude='*/__pycache__' \
     --exclude='./build*' \
+    --exclude='./redhat-linux-build' \
     --exclude='./engine/target' \
     --exclude='./rpmbuild' \
     --exclude='./*.rpm' \

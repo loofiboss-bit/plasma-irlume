@@ -18,17 +18,17 @@ fn main() {
     match kfaceauth_daemon::handle_request(request) {
         Response::Capabilities(capabilities) => {
             println!(
-                "protocol={}..{} status=supported authentication=unsupported enrollment=unsupported pam=unsupported persistence=unsupported",
+                "protocol={}..{} detector=supported embedding=supported enrollment=supported encrypted-persistence=supported local-verification=supported profile-deletion=supported pam=unsupported liveness=unsupported system-authentication=unsupported",
                 capabilities.protocol_min, capabilities.protocol_max
             );
         }
         Response::Status(_) => {
             println!(
-                "engine=skeleton authentication=unsupported enrollment=unsupported pam=unsupported persistence=unsupported"
+                "engine=local-identity-mvp detector=supported embedding=supported enrollment=supported encrypted-persistence=supported local-verification=supported profile-deletion=supported pam=unsupported liveness=unsupported system-authentication=unsupported"
             );
         }
         Response::Error(_) => {
-            eprintln!("native engine skeleton returned a typed error");
+            eprintln!("native engine returned a typed error");
             std::process::exit(1);
         }
     }

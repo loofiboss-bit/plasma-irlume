@@ -39,10 +39,12 @@ jobs:
             kf6-kcoreaddons-devel \
             kf6-ki18n-devel \
             kf6-kirigami-devel \
+            kf6-kwallet-devel \
             libasan \
             libubsan \
             ninja-build \
             opencv-devel \
+            openssl-devel \
             python3 \
             rust \
             rustfmt \
@@ -53,7 +55,7 @@ jobs:
 
       - name: Check C++ formatting
         run: |
-          find src tests/unit engine/vision-opencv-sys/native \
+          find src tests/unit engine/vision-opencv-sys/native engine/crypto-openssl-sys/native \
             -type f \( -name '*.cpp' -o -name '*.h' \) -print0 \
             | xargs -0 clang-format --dry-run --Werror
 
@@ -70,7 +72,7 @@ jobs:
           cargo clippy --manifest-path engine/Cargo.toml --workspace --all-targets --locked --offline -- -D warnings
           cargo test --manifest-path engine/Cargo.toml --workspace --all-targets --locked --offline
           python3 tools/verify_models.py --root models
-          msgfmt --check --output-file=/dev/null po/sv/kcm_kfaceauth.po
+          msgfmt --check --check-format --output-file=/dev/null po/sv/kcm_kfaceauth.po
 
       - name: Run unit and fixture tests
         env:

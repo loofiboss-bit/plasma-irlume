@@ -90,7 +90,7 @@ SystemStateSnapshot SystemProbe::probe(const EngineSnapshot &engine) const
 SystemStateSnapshot SystemProbe::evaluate(const SystemProbeInputs &inputs)
 {
     SystemStateSnapshot state;
-    state.scenarioId = QStringLiteral("native-milestone-1");
+    state.scenarioId = QStringLiteral("native-local-identity-mvp");
     state.dataSource = translate("Live local system");
     state.liveData = true;
     state.fedoraVersion = parseOsReleaseValue(inputs.osRelease, QStringLiteral("VERSION_ID"));
@@ -98,17 +98,18 @@ SystemStateSnapshot SystemProbe::evaluate(const SystemProbeInputs &inputs)
     state.activeDisplayManager = displayManagerLabel(inputs.displayManagerTarget);
     state.secureBootStatus = secureBootStatus(inputs);
     state.engineVersion = inputs.engine.engineVersion();
-    state.visionStatus = capability(inputs.engine.capabilities.vision);
+    state.visionStatus = capability(inputs.engine.capabilities.detectorAnalysis);
     state.enrollmentStatus = capability(inputs.engine.capabilities.enrollment);
     state.authenticationStatus = capability(inputs.engine.capabilities.authentication);
     state.pamStatus = capability(inputs.engine.capabilities.pamConfiguration);
-    state.templatePersistenceStatus = capability(inputs.engine.capabilities.templatePersistence);
+    state.templatePersistenceStatus = capability(inputs.engine.capabilities.encryptedPersistence);
 
     if (!inputs.engine.engineAvailable)
     {
         state.headline = translate("Native engine unavailable");
         state.summary =
-            translate("The KCM remains usable for camera checks. Biometric and PAM operations are not implemented.");
+            translate("The KCM remains usable for camera checks. Local identity components are unavailable; PAM "
+                      "and system authentication remain unsupported.");
         state.issueCode = QStringLiteral("native-engine-unavailable");
         state.engineStatus = SystemStateSnapshot::EngineStatus::Unavailable;
         return state;
@@ -117,16 +118,17 @@ SystemStateSnapshot SystemProbe::evaluate(const SystemProbeInputs &inputs)
     if (!inputs.engine.protocolAvailable())
     {
         state.headline = translate("Native protocol unavailable");
-        state.summary = translate("The local engine did not provide the versioned Milestone 1 status protocol.");
+        state.summary = translate("The local engine did not provide the versioned local-identity status protocol.");
         state.issueCode = QStringLiteral("native-protocol-unavailable");
         state.engineStatus = SystemStateSnapshot::EngineStatus::ProtocolError;
         return state;
     }
 
-    state.headline = translate("Native engine skeleton available");
+    state.headline = translate("Local identity engine available");
     state.summary =
-        translate("Status reporting is available. Recognition, enrollment, template storage, and PAM remain disabled.");
-    state.engineStatus = SystemStateSnapshot::EngineStatus::SkeletonAvailable;
+        translate("Verified detector and embedding models support encrypted user-session enrollment and "
+                  "explicit local comparison. PAM, liveness, and system authentication remain unsupported.");
+    state.engineStatus = SystemStateSnapshot::EngineStatus::LocalIdentityAvailable;
     return state;
 }
 

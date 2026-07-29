@@ -59,9 +59,11 @@ rpm --root "${smoke_root}" --nodeps --upgrade --replacepkgs "${rpm_path}"
 required_paths=(
     "/usr/libexec/kfaceauth-camera-preview-worker"
     "/usr/libexec/kfaceauth-vision-worker"
+    "/usr/libexec/kfaceauth-identity-worker"
     "/usr/share/applications/kcm_kfaceauth.desktop"
     "/usr/share/kfaceauth/models/manifest.kfaceauth"
     "/usr/share/kfaceauth/models/files/face_detection_yunet_2023mar.onnx"
+    "/usr/share/kfaceauth/models/files/face_recognition_sface_2021dec.onnx"
 )
 
 for path in "${required_paths[@]}"; do
@@ -74,6 +76,7 @@ done
 if find \
     "${smoke_root}/usr/libexec/kfaceauth-camera-preview-worker" \
     "${smoke_root}/usr/libexec/kfaceauth-vision-worker" \
+    "${smoke_root}/usr/libexec/kfaceauth-identity-worker" \
     -perm /6000 -print -quit | grep -q .; then
     echo "KFaceAuth workers must not be setuid or setgid" >&2
     exit 1
@@ -81,7 +84,8 @@ fi
 if command -v getcap >/dev/null 2>&1 &&
     getcap \
         "${smoke_root}/usr/libexec/kfaceauth-camera-preview-worker" \
-        "${smoke_root}/usr/libexec/kfaceauth-vision-worker" | grep -q .; then
+        "${smoke_root}/usr/libexec/kfaceauth-vision-worker" \
+        "${smoke_root}/usr/libexec/kfaceauth-identity-worker" | grep -q .; then
     echo "KFaceAuth workers must not have file capabilities" >&2
     exit 1
 fi
@@ -107,6 +111,17 @@ if [[ "$(sha256sum "${installed_model}" | cut -d' ' -f1)" != \
     echo "Installed YuNet model failed checksum verification" >&2
     exit 1
 fi
+installed_sface="${smoke_root}/usr/share/kfaceauth/models/files/face_recognition_sface_2021dec.onnx"
+if [[ "$(sha256sum "${installed_sface}" | cut -d' ' -f1)" != \
+    "0ba9fbfa01b5270c96627c4ef784da859931e02f04419c829e83484087c34e79" ]]; then
+    echo "Installed SFace model failed checksum verification" >&2
+    exit 1
+fi
+
+if [[ -e "${smoke_root}/home/test/.local/share/kfaceauth" ]]; then
+    echo "Installation or upgrade created user profile state" >&2
+    exit 1
+fi
 
 plugin_path="$(
     rpm --root "${smoke_root}" -ql kfaceauth \
@@ -122,6 +137,7 @@ if [[ "$(sha256sum "${smoke_root}/etc/pam.d/kfaceauth-sentinel")" != "${pam_hash
     exit 1
 fi
 [[ "$(sha256sum "${smoke_root}/home/test/.config/kfaceauth-preserve-me")" == "${user_hash_before}" ]]
+[[ ! -e "${smoke_root}/home/test/.local/share/kfaceauth" ]]
 
 mapfile -t packaged_paths < <(
     rpm --root "${smoke_root}" -ql kfaceauth \

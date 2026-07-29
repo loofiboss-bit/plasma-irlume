@@ -13,7 +13,7 @@ xgettext --language=JavaScript --from-code=UTF-8 \
   -o po/kcm_kfaceauth-qml.pot \
   src/kcm/ui/*.qml src/kcm/ui/components/*.qml
 xgettext --language=C++ --from-code=UTF-8 \
-  --keyword=translate:1 --keyword=QCoreApplication::translate:2 \
+  --keyword=translate:1 --keyword=userText:1 \
   -o po/kcm_kfaceauth-cpp.pot src/backend/*.cpp src/preview/*.cpp
 msgcat --use-first -o po/kcm_kfaceauth.pot \
   po/kcm_kfaceauth-qml.pot po/kcm_kfaceauth-cpp.pot

@@ -25,6 +25,13 @@ extern "C"
         float values[15];
     } KFaceAuthYuNetDetection;
 
+    enum
+    {
+        KFACEAUTH_SFACE_EMBEDDING_DIMENSION = 128,
+        KFACEAUTH_SFACE_ALIGNED_WIDTH = 112,
+        KFACEAUTH_SFACE_ALIGNED_HEIGHT = 112,
+    };
+
     int kfaceauth_yunet_disable_core_dumps(void);
     const char *kfaceauth_yunet_opencv_version(void);
 
@@ -36,6 +43,17 @@ extern "C"
                                size_t *detection_count);
 
     void kfaceauth_yunet_destroy(void *detector);
+
+    int kfaceauth_sface_create(const uint8_t *model_bytes, size_t model_size, void **recognizer_out);
+
+    int kfaceauth_sface_extract(void *recognizer, const uint8_t *bgr_bytes, size_t bgr_size, int32_t width,
+                                int32_t height, size_t stride, const KFaceAuthYuNetDetection *detection,
+                                float *embedding, size_t embedding_capacity, size_t *embedding_count);
+
+    int kfaceauth_sface_cosine(void *recognizer, const float *left, size_t left_count, const float *right,
+                               size_t right_count, double *similarity);
+
+    void kfaceauth_sface_destroy(void *recognizer);
 
 #ifdef __cplusplus
 }

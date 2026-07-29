@@ -1,98 +1,64 @@
 # Threat boundary
 
-Milestone 3 adds real local experimental face-presence analysis. It is not an
-authentication system.
+Milestone 4 is an offline, current-user, in-session identity experiment. It is
+not an authentication system and has no liveness or spoof resistance.
 
-## Trusted in this milestone
+## Trusted components
 
-- fixed, bounded local platform reads;
-- the KCM's generation-aware asynchronous coordinator;
-- the reviewed camera worker protocol and its strict bounds;
-- the Rust protocol codec's closed message types and length checks.
-- the model manifest allow-list and SHA-256 verification;
-- the Rust vision frame parser's checked dimensions, stride, and payload
-  arithmetic;
-- short-lived private process pipes and monotonic analysis generations;
-- the exact OpenCV 4.13 minor-version gate and narrow reviewed C ABI bridge;
-- Rust validation of all native output before protocol encoding.
+- generation-aware KCM coordination and explicit user actions;
+- closed bounded preview, vision, and identity protocols;
+- private inherited pipes and finite process deadlines;
+- closed model inventory and exact YuNet/SFace SHA-256 verification;
+- Rust frame, native-output, embedding, and model-identity validation;
+- the narrow exception-catching OpenCV 4.13 bridge;
+- Fedora OpenSSL 3 AES-256-GCM and CSPRNG;
+- KWallet as the only production master-key provider;
+- versioned, UID/model-bound vault validation and atomic filesystem rules.
 
-## Explicitly outside the trusted computing base
+OpenCV and ONNX parsing remain native-library risk. They are confined to
+short-lived ordinary-user workers with disabled core dumps, bounded input and
+output, no network, and no privilege.
 
-- embeddings, matching, and liveness;
-- enrollment and deletion workflows;
-- biometric templates, encryption keys, and persistence;
-- PAM decisions or configuration;
-- privileged helpers, system services, and policy installation;
-- SELinux policy;
-- network access, telemetry, model download, and remote inference.
+## Explicitly unsupported
 
-These areas are represented as `Unsupported` or `Not implemented`. They have no
-mutation API, command path, fallback heuristic, or permissive default.
+- PAM decisions/configuration, authselect, SDDM, lock screen, sudo, su, Polkit,
+  KAuth authentication, and any OS authorization;
+- root/setuid helpers, privileged or system services, SELinux policy, TPM
+  sealing, pre-login key access, or login-password recovery;
+- passive/continuous recognition, background camera use, telemetry, networking,
+  remote inference, or runtime downloads;
+- liveness, presentation-attack detection, anti-spoof, security-tier, RGB/IR
+  security, FAR, FRR, bias, or authentication claims.
 
-## Fail-closed rules
+## Biometric privacy
 
-- Missing native-engine status keeps the KCM responsive but never enables a
-  biometric or PAM operation.
-- Unsupported protocol versions and malformed or oversized frames are rejected.
-- The Rust dispatcher recognizes only `Capabilities` and `Status`.
-- The vision worker recognizes only one framed `Analyze` request, processes at
-  most one frame, and terminates after a protocol violation or response.
-- Model loading fails closed for a malformed manifest, missing/renamed/unlisted
-  artifact, size mismatch, or SHA-256 mismatch. There is no fallback model.
-- Camera presence and visible preview pixels never become a security,
-  liveness, identity, or readiness claim.
-- Zero/one/multiple-face and quality results are neutral guidance and never an
-  authentication decision.
-- Stale backend or system-probe generations cannot replace current state.
-- Stale vision generations cannot replace the current result.
-- Invalid native tensors, non-finite values, out-of-frame coordinates, worker
-  crashes, timeouts, or resource failures produce no partial result.
-- Production has no fake-provider selector or fallback.
-- Package installation, upgrade, and removal contain no authentication
-  scriptlets and do not touch PAM.
+Preview and capture are manual and ephemeral. No image is intentionally written
+to disk. One-frame copies, landmarks, raw features, uncommitted embeddings,
+keys, and plaintext templates stay inside the private native/Rust boundary and
+are cleared where practical. QML, normal logs, CLI, and support reports receive
+only aggregate capability/state and typed result categories.
 
-## Preview privacy
+Encrypted embeddings remain sensitive biometric data. User-session encryption
+limits ordinary at-rest disclosure but does not qualify disk theft, a
+compromised logged-in account, process inspection by same-user malware,
+snapshots/backups, or physical erasure. KWallet is unavailable before login.
 
-Preview capture is manual, time-limited, bounded, and ephemeral. Frames remain
-in memory, are dropped under backpressure, and are cleared when capture stops.
-Support reports contain only aggregate device counts, spectrum counts, stable
-error codes, and dropped-frame counts. They exclude frames, labels, tokens, and
-device nodes.
+## Fail-closed behavior
 
-Vision analysis adds a second explicit consent boundary. One decoded frame is
-copied only after the user requests analysis. It remains in parent/worker
-memory, is not exposed to QML or written to disk, and is cleared when the
-request or Camera Check session ends. Normal logs exclude pixels, rectangles,
-landmarks, quality values, model contents, and user-supplied paths.
+- Missing/modified/unlisted models, wrong OpenCV version, malformed native
+  output, zero/multiple faces, invalid quality/geometry, cancellation, timeout,
+  crash, stale generation, or protocol violation produces no embedding/result.
+- Locked/cancelled/unavailable KWallet never falls back to a plaintext key.
+- Wrong key, tag/ciphertext/AAD change, unknown schema, wrong UID/model/format,
+  unsafe mode/owner/link/type, or oversized/truncated vault is rejected.
+- Unreadable vaults are preserved until an explicit destructive reset.
+- Atomic commit/rotation verifies the temporary ciphertext before rename; a
+  failure preserves the previous valid file.
+- A local `Match` can update only Test Recognition and has no authorization
+  side effect.
+- Package install/upgrade/remove has no authentication scriptlet and does not
+  create, rewrite, migrate, or delete a user profile.
 
-## Hostile input and native-library risk
-
-The parent bounds decoded images before the worker sees them. The worker then
-checks format, dimensions, stride, exact payload length, and arithmetic again.
-Rust performs explicit RGB/RGBA/Gray conversion into a fresh tightly packed BGR
-buffer. OpenCV never receives a pointer to the protocol buffer.
-
-OpenCV and the C++ ABI increase memory-safety and parser risk. They are confined
-to a short-lived, unprivileged, one-frame worker with private pipes, finite
-timeouts, bounded output, no network, and no persistence. Native exceptions
-cannot cross the C ABI. Linux core dumps are disabled before the worker reads a
-request, reducing exposure of transient frames, model data, rectangles, and
-landmarks after a crash.
-
-The model manifest is a closed inventory. Rust verifies every listed artifact,
-rejects unlisted files, pins exact YuNet metadata and SHA-256, and passes the
-verified bytes to OpenCV. There is no filename-based native reload or substitute
-model fallback.
-
-OpenCV output is untrusted. Shape, type, row count, finite values, rectangles,
-landmarks, scores, and image bounds are validated before at most eight
-rectangles enter the existing protocol. Scores and landmarks are then
-discarded. Cancellation kills the worker and clears the parent frame/result;
-replacement analysis waits for the old process to exit.
-
-Support reports remain aggregate and sanitized. They exclude frames, face
-coordinates, landmarks, detector scores, per-user analysis results, model
-tensors, user paths, and camera identifiers beyond the already reviewed
-aggregate form. Detection remains separate from identity and authentication
-because the project has no embedding, matching, enrollment, persistence,
-liveness, or authentication API.
+See [IDENTITY-PIPELINE.md](IDENTITY-PIPELINE.md),
+[IDENTITY-PROTOCOL.md](IDENTITY-PROTOCOL.md), and
+[TEMPLATE-VAULT.md](TEMPLATE-VAULT.md).

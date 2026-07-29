@@ -1,45 +1,41 @@
 # Fedora packaging
 
-`kfaceauth.spec` builds the Milestone 3 KCM, camera preview worker, and
-short-lived Rust vision worker for Fedora 44. It installs the verified YuNet
-detector and provenance records and uses Fedora OpenCV 4.13 for real inference.
-It has no
-external face-authentication engine dependency and installs no service, PAM
-module, policy, embedding, or biometric storage.
+The Fedora 44 RPM builds the KCM and three ordinary-user workers. It installs
+the exact verified YuNet FP32 and SFace FP32 artifacts with manifest, licenses,
+and immutable provenance. Fedora supplies OpenCV 4.13, OpenSSL 3, and KF6
+KWallet; none is bundled.
 
-## Build
+## Build and reproduce
 
 ```bash
-packaging/fedora/create-source-archive.sh
-rpmbuild -ba packaging/fedora/kfaceauth.spec \
-  --define "_sourcedir $PWD"
+SOURCE_DATE_EPOCH=0 packaging/fedora/create-source-archive.sh
+rpmbuild -ba packaging/fedora/kfaceauth.spec --define "_sourcedir $PWD"
 ```
 
-The source archive is reproducible in ordering, ownership, timestamps (when
-`SOURCE_DATE_EPOCH` is set), mode normalization, and top-level directory.
-CMake remaps source paths in the packaged Rust worker and its C++ bridge.
-Byte-for-byte SRPM and RPM comparisons must use the same normalized rpmbuild
-paths because RPM stores expanded build-script paths in the source package
-header. Repeating the build at that normalized path must produce identical
-source archives, SRPMs, and RPMs.
-The spec builds with repository-resolved `opencv-devel` and declares the
-specific OpenCV runtime libraries used by the worker. No OpenCV binary is
-vendored. The existing `systemd-devel` build dependency supplies libudev
-headers only; no systemd service or runtime dependency is introduced.
+Repeat the source archive twice and compare SHA-256. Repeat SRPM/RPM builds at
+the same normalized rpmbuild path and compare bytes. The complete prepared
+source set is offline: Cargo is locked/offline and no model is downloaded.
 
 ## Inspect
 
 ```bash
-rpm -qlp "$HOME"/rpmbuild/RPMS/*/kfaceauth-4.0.0-1*.rpm
-rpm -qp --requires "$HOME"/rpmbuild/RPMS/*/kfaceauth-4.0.0-1*.rpm
-packaging/fedora/rpm-smoke-test.sh \
-  "$(find "$HOME/rpmbuild/RPMS" -name 'kfaceauth-[0-9]*.rpm' -print -quit)"
+rpm_path="$(find "$HOME/rpmbuild/RPMS" -name 'kfaceauth-[0-9]*.rpm' -print -quit)"
+rpm -qpl "$rpm_path"
+rpm -qp --requires "$rpm_path"
+rpm -qp --scripts "$rpm_path"
+rpm -qp --dump "$rpm_path"
+rpm2cpio "$rpm_path" | cpio -itv
+rpmlint "$rpm_path"
+packaging/fedora/rpm-smoke-test.sh "$rpm_path"
 ```
 
-The smoke test is a payload-focused isolated test. Release qualification must
-additionally use ordinary `dnf install ./kfaceauth-*.rpm` in a clean Fedora 44
-environment and report separately if dependency resolution fails. The smoke
-test checks the KCM, desktop file, both workers, model checksum,
-permissions/capabilities,
-absence of privileged payloads and scriptlets, unchanged PAM sentinel, and
-preserved unrelated user data.
+Inspect worker modes/ownership, ELF `NEEDED` entries, file capabilities,
+scriptlets, model hashes, and license/provenance payload. The package must have
+no PAM file/module, authselect mutation, service unit, privileged helper,
+setuid/capability, evaluator, fake provider, or authentication scriptlet.
+
+Release qualification additionally uses ordinary dependency-resolved
+`dnf install`, upgrade, and remove in a clean Fedora 44 environment. `--nodeps`
+is never clean-install evidence. Installation/upgrade must not create a
+profile or KWallet key. Removal must not inspect or delete user-home data;
+profile deletion is only an explicit application action.

@@ -12,8 +12,8 @@ use kfaceauth_protocol::{
 #[must_use]
 pub const fn handle_request(request: Request) -> Response {
     match request {
-        Request::Capabilities => Response::Capabilities(Capabilities::milestone_one()),
-        Request::Status => Response::Status(Status::milestone_one()),
+        Request::Capabilities => Response::Capabilities(Capabilities::local_identity()),
+        Request::Status => Response::Status(Status::local_identity()),
     }
 }
 
@@ -41,15 +41,30 @@ mod tests {
         let Response::Capabilities(capabilities) = response else {
             panic!("expected capabilities");
         };
-        assert_eq!(capabilities.authentication, OperationSupport::Unsupported);
-        assert_eq!(capabilities.enrollment, OperationSupport::Unsupported);
+        assert_eq!(capabilities.detector_analysis, OperationSupport::Supported);
+        assert_eq!(
+            capabilities.embedding_extraction,
+            OperationSupport::Supported
+        );
+        assert_eq!(
+            capabilities.user_session_enrollment,
+            OperationSupport::Supported
+        );
+        assert_eq!(
+            capabilities.explicit_local_verification,
+            OperationSupport::Supported
+        );
+        assert_eq!(
+            capabilities.pam_authentication,
+            OperationSupport::Unsupported
+        );
         assert_eq!(
             capabilities.pam_configuration,
             OperationSupport::Unsupported
         );
         assert_eq!(
-            capabilities.template_persistence,
-            OperationSupport::Unsupported
+            capabilities.encrypted_user_session_persistence,
+            OperationSupport::Supported
         );
     }
 

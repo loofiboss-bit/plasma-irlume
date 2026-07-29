@@ -19,6 +19,9 @@ fn main() {
     println!("cargo:rerun-if-env-changed=CXX");
     println!("cargo:rerun-if-env-changed=CXXFLAGS");
     println!("cargo:rerun-if-env-changed=AR");
+    println!("cargo:rerun-if-env-changed=KFACEAUTH_SOURCE_ROOT");
+    println!("cargo:rerun-if-env-changed=PKG_CONFIG_PATH");
+    println!("cargo:rerun-if-env-changed=PKG_CONFIG_SYSROOT_DIR");
 
     let version = command_output("pkg-config", ["--modversion", "opencv4"]);
     let version = String::from_utf8(version.stdout).expect("OpenCV version must be UTF-8");
@@ -65,6 +68,7 @@ fn main() {
             compile.arg(flag);
         }
     }
+    add_source_remapping(&mut compile);
     if let Some(flags) = env::var_os("CXXFLAGS") {
         for flag in flags.to_string_lossy().split_whitespace() {
             compile.arg(flag);
@@ -85,10 +89,32 @@ fn main() {
         output_directory.display()
     );
     println!("cargo:rustc-link-lib=static=kfaceauth_yunet_bridge");
+    let library_output = command_output("pkg-config", ["--libs-only-L", "opencv4"]);
+    let library_flags =
+        String::from_utf8(library_output.stdout).expect("OpenCV library flags must be UTF-8");
+    for flag in library_flags.split_whitespace() {
+        if let Some(path) = flag.strip_prefix("-L") {
+            println!("cargo:rustc-link-search=native={path}");
+        }
+    }
     for library in OPENCV_LIBRARIES {
         println!("cargo:rustc-link-lib=dylib={library}");
     }
     println!("cargo:rustc-link-lib=dylib=stdc++");
+}
+
+fn add_source_remapping(command: &mut Command) {
+    if let Some(root) = env::var_os("KFACEAUTH_SOURCE_ROOT") {
+        command
+            .arg(format!(
+                "-ffile-prefix-map={}=",
+                PathBuf::from(&root).display()
+            ))
+            .arg(format!(
+                "-fdebug-prefix-map={}=",
+                PathBuf::from(root).display()
+            ));
+    }
 }
 
 fn command_output<I, S>(program: &str, arguments: I) -> Output

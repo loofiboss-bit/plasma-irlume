@@ -62,14 +62,12 @@ impl YuNetProvider {
     pub fn runtime_version() -> String {
         opencv_version()
     }
-}
 
-impl VisionProvider for YuNetProvider {
-    fn analyze(
+    pub(crate) fn detect_raw(
         &self,
         image: ImageView<'_>,
         control: ProcessingControl<'_>,
-    ) -> Result<VisionAnalysis, VisionError> {
+    ) -> Result<(RuntimeInput, SensitiveDetections, crate::QualityMetrics), VisionError> {
         control.check()?;
         let quality = calculate_quality(image, control)?;
         let bgr = convert_to_bgr(image, control)?;
@@ -84,6 +82,19 @@ impl VisionProvider for YuNetProvider {
             .map_err(map_bridge_error)?;
         let raw = SensitiveDetections(raw);
         control.check()?;
+        validate_detections(&raw.0, image.width, image.height)?;
+        control.check()?;
+        Ok((bgr, raw, quality))
+    }
+}
+
+impl VisionProvider for YuNetProvider {
+    fn analyze(
+        &self,
+        image: ImageView<'_>,
+        control: ProcessingControl<'_>,
+    ) -> Result<VisionAnalysis, VisionError> {
+        let (_bgr, raw, quality) = self.detect_raw(image, control)?;
         let faces = validate_detections(&raw.0, image.width, image.height)?;
         control.check()?;
         Ok(VisionAnalysis { faces, quality })
@@ -140,7 +151,7 @@ fn require_expected_metadata(entry: &ManifestEntry) -> Result<(), ProviderLoadEr
     Ok(())
 }
 
-struct SensitiveBytes(Vec<u8>);
+pub(crate) struct SensitiveBytes(pub(crate) Vec<u8>);
 
 impl Drop for SensitiveBytes {
     fn drop(&mut self) {
@@ -148,13 +159,13 @@ impl Drop for SensitiveBytes {
     }
 }
 
-struct RuntimeInput {
-    bytes: SensitiveBytes,
-    width: u32,
-    height: u32,
+pub(crate) struct RuntimeInput {
+    pub(crate) bytes: SensitiveBytes,
+    pub(crate) width: u32,
+    pub(crate) height: u32,
 }
 
-struct SensitiveDetections(Vec<RawDetection>);
+pub(crate) struct SensitiveDetections(pub(crate) Vec<RawDetection>);
 
 impl Drop for SensitiveDetections {
     fn drop(&mut self) {
@@ -223,7 +234,7 @@ fn convert_to_bgr(
     })
 }
 
-fn validate_detections(
+pub(crate) fn validate_detections(
     detections: &[RawDetection],
     image_width: u32,
     image_height: u32,

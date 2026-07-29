@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Verify the closed KFaceAuth Milestone 3 model supply chain."""
+"""Verify the closed KFaceAuth model supply chain."""
 
 from __future__ import annotations
 
@@ -17,11 +17,38 @@ MANIFEST_NAME = "manifest.kfaceauth"
 MAGIC = "KFACEAUTH_MODEL_MANIFEST\t1"
 HEADER = "id\tpath\tsize\tsha256\trole\tbackend\tlicense\tprovenance"
 MAX_MANIFEST_BYTES = 64 * 1024
-MAX_ARTIFACT_BYTES = 8 * 1024 * 1024
+MAX_ARTIFACT_BYTES = 64 * 1024 * 1024
 TOKEN = re.compile(r"[A-Za-z0-9._+:-]{1,96}\Z")
 DIGEST = re.compile(r"[0-9a-f]{64}\Z")
 
 REQUIRED_ARTIFACTS = {
+    "sface-2021dec": {
+        "path": "files/face_recognition_sface_2021dec.onnx",
+        "role": "embedding",
+        "backend": "opencv-facerecognizersf",
+        "license": "Apache-2.0",
+        "provenance": "opencv-zoo-47534e27",
+        "size": 38696353,
+        "sha256": "0ba9fbfa01b5270c96627c4ef784da859931e02f04419c829e83484087c34e79",
+    },
+    "sface-apache-license": {
+        "path": "licenses/sface-Apache-2.0.txt",
+        "role": "license",
+        "backend": "not-applicable",
+        "license": "Apache-2.0",
+        "provenance": "opencv-zoo-47534e27",
+        "size": 11358,
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    },
+    "sface-provenance": {
+        "path": "provenance/sface-2021dec.txt",
+        "role": "provenance",
+        "backend": "not-applicable",
+        "license": "GPL-3.0-or-later",
+        "provenance": "repo-authored",
+        "size": 1022,
+        "sha256": "cf6afa6764396286257fa8cf69a4b49b0474ecec7841e0b6553e8cbe7211319d",
+    },
     "yunet-2023mar": {
         "path": "files/face_detection_yunet_2023mar.onnx",
         "role": "detector",

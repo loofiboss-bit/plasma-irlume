@@ -14,11 +14,23 @@ set(KFACEAUTH_CARGO_TARGET_DIR "${CMAKE_CURRENT_BINARY_DIR}/target")
 set(KFACEAUTH_VISION_WORKER_BINARY
     "${KFACEAUTH_CARGO_TARGET_DIR}/${KFACEAUTH_CARGO_PROFILE}/${KFACEAUTH_VISION_WORKER}"
 )
-set(KFACEAUTH_REPRODUCIBLE_RUSTFLAGS
-    "$ENV{RUSTFLAGS} --remap-path-prefix=${PROJECT_SOURCE_DIR}=."
+set(KFACEAUTH_IDENTITY_WORKER_BINARY
+    "${KFACEAUTH_CARGO_TARGET_DIR}/${KFACEAUTH_CARGO_PROFILE}/${KFACEAUTH_IDENTITY_WORKER}"
 )
 set(KFACEAUTH_REPRODUCIBLE_CXXFLAGS
-    "$ENV{CXXFLAGS} -ffile-prefix-map=${PROJECT_SOURCE_DIR}=. -fdebug-prefix-map=${PROJECT_SOURCE_DIR}=. -gno-record-gcc-switches"
+    "$ENV{CXXFLAGS} -gno-record-gcc-switches"
+)
+set(KFACEAUTH_RUSTFLAGS)
+if(DEFINED ENV{RUSTFLAGS} AND NOT "$ENV{RUSTFLAGS}" STREQUAL "")
+    separate_arguments(KFACEAUTH_RUSTFLAGS UNIX_COMMAND "$ENV{RUSTFLAGS}")
+endif()
+list(APPEND KFACEAUTH_RUSTFLAGS
+    "--remap-path-prefix=${PROJECT_SOURCE_DIR}=."
+)
+string(ASCII 31 KFACEAUTH_RUSTFLAG_SEPARATOR)
+list(JOIN KFACEAUTH_RUSTFLAGS
+    "${KFACEAUTH_RUSTFLAG_SEPARATOR}"
+    KFACEAUTH_ENCODED_RUSTFLAGS
 )
 
 file(GLOB_RECURSE KFACEAUTH_RUST_SOURCES CONFIGURE_DEPENDS
@@ -29,16 +41,21 @@ file(GLOB_RECURSE KFACEAUTH_RUST_SOURCES CONFIGURE_DEPENDS
 )
 
 add_custom_command(
-    OUTPUT "${KFACEAUTH_VISION_WORKER_BINARY}"
+    OUTPUT
+        "${KFACEAUTH_VISION_WORKER_BINARY}"
+        "${KFACEAUTH_IDENTITY_WORKER_BINARY}"
     COMMAND
         "${CMAKE_COMMAND}" -E env
         "CARGO_TARGET_DIR=${KFACEAUTH_CARGO_TARGET_DIR}"
-        "RUSTFLAGS=${KFACEAUTH_REPRODUCIBLE_RUSTFLAGS}"
+        "CARGO_ENCODED_RUSTFLAGS=${KFACEAUTH_ENCODED_RUSTFLAGS}"
+        "KFACEAUTH_SOURCE_ROOT=${PROJECT_SOURCE_DIR}"
         "CXXFLAGS=${KFACEAUTH_REPRODUCIBLE_CXXFLAGS}"
         "${CARGO_EXECUTABLE}" build
         --manifest-path "${CMAKE_CURRENT_SOURCE_DIR}/Cargo.toml"
         --package kfaceauth-vision
         --bin "${KFACEAUTH_VISION_WORKER}"
+        --package kfaceauth-identity
+        --bin "${KFACEAUTH_IDENTITY_WORKER}"
         --locked
         --offline
         ${KFACEAUTH_CARGO_PROFILE_ARGUMENTS}
@@ -47,12 +64,15 @@ add_custom_command(
         "${CMAKE_CURRENT_SOURCE_DIR}/Cargo.lock"
         "${PROJECT_SOURCE_DIR}/models/manifest.kfaceauth"
         "${PROJECT_SOURCE_DIR}/models/files/face_detection_yunet_2023mar.onnx"
+        "${PROJECT_SOURCE_DIR}/models/files/face_recognition_sface_2021dec.onnx"
     VERBATIM
     COMMENT "Building the offline Rust vision worker"
 )
 
 add_custom_target(kfaceauth_vision_worker ALL
-    DEPENDS "${KFACEAUTH_VISION_WORKER_BINARY}"
+    DEPENDS
+        "${KFACEAUTH_VISION_WORKER_BINARY}"
+        "${KFACEAUTH_IDENTITY_WORKER_BINARY}"
 )
 
 add_custom_target(kfaceauth_verify_models ALL
@@ -70,6 +90,11 @@ add_custom_target(kfaceauth_verify_models ALL
 install(PROGRAMS "${KFACEAUTH_VISION_WORKER_BINARY}"
     DESTINATION libexec
     RENAME "${KFACEAUTH_VISION_WORKER}"
+)
+
+install(PROGRAMS "${KFACEAUTH_IDENTITY_WORKER_BINARY}"
+    DESTINATION libexec
+    RENAME "${KFACEAUTH_IDENTITY_WORKER}"
 )
 
 install(DIRECTORY "${PROJECT_SOURCE_DIR}/models/"

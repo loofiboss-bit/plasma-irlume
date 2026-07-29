@@ -8,7 +8,7 @@ fn main() {
     let mut input = io::stdin().lock();
     let mut output = io::stdout().lock();
     if let Err(error) = kfaceauth_daemon::serve_once(&mut input, &mut output) {
-        eprintln!("native engine skeleton request failed: {error}");
+        eprintln!("native engine request failed: {error}");
         std::process::exit(1);
     }
 }

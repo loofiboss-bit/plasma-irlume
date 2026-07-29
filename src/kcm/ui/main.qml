@@ -19,7 +19,9 @@ KCMUtils.SimpleKCM {
         width: parent.width
         Accessible.name: i18n("KFaceAuth sections")
         KeyNavigation.down: currentIndex === 0 ? overview
-            : (currentIndex === 1 ? cameraCheck : diagnostics)
+            : (currentIndex === 1 ? cameraCheck
+                : (currentIndex === 2 ? faceProfile
+                    : (currentIndex === 3 ? testRecognition : diagnostics)))
 
         QQC2.TabButton {
             text: i18n("Overview")
@@ -30,6 +32,18 @@ KCMUtils.SimpleKCM {
         QQC2.TabButton {
             text: i18n("Camera Check")
             icon.name: "camera-photo"
+            Accessible.name: text
+        }
+
+        QQC2.TabButton {
+            text: i18n("Face Profile")
+            icon.name: "user-identity"
+            Accessible.name: text
+        }
+
+        QQC2.TabButton {
+            text: i18n("Test Recognition")
+            icon.name: "view-preview"
             Accessible.name: text
         }
 
@@ -67,11 +81,31 @@ KCMUtils.SimpleKCM {
             visionAnalysisSession: kcm.visionAnalysisSession
         }
 
+        FaceProfilePage {
+            id: faceProfile
+
+            Layout.fillWidth: true
+            visible: tabs.currentIndex === 2
+            enabled: visible
+            cameraPreviewSession: kcm.cameraPreviewSession
+            enrollmentSession: kcm.enrollmentSession
+        }
+
+        TestRecognitionPage {
+            id: testRecognition
+
+            Layout.fillWidth: true
+            visible: tabs.currentIndex === 3
+            enabled: visible
+            cameraPreviewSession: kcm.cameraPreviewSession
+            localVerificationSession: kcm.localVerificationSession
+        }
+
         DiagnosticsPage {
             id: diagnostics
 
             Layout.fillWidth: true
-            visible: tabs.currentIndex === 2
+            visible: tabs.currentIndex === 4
             enabled: visible
             systemState: kcm.systemState
             supportReport: kcm.supportReport

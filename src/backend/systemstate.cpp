@@ -99,8 +99,8 @@ QString SystemState::engineStatusLabel() const
 {
     switch (m_snapshot.engineStatus)
     {
-    case SystemStateSnapshot::EngineStatus::SkeletonAvailable:
-        return tr("Skeleton available");
+    case SystemStateSnapshot::EngineStatus::LocalIdentityAvailable:
+        return tr("Local identity available");
     case SystemStateSnapshot::EngineStatus::Unavailable:
         return tr("Unavailable");
     case SystemStateSnapshot::EngineStatus::ProtocolError:

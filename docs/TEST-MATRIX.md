@@ -2,26 +2,20 @@
 
 | Area | Automated evidence |
 |---|---|
-| Native backend | queued completion, unavailable state, safe skeleton state, generation cancellation |
-| Coordinator | stale generations ignored, non-blocking refresh, teardown cancellation |
-| Unsupported operations | C++ capability snapshots and Rust dispatcher remain fail-closed |
-| Rust protocol | version, round trip, malformed message, zero length, oversized length before allocation |
-| Model supply chain | strict manifest, exact names/sizes/SHA-256, missing/renamed/modified/unlisted rejection |
-| Vision parser | dimensions, formats, checked stride arithmetic, truncation, overflow, cancellation, deadline |
-| Vision provider | verified real initialization, RGB/RGBA/Gray conversion, padded rows, zero-face inference, adversarial native output, bounded quality |
-| Vision worker | one request, version/size/sequence, startup, timeout, crash, malformed response, cleanup |
-| Vision KCM bridge | second explicit action, stale generations, cancellation, page/application/preview teardown |
-| Camera provider | bounded discovery and spectrum classification |
-| Preview protocol | framing, session, sequence, dimensions, payload limits |
-| Preview lifecycle | manual start, timeout, cancellation, frame clearing, backpressure |
-| QML | all active pages instantiate offscreen at narrow and wide sizes |
-| Privacy | reports exclude frames, device labels/tokens, paths, credentials, and biometric-like values |
-| Localization | every active single-line user message has Swedish text |
-| Native FFI | exact OpenCV gate, malformed tensor/result rejection, input immutability, core-dump hardening, ASan/UBSan build |
-| Fake isolation | deterministic provider appears only in explicit test code and never in the manifest, worker CLI, installed payload, or RPM |
-| Packaging | central identity, Fedora OpenCV dependencies, no privileged scriptlet, reproducible archive/SRPM/RPM |
-| RPM lifecycle | isolated install, upgrade, removal, payload, privilege, PAM-sentinel, and user-data checks |
+| Model supply chain | exact YuNet/SFace names, sizes, hashes, licenses, provenance; missing/renamed/modified/duplicate/unlisted rejection |
+| OpenCV bridge | owned input copies, five-landmark alignment, 112×112 BGR crop, 1×128 FP32 feature, exception containment, malformed/non-finite rejection |
+| Embeddings | zero norm, non-finite/range failure, deterministic L2 normalization and cosine, model/version binding |
+| Identity protocol | closed operations, positive generations, exact bounds, malformed/trailing/oversized frames, fixed response types, no scores |
+| Vault crypto | AES-GCM round trip, wrong key, tag/ciphertext/AAD tamper, nonce uniqueness, plaintext/key absence |
+| Vault format | schema/UID/model/hash/format/dimension/normalization/sample validation, truncation/oversize, corruption preservation |
+| Vault filesystem | owner/mode/type/symlink/hard-link checks, bounded locking, verified atomic write, rollback, rotation, deletion/reset |
+| Enrollment | 3–8 bounds, duplicate rejection, one-frame actions, 120-second lifecycle, cancellation, no partial commit |
+| Verification | match/no-match/ambiguous thresholds, median aggregation, no-profile/mismatch errors, cancellation, timeout, stale generations, rate limiting |
+| KCM/QML | all pages create offscreen, keyboard focus and accessibility names, destructive dialogs, page/app/preview teardown |
+| Status/privacy | separate local identity capabilities, PAM/system states unsupported, aggregate-only support reports, no embeddings/scores in QML |
+| Security | no PAM/authselect writes, service, privilege, socket/network, runtime download, production fake selector, arbitrary production vault root |
+| Packaging | exact dependencies/files/licenses/workers, ordinary permissions, no auth scriptlets, reproducible archive/SRPM/RPM and isolated lifecycle |
+| Localization | all active user-visible messages have checked Swedish translations |
 
-Real camera and licensed positive-fixture inference remain separate
-qualification tasks. Passing synthetic tests is not evidence that recognition,
-liveness, enrollment, or authentication works.
+Hardware, representative FAR/FRR, demographic/bias behavior, liveness, and
+spoof resistance are deliberately separate qualification evidence.

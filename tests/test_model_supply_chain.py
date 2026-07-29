@@ -38,6 +38,14 @@ class ModelSupplyChainTest(unittest.TestCase):
         yunet = next(entry for entry in entries if entry.artifact_id == "yunet-2023mar")
         self.assertEqual(yunet.backend, "opencv-facedetectoryn")
         self.assertEqual(yunet.size, 232589)
+        sface = next(entry for entry in entries if entry.artifact_id == "sface-2021dec")
+        self.assertEqual(sface.backend, "opencv-facerecognizersf")
+        self.assertEqual(sface.license, "Apache-2.0")
+        self.assertEqual(sface.size, 38696353)
+        self.assertEqual(
+            sface.sha256,
+            "0ba9fbfa01b5270c96627c4ef784da859931e02f04419c829e83484087c34e79",
+        )
 
     def test_missing_file_is_rejected(self) -> None:
         (self.root / "files" / "face_detection_yunet_2023mar.onnx").unlink()
@@ -51,6 +59,22 @@ class ModelSupplyChainTest(unittest.TestCase):
     def test_modified_file_is_rejected(self) -> None:
         path = self.root / "files" / "face_detection_yunet_2023mar.onnx"
         path.write_bytes(path.read_bytes() + b"modified")
+        self.assert_rejected()
+
+    def test_modified_sface_file_is_rejected(self) -> None:
+        path = self.root / "files" / "face_recognition_sface_2021dec.onnx"
+        with path.open("r+b") as artifact:
+            artifact.seek(1024)
+            original = artifact.read(1)
+            artifact.seek(1024)
+            artifact.write(bytes([original[0] ^ 1]))
+        self.assert_rejected()
+
+    def test_duplicate_sface_manifest_entry_is_rejected(self) -> None:
+        manifest = self.root / verify_models.MANIFEST_NAME
+        lines = manifest.read_text(encoding="utf-8").splitlines()
+        sface = next(line for line in lines if line.startswith("sface-2021dec\t"))
+        manifest.write_text("\n".join(lines + [sface]) + "\n", encoding="utf-8")
         self.assert_rejected()
 
     def test_unlisted_file_is_rejected(self) -> None:

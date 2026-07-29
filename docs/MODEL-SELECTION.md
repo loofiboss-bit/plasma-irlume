@@ -1,6 +1,6 @@
 # Model selection
 
-Status: Milestone 3 production decision, reviewed 2026-07-29.
+Status: Milestone 4 detector inventory, reviewed 2026-07-29.
 
 This document treats source-code and model-weight licensing as separate
 questions. A repository license is not used as evidence for a weight unless the
@@ -107,18 +107,16 @@ tests.
   packaging surface without a benefit over YuNet for the current Fedora/OpenCV
   target.
 
-## Embedding candidates
+## Embedding model
 
-Embeddings, matching, identity thresholds, enrollment, and persistent templates
-are explicit Milestone 2 non-goals. No embedding weight is installed.
-
-### OpenCV Zoo SFace FP32 — license-compatible, not selected
+### OpenCV Zoo SFace FP32 — selected in Milestone 4
 
 - Exact source:
   `face_recognition_sface_2021dec.onnx` at OpenCV Zoo revision
   `47534e27c9851bb1128ccc0102f1145e27f23f98`.
-- Upstream SHA-256:
-  `0ba9fbfae6b4133de06d0e2c9784dc428115edb2c5a25a6f85f3c97e87c34e79`.
+- Actual Git LFS object size: 38,696,353 bytes.
+- Actual SHA-256:
+  `0ba9fbfa01b5270c96627c4ef784da859931e02f04419c829e83484087c34e79`.
 - Weight license: Apache-2.0 is applied explicitly by the
   [model-directory license](https://github.com/opencv/opencv_zoo/blob/47534e27c9851bb1128ccc0102f1145e27f23f98/models/face_recognition_sface/LICENSE).
 - Code license: OpenCV `FaceRecognizerSF` code is Apache-2.0.
@@ -126,11 +124,14 @@ are explicit Milestone 2 non-goals. No embedding weight is installed.
   notice requirements.
 - Input/output: an aligned face crop is converted to an embedding vector;
   OpenCV exposes cosine and L2 comparison helpers.
-- Size and CPU: 38,696,353 bytes; no primary Fedora CPU latency measurement was
-  found.
-- Rejection reason: embeddings and matching are outside this milestone, the
-  artifact is much larger than the selected detector, and no authentication,
-  privacy, threshold, or template-protection qualification exists.
+- Decision: selected as the conservative FP32 baseline. Quantized variants are
+  smaller but lack representative KFaceAuth parity evidence.
+- Limits: the current threshold is provisional and local-only. FAR, FRR, bias,
+  spoofing, liveness, and authentication suitability remain unqualified.
+
+The full FP32/quantized, licensing, alignment, preprocessing, accuracy, and
+limitations record is
+[EMBEDDING-MODEL-SELECTION.md](EMBEDDING-MODEL-SELECTION.md).
 
 ### InsightFace ArcFace/Buffalo weights — rejected
 
@@ -146,16 +147,16 @@ are explicit Milestone 2 non-goals. No embedding weight is installed.
 
 ## Remaining qualification
 
-Before detector evidence can support a later embedding-model decision, the
-project still needs:
+Before local identity can support liveness or authentication work, the project
+still needs:
 
 1. a verified, redistributable positive fixture for automated real detections;
 2. real-camera latency and error behavior across the supported RGB/IR matrix;
 3. pose, scale, occlusion, lighting, glasses, and ordinary appearance
    qualification;
-4. documented crop/alignment requirements for candidate embedding models;
-5. a separate licensing, privacy, bias, threshold, and template-security
-   review.
+4. representative FAR/FRR and bias evaluation for the documented alignment and
+   normalized embedding contract;
+5. independent privacy, threshold, template-security, and spoof review.
 
-None of those gates may be interpreted as identity, liveness, anti-spoofing, or
-authentication qualification.
+Milestone 4 local matching is not liveness, anti-spoofing, or authentication
+qualification.

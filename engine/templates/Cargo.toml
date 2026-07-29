@@ -5,5 +5,9 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 
+[dependencies]
+kfaceauth-crypto-openssl-sys = { path = "../crypto-openssl-sys" }
+kfaceauth-identity-types = { path = "../identity-types" }
+
 [lints]
 workspace = true

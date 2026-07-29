@@ -1,5 +1,18 @@
 # Changelog
 
+## Milestone 4 development
+
+- Select and package the verified Apache-2.0 SFace FP32 weight and add bounded
+  YuNet-landmark alignment, 128-value FP32 extraction, L2 normalization, and
+  cosine matching through the reviewed OpenCV boundary.
+- Add the short-lived identity worker, closed protocol, AES-256-GCM current-UID
+  vault, and KDE KWallet-only production master-key provider.
+- Add explicit bounded enrollment, aggregate profile status, deletion/reset,
+  and rate-limited one-frame local recognition with high-level results only.
+- Keep all matching experimental and in-session; PAM, authselect, system
+  authorization, liveness, spoof claims, networking, and privileged services
+  remain unsupported.
+
 ## Milestone 3 development
 
 - Enable real local YuNet face detection through Fedora OpenCV 4.13 and a
